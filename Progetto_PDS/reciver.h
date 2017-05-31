@@ -4,5 +4,5 @@
 #include "utente.h"
 #include <boost/thread.hpp>
 
-void reciveUDPMessage(utente& utenteProprietario);
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath);
 

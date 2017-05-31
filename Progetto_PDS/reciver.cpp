@@ -9,9 +9,9 @@
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
-void iscriviUtente(std::string username, std::string ipAddr,utente& utenteProprietario);
+void iscriviUtente(std::string username, std::string ipAddr,utente& utenteProprietario, std::string generalPath);
 
-void reciveUDPMessage(utente& utenteProprietario) {
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
 	
 
 	boost::asio::io_service io_service;
@@ -41,14 +41,14 @@ void reciveUDPMessage(utente& utenteProprietario) {
 		//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
 		size_t found = reciveMessage.find("+GETADDR");
 		if (found == std::string::npos)
-			iscriviUtente(reciveMessage, ipAddr, utenteProprietario);
+			iscriviUtente(reciveMessage, ipAddr, utenteProprietario, generalPath);
 	}
 	
 	s.close();
 	return;
 }
 
-void iscriviUtente(std::string username, std::string ipAddr, utente& utenteProprietario) {
+void iscriviUtente(std::string username, std::string ipAddr, utente& utenteProprietario, std::string generalPath) {
 
 	//se attivato a true, evita di ricevere i pacchetti per l'iscrizione in loopback
 	if (true) {
@@ -64,7 +64,6 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 		return;
 	}
 
-	utenteProprietario.addUtente(username, ipAddr, currentTime);
 	//Se aggiungo l'utente, gli richiedo l'immagine
 	//Il protocollo che utilizzerò sarà
 	//Invia +IM
@@ -75,7 +74,7 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 	//Chiudi tutto
 
 	//Qua dovrà andare il path della mia immagine di default
-	std::string filePath("C:\\Users\\ander\\Desktop\\Progetto_PDS\\user_leo_mia.png");
+	std::string filePath(generalPath + "profilo.png");
 
 	boost::asio::io_service io_service;
 	tcp::resolver resolver(io_service);
@@ -177,6 +176,8 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 	s.close();
 	io_service.stop();
 
+	//IMPORTANTE CHE QUESTO STIA DOPO!
+	utenteProprietario.addUtente(username, ipAddr, currentTime);
 
 }
 

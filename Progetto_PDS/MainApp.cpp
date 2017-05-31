@@ -68,9 +68,12 @@ bool MainApp::OnInit()
 		m_frame->Show();
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
-		path.replace(path.end() - str.length(), path.end(), "user_default.png");
+		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
 		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
-		m_settings->setImagePath(path);
+		//m_settings->setImagePath(path);
+		path.replace(path.end() - str.length(), path.end(), "");
+		m_settings->setGeneralPath(path);
+		//wxMessageBox(m_settings->getGeneralPath(), wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 
 		//wxString filepath = wxT("C:\\Users\\ander\\Desktop\\Progetto_PDS\\user_default.png");
@@ -121,8 +124,10 @@ bool MainApp::OnInit()
 			m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
 			boost::thread sendUdpMessageThread(sendUDPMessage, m_settings->getUserName(),  m_settings->getStato());
-			boost::thread reciveUdpMessageThread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()));
-			boost::thread reciveTCPfileThread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()));
+			//Qua dovrei passare anche m_settings->getGeneralPath();
+			boost::thread reciveUdpMessageThread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath());
+			//Qua dovrei passare anche m_settings
+			boost::thread reciveTCPfileThread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath());
 			
 			m_frame->StartServer();
 

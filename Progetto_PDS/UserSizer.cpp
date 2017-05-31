@@ -17,7 +17,12 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 
 	//preparo l'immagine utente
 	//wxString filepath = wxT("C:\\Users\\ander\\Desktop\\Progetto_PDS\\user_default.png");
-	wxString filepath = wxT("C:\\Users\\ander\\Desktop\\Progetto_PDS\\" + user.getIpAddr() + ".png");
+	//**Si deve creare un path "generale" qui
+
+	//wxString filepath = wxT("C:\\Users\\Sergio\\Desktop\\Progetto_PDS\\" + user.getIpAddr() + ".png");
+
+	//wxMessageBox("" + m_settings->getGeneralPath() + "local_image\\" + user.getIpAddr() + ".png", wxT("INFO"), wxOK | wxICON_INFORMATION);
+	wxString filepath = wxT("" + m_settings->getGeneralPath() +"local_image\\" + user.getIpAddr() + ".png");
 	wxPNGHandler *handler = new wxPNGHandler();
 	////wxJPEGHandler *handler = new wxJPEGHandler();
 	wxImage::AddHandler(handler);

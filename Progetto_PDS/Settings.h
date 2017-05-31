@@ -24,6 +24,8 @@ private:
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(true) o off-line(false)
 	std::string m_ImagePath;
+	//AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
+	std::string m_GeneralPath;
 
 public:
 	Settings() { m_utenteProprietario = NULL; m_stato = status::STAT_ONLINE; }
@@ -37,6 +39,12 @@ public:
 
 	void setImagePath(std::string imagePath) { m_ImagePath = imagePath; }
 	std::string getImagePath() { return m_ImagePath; }
+	//AGGIUNTA DA SERGIO
+	void setGeneralPath(std::string generalPath) { m_GeneralPath = generalPath; }
+	std::string getGeneralPath() {return  m_GeneralPath; };
+
+
+
 
 	std::string getUserName() { return m_utenteProprietario->getUsername(); }
 

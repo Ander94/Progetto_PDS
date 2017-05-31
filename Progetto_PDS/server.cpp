@@ -2,18 +2,19 @@
 #include <cstdlib>
 #include <cstring>
 #include "server.h"
-#include "boost\asio.hpp"
+#include "boost/asio.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 
 #include <windows.h>
+
 #define BUFLEN 65536
 using boost::asio::ip::tcp;
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, bool print);
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario);
+void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath);
 
 std::wstring s2ws(const std::string& s);
-void reciveTCPfile(utente& utenteProprietario) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath) {
 
 	try {
 		//Dichiaro le strutture boost necessarie
@@ -27,9 +28,9 @@ void reciveTCPfile(utente& utenteProprietario) {
 		{
 			//Accetto una nuova richesta
 			a.accept(s);
-			service(s, utenteProprietario);
+			//service(s, utenteProprietario, generalPath);
 			//Chiamo service qui
-			//reciveAfterAccept(s, utenteProprietario);
+			reciveAfterAccept(s, utenteProprietario, generalPath);
 		}
 		io_service.stop();
 	}
@@ -40,11 +41,12 @@ void reciveTCPfile(utente& utenteProprietario) {
 	return;
 }
 
-void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario) {
-	boost::thread(service, boost::ref(s), boost::ref(utenteProprietario));
+void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath) {
+	service(s, utenteProprietario, generalPath);
+	//boost::thread(service, boost::ref(s), utenteProprietario, generalPath);
 }
 
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario) {
+void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath) {
 	int length;
 	//unsigned int i;
 	char buf[256];
@@ -82,7 +84,8 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& 
 		boost::asio::write(s, boost::asio::buffer(response));
 
 		//Ricevo il file
-		recive_file(s, "C:\\Users\\ander\\Desktop\\Progetto_PDS\\" + ipAddrRemote + ".png", false);
+
+		recive_file(s, generalPath + "local_image\\" + ipAddrRemote + ".png", false);
 		response = "+OK\0";
 		boost::asio::write(s, boost::asio::buffer(response));
 	}
