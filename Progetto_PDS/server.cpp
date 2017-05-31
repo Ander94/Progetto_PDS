@@ -11,10 +11,11 @@
 #define BUFLEN 65536
 using boost::asio::ip::tcp;
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, bool print);
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath);
+void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
 std::wstring s2ws(const std::string& s);
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe) {
+
 
 	try {
 		//Dichiaro le strutture boost necessarie
@@ -28,10 +29,10 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 		{
 			//Accetto una nuova richesta
 			a.accept(s);
-			
+			//mainframe->showBal("Ricezione!", "Ricezione di un nuovo file");
 			//service(s, utenteProprietario, generalPath);
 			//Chiamo service qui
-			reciveAfterAccept(s, utenteProprietario, generalPath);
+			reciveAfterAccept(s, utenteProprietario, generalPath, mainframe);
 		}
 		io_service.stop();
 	}
@@ -42,13 +43,14 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 	return;
 }
 
-void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath) {
-	service(s, utenteProprietario, generalPath);
+void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+	service(s, utenteProprietario, generalPath,  mainframe);
 	//boost::thread(service, boost::ref(s), utenteProprietario, generalPath);
 }
 
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath) {
+void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	int length;
+	bool first_directory = true;
 	//unsigned int i;
 	char buf[256];
 	std::string ipAddrRemote;
@@ -74,6 +76,7 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		//Creo la directory per ricevere il file
 		CreateDirectory(L"./download/", NULL);
 		//Ricevo il file
+		mainframe->showBal("Ricezione file", fileName +"\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 		recive_file(s, "./download/" + fileName, true);
 
 		std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
@@ -126,6 +129,10 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 				buf[length] = '\0';
 				fileName = buf;
 				//**
+				if (first_directory==true) {
+					mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					first_directory = false;
+				}
 				std::string pathName("./download/" + fileName);
 				//Rispondo ok se riesco ad ivniare il path
 				//	std::cout << "**Server: Ricevo " << pathName << std::endl;

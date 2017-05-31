@@ -119,7 +119,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf[length] = '\0';
 	std::string response(buf);
 	if (response != "+OK") {
-		printf("Errore nella recezione del direttorio.\n");
+		printf("Errore nella ricezione del direttorio.\n");
 		return;
 	}
 

@@ -88,6 +88,10 @@ MainFrame::~MainFrame()
 	wxDELETE(m_server);
 }
 
+void MainFrame::showBal(std::string title, std::string message) {
+	m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
+}
+
 void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
 	static const char * const title = "About wxWidgets Taskbar Sample";

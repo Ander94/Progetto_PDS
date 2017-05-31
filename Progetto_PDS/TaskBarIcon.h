@@ -41,6 +41,7 @@ public:
 	void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
 	//
 	void OnMenuSub(wxCommandEvent&);
+	
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
 	wxDECLARE_EVENT_TABLE();
@@ -68,12 +69,13 @@ public:
 	MyClient *GetClient() { return m_client; }
 
 	void SendFile(std::string path);
-
+	void MainFrame::showBal(std::string title, std::string message);
 protected:
 	void OnAbout(wxCommandEvent& event);
 	void OnOK(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
+
 
 	TaskBarIcon *m_taskBarIcon;
 
