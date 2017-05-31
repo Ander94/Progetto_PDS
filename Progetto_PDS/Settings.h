@@ -56,9 +56,15 @@ public:
 	void setIsDir(bool isDir) { m_isDir = isDir; }
 	bool getIsDir() { return m_isDir; }
 
-	void setStatoOn() { m_stato = status::STAT_ONLINE; }
-	void setStatoOff() { m_stato = status::STAT_OFFLINE; }
-	status getStato() { return m_stato; }
+	void setStatoOn() {
+		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_stato = status::STAT_ONLINE; }
+	void setStatoOff() {
+		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
+		m_stato = status::STAT_OFFLINE; }
+	status& getStato() { 
+		
+		return m_stato; }
 
 	static void string_rand(std::string& unique_str) {
 		srand(time(NULL));

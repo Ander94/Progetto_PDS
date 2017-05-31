@@ -18,7 +18,7 @@
 
 #include "MainApp.h"
 #include "TaskBarIcon.h"
-
+#include "boost\asio.hpp"
 
 IMPLEMENT_APP(MainApp)
 
@@ -123,11 +123,11 @@ bool MainApp::OnInit()
 			//avvio l'applicazione per la prima volta
 			m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
-			boost::thread sendUdpMessageThread(sendUDPMessage, m_settings->getUserName(),  m_settings->getStato());
+			boost::thread sendUdpMessageThread(sendUDPMessage, m_settings->getUserName(),  boost::ref(m_settings->getStato()));
 			//Qua dovrei passare anche m_settings->getGeneralPath();
 			boost::thread reciveUdpMessageThread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath());
 			//Qua dovrei passare anche m_settings
-			boost::thread reciveTCPfileThread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath());
+			boost::thread reciveTCPfileThread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame);
 			
 			m_frame->StartServer();
 
@@ -208,6 +208,6 @@ int MainApp::OnExit()
 	status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::out);
 	status_file << n - 1;
 	status_file.close();*/
-		wxMessageBox("Tutto ok!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		//wxMessageBox("Tutto ok!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 	return 0;
 }

@@ -14,7 +14,7 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath);
 
 std::wstring s2ws(const std::string& s);
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe) {
 
 	try {
 		//Dichiaro le strutture boost necessarie
@@ -28,6 +28,7 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath) {
 		{
 			//Accetto una nuova richesta
 			a.accept(s);
+			
 			//service(s, utenteProprietario, generalPath);
 			//Chiamo service qui
 			reciveAfterAccept(s, utenteProprietario, generalPath);
@@ -74,6 +75,7 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		CreateDirectory(L"./download/", NULL);
 		//Ricevo il file
 		recive_file(s, "./download/" + fileName, true);
+
 		std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
 	}
 

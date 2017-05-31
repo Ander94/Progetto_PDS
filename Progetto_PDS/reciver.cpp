@@ -1,6 +1,7 @@
 #include "reciver.h"
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost\filesystem.hpp>
 #include <iterator>
 #include <fstream>
 
@@ -51,7 +52,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
 void iscriviUtente(std::string username, std::string ipAddr, utente& utenteProprietario, std::string generalPath) {
 
 	//se attivato a true, evita di ricevere i pacchetti per l'iscrizione in loopback
-	if (true) {
+	if (false) {
 		if (utenteProprietario.getIpAddr() == ipAddr) {
 			return;
 		}
@@ -75,6 +76,10 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 
 	//Qua dovrà andare il path della mia immagine di default
 	std::string filePath(generalPath + "profilo.png");
+
+	if (boost::filesystem::is_regular_file(filePath)!=true) {
+		filePath = generalPath + "user_default.png";
+	}
 
 	boost::asio::io_service io_service;
 	tcp::resolver resolver(io_service);

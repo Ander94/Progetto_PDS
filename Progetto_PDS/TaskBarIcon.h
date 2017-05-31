@@ -2,6 +2,7 @@
 
 
 //#include "utente.h"
+#include "Settings.h"
 
 #include <wx/wx.h>
 #include <wx/taskbar.h>
@@ -20,14 +21,25 @@
 
 class TaskBarIcon : public wxTaskBarIcon
 {
+private:
+	class Settings* m_settings;
 public:
-	TaskBarIcon() {}
+	//Strano qui
+	TaskBarIcon(class Settings* settings) {
+		m_settings = settings;
+	}
 
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
 	void OnMenuRestore(wxCommandEvent&);
 	void OnMenuExit(wxCommandEvent&);
 	void OnMenuCheckmark(wxCommandEvent&);
 	void OnMenuUICheckmark(wxUpdateUIEvent&);
+	//MIO
+	void OnMenuCheckmarkOnline(wxCommandEvent&);
+	void OnMenuUICheckmarkOnline(wxUpdateUIEvent&);
+	void OnMenuCheckmarkOffline(wxCommandEvent&);
+	void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
+	//
 	void OnMenuSub(wxCommandEvent&);
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
@@ -50,20 +62,19 @@ private:
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
-	
 	bool StartServer();
 	bool StartClient();
 	MyServer *GetServer() { return m_server; }
 	MyClient *GetClient() { return m_client; }
-	
+
 	void SendFile(std::string path);
-	void ReciveFile();
+
 protected:
 	void OnAbout(wxCommandEvent& event);
 	void OnOK(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
-	//void OnServerEvent(wxThreadEvent& event);
+
 	TaskBarIcon *m_taskBarIcon;
 
 	wxDECLARE_EVENT_TABLE();
