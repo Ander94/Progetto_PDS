@@ -127,7 +127,7 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 			buf[length] = '\0';
 			std::string response(buf);
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 
@@ -137,7 +137,7 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 			length = s.read_some(boost::asio::buffer(buf, 256));
 			buf[length] = '\0';
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 
@@ -161,7 +161,7 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 			length = s.read_some(boost::asio::buffer(buf, 256));
 			buf[length] = '\0';
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 			file_in.close();

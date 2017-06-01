@@ -135,7 +135,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf[length] = '\0';
 	response = buf;
 	if (response != "+OK") {
-		printf("Errore nella recezione del direttorio.\n");
+		printf("Errore nella ricezione del direttorio.\n");
 		return;
 	}
 
@@ -149,7 +149,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf[length] = '\0';
 	response = buf;
 	if (response != "+OK") {
-		printf("Errore nella recezione del direttorio.\n");
+		printf("Errore nella ricezione del direttorio.\n");
 		return;
 	}
 
@@ -206,7 +206,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 
 			//std::cout << "Client: ricevo " << response << std::endl;
 			if (response != "+OK") {
-				printf("Errore nella recezione del direttorio.\n");
+				printf("Errore nella ricezione del direttorio.\n");
 				return;
 			}
 			boost::asio::write(s, boost::asio::buffer(relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder)));
@@ -216,7 +216,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			buf[length] = '\0';
 			response = buf;
 			if (response != "+OK") {
-				printf("Errore nella recezione del direttorio.\n");
+				printf("Errore nella ricezione del direttorio.\n");
 				return;
 			}
 		}
@@ -262,7 +262,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			buf[length] = '\0';
 			std::string response(buf);
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 			//invio qui il nome del file
@@ -274,7 +274,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			response.clear();
 			response = buf;
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 			//Invio qui la dimensione del file
@@ -283,7 +283,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			length = s.read_some(boost::asio::buffer(buf, 256));
 			buf[length] = '\0';
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la recezione del file." << std::endl;
+				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
 				return;
 			}
 
