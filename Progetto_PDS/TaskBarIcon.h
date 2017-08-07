@@ -59,7 +59,10 @@ private:
 	class WindowSelectUser* m_selectUser;
 	MyClient* m_client;
 	class MyServer* m_server;
+	wxTimer* m_timer;
+	wxTextCtrl* m_elencoUser;
 
+	void OnTimer(wxTimerEvent& event);
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();

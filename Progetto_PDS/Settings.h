@@ -32,7 +32,6 @@ public:
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }
 
-	//TODO chiedere come gestire utente proprietario
 	void NewUtenteProprietario(std::string nomeUtente, std::string ip) { m_utenteProprietario = new utente(nomeUtente, ip); }
 	//void NewUtenteProprietario() { m_utenteProprietario = new utente(); }
 	utente& getUtenteProprietario() { return *m_utenteProprietario; }

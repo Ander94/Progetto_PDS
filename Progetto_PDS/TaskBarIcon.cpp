@@ -9,6 +9,9 @@
 #include "Settings.h"
 #include "MainApp.h"
 
+enum {
+	TIMER_ID = 10000
+};
 
 // ----------------------------------------------------------------------------
 // global variables
@@ -26,6 +29,7 @@ EVT_BUTTON(wxID_ABOUT, MainFrame::OnAbout)
 EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_CLOSE(MainFrame::OnCloseWindow)
+EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 wxEND_EVENT_TABLE()
 
 
@@ -35,11 +39,22 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	m_client = NULL;
 	m_server = NULL;
 	m_settings = settings;
-
+	m_timer = new wxTimer(this, TIMER_ID);
+	m_elencoUser = new wxTextCtrl
+	(
+		this,
+		wxID_ANY,
+		wxT("Ricerca degli utenti connessi in corso"),
+		wxDefaultPosition,
+		wxSize(300, 80),
+		wxTE_MULTILINE | wxTE_READONLY
+	);
 	wxSizer * const sizerTop = new wxBoxSizer(wxVERTICAL);
 
 	wxSizerFlags flags;
 	flags.Border(wxALL, 10);
+
+	sizerTop->Add(m_elencoUser, flags);
 
 	sizerTop->Add(new wxStaticText
 	(
@@ -78,7 +93,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	gs_dialog = this;
 
-
+	m_timer->Start(5000); //5 sec
 }
 
 MainFrame::~MainFrame()
@@ -116,7 +131,19 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
+	m_timer->Stop();
 	Destroy();
+}
+
+void MainFrame::OnTimer(wxTimerEvent& event)
+{
+	utente user = m_settings->getUtenteProprietario();
+	m_elencoUser->Clear();
+	for (auto it : user.getUtentiConnessi()) {
+		(*m_elencoUser) << it.getUsername();
+	}
+	if (m_elencoUser->IsEmpty())
+		(*m_elencoUser) << "Nessun utente connesso.";
 }
 
 bool MainFrame::StartServer() {

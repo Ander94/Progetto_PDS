@@ -10,7 +10,6 @@
 #include <map>
 #include <memory>
 
-
 class WindowSelectUser : public wxFrame 
 {
 private:
