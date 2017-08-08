@@ -63,16 +63,18 @@ bool MainApp::OnInit()
 	try
 	{
 		m_settings = new Settings();
+		std::string path = argv[0];
+		std::string str = "Progetto_PDS.exe";
+		path.replace(path.end() - str.length(), path.end(), "");
+		m_settings->setGeneralPath(path);
+		m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
+
 		m_frame = new MainFrame("LAN Sharing Service", m_settings);
 		SetTopWindow(m_frame);
 		m_frame->Show();
-		std::string path = argv[0];
-		std::string str = "Progetto_PDS.exe";
 		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
 		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
 		//m_settings->setImagePath(path);
-		path.replace(path.end() - str.length(), path.end(), "");
-		m_settings->setGeneralPath(path);
 		//wxMessageBox(m_settings->getGeneralPath(), wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 
@@ -121,7 +123,6 @@ bool MainApp::OnInit()
 			//wxMessageBox("Stampato running", wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 			//avvio l'applicazione per la prima volta
-			m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
 			boost::thread sendUdpMessageThread(sendUDPMessage, m_settings->getUserName(),  boost::ref(m_settings->getStato()));
 			//Qua dovrei passare anche m_settings->getGeneralPath();

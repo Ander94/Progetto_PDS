@@ -10,7 +10,8 @@
 #include "MainApp.h"
 
 enum {
-	TIMER_ID = 10000
+	TIMER_ID = 15000,
+	IMG_ID
 };
 
 // ----------------------------------------------------------------------------
@@ -28,6 +29,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_BUTTON(wxID_ABOUT, MainFrame::OnAbout)
 EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
+EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 wxEND_EVENT_TABLE()
@@ -49,10 +51,57 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxSize(300, 80),
 		wxTE_MULTILINE | wxTE_READONLY
 	);
-	wxSizer * const sizerTop = new wxBoxSizer(wxVERTICAL);
+	m_changeImage = new wxButton
+	(
+		this,
+		IMG_ID,
+		"CAMBIA IMMAGINE",
+		wxDefaultPosition,
+		wxDefaultSize
+	);
+	wxString filepath = wxT("" + m_settings->getGeneralPath() + "profilo.png");
+	wxPNGHandler *handler = new wxPNGHandler();
+	wxImage::AddHandler(handler);
+	wxImage *img = new wxImage();
+	img->LoadFile(filepath, wxBITMAP_TYPE_PNG, -1);
+	m_userImage = new wxStaticBitmap
+	(
+		this,
+		wxID_ANY,
+		wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition,
+		wxDefaultSize
+	);
+
+	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
 
 	wxSizerFlags flags;
 	flags.Border(wxALL, 10);
+
+	wxSizer* sizer1 = new wxBoxSizer(wxHORIZONTAL);
+	sizer1->Add(m_userImage, flags);
+
+	wxSizer* sizer2 = new wxBoxSizer(wxVERTICAL);
+	sizer2->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		wxT("" + m_settings->getUserName())
+	), flags);
+	std::string stato;
+	m_settings->getStato() ? stato = "offline" : stato = "online";
+
+	sizer2->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		wxT("Stato: " + stato)
+	), flags);
+	sizer2->Add(m_changeImage, flags);
+
+	sizer1->Add(sizer2, flags);
+
+	sizerTop->Add(sizer1, flags);
 
 	sizerTop->Add(m_elencoUser, flags);
 
@@ -144,6 +193,16 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 	}
 	if (m_elencoUser->IsEmpty())
 		(*m_elencoUser) << "Nessun utente connesso.";
+}
+
+void MainFrame::OnImage(wxCommandEvent& event)
+{
+	wxFileDialog openFileDialog(this, _("Scegli un'immagine"), wxT("C:\\Users\\" + m_settings->getUserName() + "\\Desktop\\"), "",
+			"JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	if (openFileDialog.ShowModal() == wxID_CANCEL)
+		return;     // the user changed idea...
+	//TODO: cambiare immagine di profilo con quella nuova
+	//openFileDialog.GetPath();
 }
 
 bool MainFrame::StartServer() {

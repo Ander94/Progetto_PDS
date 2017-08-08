@@ -61,8 +61,11 @@ private:
 	class MyServer* m_server;
 	wxTimer* m_timer;
 	wxTextCtrl* m_elencoUser;
+	wxButton* m_changeImage;
+	wxStaticBitmap* m_userImage;
 
 	void OnTimer(wxTimerEvent& event);
+	void OnImage(wxCommandEvent& event);
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
