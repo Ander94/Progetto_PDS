@@ -9,6 +9,8 @@
 #include "Settings.h"
 #include "MainApp.h"
 
+#include <filesystem> //per la funzione "copy"
+
 enum {
 	TIMER_ID = 15000,
 	IMG_ID
@@ -59,11 +61,11 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
-	wxString filepath = wxT("" + m_settings->getGeneralPath() + "profilo.png");
+	m_settings->setImagePath("" + m_settings->getGeneralPath() + "profilo.png");
 	wxPNGHandler *handler = new wxPNGHandler();
 	wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
-	img->LoadFile(filepath, wxBITMAP_TYPE_PNG, -1);
+	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_PNG, -1);
 	m_userImage = new wxStaticBitmap
 	(
 		this,
@@ -89,7 +91,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxT("" + m_settings->getUserName())
 	), flags);
 	std::string stato;
-	m_settings->getStato() ? stato = "offline" : stato = "online";
+	m_settings->getStato() ? stato = "offline" : stato = "online";	//TODO gestire passaggio da online a offline
 
 	sizer2->Add(new wxStaticText
 	(
@@ -132,12 +134,11 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	m_taskBarIcon = new TaskBarIcon(m_settings);
 
-	// we should be able to show up to 128 characters on Windows
 	if (!m_taskBarIcon->SetIcon(wxIcon(share_icon),
 		"Sharing service\n"
-		"Click to star sharing!"))
+		"Click to start sharing!"))
 	{
-		wxLogError(wxT("Could not set icon."));
+		wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
 	}
 
 	gs_dialog = this;
@@ -198,11 +199,18 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 void MainFrame::OnImage(wxCommandEvent& event)
 {
 	wxFileDialog openFileDialog(this, _("Scegli un'immagine"), wxT("C:\\Users\\" + m_settings->getUserName() + "\\Desktop\\"), "",
-			"JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			"All files (*.*)|*.*|JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...
 	//TODO: cambiare immagine di profilo con quella nuova
-	//openFileDialog.GetPath();
+	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getImagePath(), boost::filesystem::copy_option::overwrite_if_exists);
+	
+	wxPNGHandler *handler = new wxPNGHandler();
+	wxImage::AddHandler(handler);
+	wxImage *img = new wxImage();
+	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_PNG, -1);
+	m_userImage->SetBitmap(wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)));
+	Update();
 }
 
 bool MainFrame::StartServer() {
@@ -231,7 +239,7 @@ void MainFrame::SendFile(std::string path) {
 	else if (boost::filesystem::is_regular_file(path))
 		m_settings->setIsDir(false);
 	else {
-		wxMessageBox("Il path specificato non valido!", "Warning", wxOK | wxICON_EXCLAMATION);
+		wxMessageBox("Il path specificato è non valido!", "Warning", wxOK | wxICON_EXCLAMATION);
 		return;
 	}
 	m_settings->setSendPath(path);
