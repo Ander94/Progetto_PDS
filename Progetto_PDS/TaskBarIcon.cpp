@@ -13,7 +13,8 @@
 
 enum {
 	TIMER_ID = 15000,
-	IMG_ID
+	IMG_ID,
+	RADIO_ID
 };
 
 // ----------------------------------------------------------------------------
@@ -34,6 +35,7 @@ EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
+EVT_RADIOBOX(RADIO_ID, MainFrame::OnRadioBox)
 wxEND_EVENT_TABLE()
 
 
@@ -53,6 +55,22 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxSize(300, 80),
 		wxTE_MULTILINE | wxTE_READONLY
 	);
+	wxString* items = new wxString[2];
+	items[0] = wxT("Online");
+	items[1] = wxT("Offline");
+	m_status = new wxRadioBox
+	(
+		this,
+		RADIO_ID,
+		wxT("Stato: "),
+		wxDefaultPosition,
+		wxDefaultSize,
+		2,
+		items,
+		0,
+		wxRA_SPECIFY_ROWS
+	);
+
 	m_changeImage = new wxButton
 	(
 		this,
@@ -97,13 +115,15 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	(
 		this,
 		wxID_ANY,
-		wxT("Stato: " + stato)
+		stato
 	), flags);
 	sizer2->Add(m_changeImage, flags);
 
 	sizer1->Add(sizer2, flags);
 
 	sizerTop->Add(sizer1, flags);
+
+	sizerTop->Add(m_status, flags);
 
 	sizerTop->Add(m_elencoUser, flags);
 
@@ -213,7 +233,22 @@ void MainFrame::OnImage(wxCommandEvent& event)
 	Update();
 }
 
-bool MainFrame::StartServer() {
+void MainFrame::OnRadioBox(wxCommandEvent& event)
+{
+	int sel = m_status->GetSelection();
+	if (sel == 0) {
+		wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_settings->setStatoOn();
+	}
+	else {
+		wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_settings->setStatoOff();
+	}
+
+}
+
+bool MainFrame::StartServer() 
+{
 	m_server = new MyServer(this);
 	wxString servername = IPC_SERVICE;
 	if (!m_server->Create(servername)) {
@@ -224,7 +259,8 @@ bool MainFrame::StartServer() {
 	return true;
 }
 
-bool MainFrame::StartClient() {
+bool MainFrame::StartClient() 
+{
 	m_client = new MyClient();
 	if (!m_client->Connect(IPC_HOST, IPC_SERVICE, IPC_TOPIC)) {
 		wxDELETE(m_client);
@@ -233,7 +269,8 @@ bool MainFrame::StartClient() {
 	return true;
 }
 
-void MainFrame::SendFile(std::string path) {
+void MainFrame::SendFile(std::string path) 
+{
 	if (boost::filesystem::is_directory(path))
 		m_settings->setIsDir(true);
 	else if (boost::filesystem::is_regular_file(path))

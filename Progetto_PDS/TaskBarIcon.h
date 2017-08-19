@@ -63,9 +63,11 @@ private:
 	wxTextCtrl* m_elencoUser;
 	wxButton* m_changeImage;
 	wxStaticBitmap* m_userImage;
+	wxRadioBox* m_status;
 
 	void OnTimer(wxTimerEvent& event);
 	void OnImage(wxCommandEvent& event);
+	void OnRadioBox(wxCommandEvent& event);
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
