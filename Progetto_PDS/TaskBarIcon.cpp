@@ -36,6 +36,7 @@ EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID, MainFrame::OnRadioBox)
+EVT_UPDATE_UI(RADIO_ID, MainFrame::OnMenuUICheckmark)
 wxEND_EVENT_TABLE()
 
 
@@ -108,15 +109,11 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxID_ANY,
 		wxT("" + m_settings->getUserName())
 	), flags);
+	
 	std::string stato;
-	m_settings->getStato() ? stato = "offline" : stato = "online";	//TODO gestire passaggio da online a offline
-
-	sizer2->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		stato
-	), flags);
+	m_settings->getStato() ? stato = "offline" : stato = "online";	
+	m_textStato = new wxStaticText(this, wxID_ANY, stato);
+	sizer2->Add(m_textStato, flags);
 	sizer2->Add(m_changeImage, flags);
 
 	sizer1->Add(sizer2, flags);
@@ -222,7 +219,6 @@ void MainFrame::OnImage(wxCommandEvent& event)
 			"All files (*.*)|*.*|JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...
-	//TODO: cambiare immagine di profilo con quella nuova
 	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getImagePath(), boost::filesystem::copy_option::overwrite_if_exists);
 	
 	wxPNGHandler *handler = new wxPNGHandler();
@@ -237,14 +233,26 @@ void MainFrame::OnRadioBox(wxCommandEvent& event)
 {
 	int sel = m_status->GetSelection();
 	if (sel == 0) {
-		wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOn();
+		m_textStato->SetLabel("online");
 	}
 	else {
-		wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOff();
+		m_textStato->SetLabel("offline");
 	}
+	Update();
+	wxQueueEvent(m_taskBarIcon, new wxUpdateUIEvent);
+}
 
+void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
+{
+	m_status->SetSelection(m_settings->getStato());
+	std::string stato;
+	m_settings->getStato() ? stato = "offline" : stato = "online";
+	m_textStato->SetLabel(stato);
+	Update();
 }
 
 bool MainFrame::StartServer() 
@@ -332,13 +340,11 @@ void TaskBarIcon::OnMenuExit(wxCommandEvent&)
 }
 
 static bool check = true;
-static bool Online = true;
-static bool Offline = false;
+//static bool Online = true;
+//static bool Offline = false;
 void TaskBarIcon::OnMenuCheckmark(wxCommandEvent&)
 {
 	check = !check;
-	
-
 }
 
 void TaskBarIcon::OnMenuUICheckmark(wxUpdateUIEvent &event)
@@ -347,24 +353,27 @@ void TaskBarIcon::OnMenuUICheckmark(wxUpdateUIEvent &event)
 }
 /*MIO*/
 void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
-	Online = true;
-	Offline = false;
+	//Online = true;
+	//Offline = false;
 	m_settings->setStatoOn();
-
+	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
 void TaskBarIcon::OnMenuUICheckmarkOnline(wxUpdateUIEvent &event)
 {
-	event.Check(Online);
+	//event.Check(Online);
+	event.Check(!m_settings->getStato());
 }
 
 void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
-	Online = false;
-	Offline = true;
+	//Online = false;
+	//Offline = true;
 	m_settings->setStatoOff();
+	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
 void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
 {
-	event.Check(Offline);
+	//event.Check(Offline);
+	event.Check(m_settings->getStato());
 }
 
 

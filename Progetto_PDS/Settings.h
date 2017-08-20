@@ -22,7 +22,7 @@ private:
 	utente* m_utenteProprietario;
 	std::string m_SendPath;
 	bool m_isDir; //si sta inviando cartella o file
-	status m_stato; //on-line(true) o off-line(false)
+	status m_stato; //on-line(0) o off-line(1)
 	std::string m_ImagePath;
 	//AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_GeneralPath;

@@ -64,10 +64,12 @@ private:
 	wxButton* m_changeImage;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
+	wxStaticText* m_textStato;
 
 	void OnTimer(wxTimerEvent& event);
 	void OnImage(wxCommandEvent& event);
 	void OnRadioBox(wxCommandEvent& event);
+	void OnMenuUICheckmark(wxUpdateUIEvent&);
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
