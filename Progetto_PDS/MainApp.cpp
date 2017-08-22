@@ -70,13 +70,18 @@ bool MainApp::OnInit()
 		//m_settings->setGeneralPath(path);
 		//m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
+		std::string sendpath = argv[1];
+		if (argc > 2)
+			for (int i = 2; i < argc; i++)
+				sendpath.append(" " + argv[i]);
+
 		m_frame = new MainFrame("LAN Sharing Service", m_settings);
 		SetTopWindow(m_frame);
 		m_frame->Show();
 		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
 		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
 		//m_settings->setImagePath(path);
-		//wxMessageBox(m_settings->getGeneralPath(), wxT("INFO"), wxOK | wxICON_INFORMATION);
+		//wxMessageBox(sendpath, wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 
 		//wxString filepath = wxT("C:\\Users\\ander\\Desktop\\Progetto_PDS\\user_default.png");
@@ -111,8 +116,8 @@ bool MainApp::OnInit()
 				m_frame->GetClient()->GetConnection()->Execute("");
 			}
 			else {
-				//è stato ricevuto un path, viene passato all'istanza in esecuzione
-				m_frame->GetClient()->GetConnection()->Poke(argv[1], "path", 5);
+				//è stato ricevuto un path, si notifica l'istanza in esecuzione
+				m_frame->GetClient()->GetConnection()->Poke(sendpath, "path", 5);
 			}
 			m_frame->GetClient()->Disconnect();
 			m_frame->Destroy();
@@ -134,7 +139,7 @@ bool MainApp::OnInit()
 			m_frame->StartServer();
 
 			if (argc > 1) {
-				m_frame->SendFile(argv[1].ToStdString());
+				m_frame->SendFile(sendpath);
 			}
 		}
 	}

@@ -424,8 +424,9 @@ bool MainFrame::StartClient()
 	return true;
 }
 
-void MainFrame::SendFile(std::string path) 
+void MainFrame::SendFile(std::string path)
 {
+	m_settings->setSendPath(path);
 	if (boost::filesystem::is_directory(path))
 		m_settings->setIsDir(true);
 	else if (boost::filesystem::is_regular_file(path))
@@ -434,7 +435,6 @@ void MainFrame::SendFile(std::string path)
 		wxMessageBox("Il path specificato è non valido!", "Warning", wxOK | wxICON_EXCLAMATION);
 		return;
 	}
-	m_settings->setSendPath(path);
 	m_selectUser = new WindowSelectUser(this, m_settings);
 	this->Hide();
 	m_selectUser->Show();
