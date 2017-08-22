@@ -80,7 +80,7 @@ void utente::addUtente(std::string username, std::string ipAddr,boost::posix_tim
 
 
 int utente::removeUtente(std::string username) {
-	//sistemare meglio ciclo per eliminares
+	//sistemare meglio ciclo per eliminare
 	unsigned int i, j;
 	for (i = 0; i<this->utentiConnessi.size(); i++) {
 		if (this->utentiConnessi[i].getUsername() == username) {
@@ -131,7 +131,7 @@ void utente::checkTime(utente& utenteProprietario) {
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
 			currentTime = boost::posix_time::second_clock::local_time();
 			//std::cout << "il tempo passato per" <<  utenteProprietario.getUtentiConnessi()[i].getUsername() << "e' " << (currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() << std::endl;
-			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > 5) {
+			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > 1) {
 				for (j = i; j < utenteProprietario.getUtentiConnessi().size() - 1; j++) {
 					utenteProprietario.getUtentiConnessi()[j].setUsername(utenteProprietario.getUtentiConnessi()[j + 1].getUsername());
 					utenteProprietario.getUtentiConnessi()[j].setCurrentTime(utenteProprietario.getUtentiConnessi()[j + 1].getTime());
@@ -140,7 +140,7 @@ void utente::checkTime(utente& utenteProprietario) {
 				utenteProprietario.getUtentiConnessi().pop_back();
 			}
 		}
-		Sleep(5000);
+		Sleep(1000);
 	}
 }
 

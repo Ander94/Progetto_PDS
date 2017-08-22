@@ -9,6 +9,8 @@
 
 #include <filesystem> //per la funzione "copy"
 
+#define BUFLEN 65536
+
 enum {
 	TIMER_ID = 15000,
 	IMG_ID,
@@ -246,8 +248,115 @@ void MainFrame::OnImage(wxCommandEvent& event)
 			"All files (*.*)|*.*|JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...
-	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getImagePath(), boost::filesystem::copy_option::overwrite_if_exists);
-	
+	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getGeneralPath() + "profilo.png", boost::filesystem::copy_option::overwrite_if_exists);
+	m_settings->setImagePath(m_settings->getGeneralPath() + "profilo.png");
+	//******************************//
+	//Invia l'immagine aggiornata a tutti gli utenti iscritti
+	utente user = m_settings->getUtenteProprietario();
+	for (auto it : user.getUtentiConnessi()) {
+		std::string filePath(m_settings->getImagePath());
+		std::string ipAddr(it.getIpAddr());
+
+		boost::asio::io_service io_service;
+		tcp::resolver resolver(io_service);
+		tcp::resolver::query query(tcp::v4(), ipAddr, "1400");
+		tcp::resolver::iterator iterator = resolver.resolve(query);
+		tcp::socket s(io_service);
+
+		//Mi connetto al server, se qualcosa non va a buon fine, ritorno al main
+		try {
+			boost::asio::connect(s, iterator);
+		}
+		catch (std::exception e) {
+			wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+			return;
+		}
+
+
+		//DA QUI
+		try {
+			std::ifstream file_in(filePath, std::ios::in | std::ios::binary);
+			std::ifstream file_dim(filePath, std::ios::in | std::ios::binary);
+			std::streampos begin, end_pos;
+			std::string fileSize;
+			std::ostringstream convert;
+			char buf_response[256];
+			std::string buf_send, response;
+			size_t length;
+			char c;
+			double dim_write;
+			double dim_send = 0;
+			char buf_to_send[BUFLEN];
+
+			//Calcolo la dimensione dell'immagine
+			begin = file_dim.tellg();
+			file_dim.seekg(0, std::ios::end);
+			end_pos = file_dim.tellg();
+			file_dim.close();
+			long int size = (long)(end_pos - begin); //dim file
+
+			convert << size;
+			fileSize = convert.str();
+
+			if (file_in.is_open())
+			{
+				//Invio +IM per dire che è un file immagine
+				buf_send = "+IM";
+				boost::asio::write(s, boost::asio::buffer(buf_send));
+				//Vedo se il server mi ha detto che va ok
+				length = s.read_some(boost::asio::buffer(buf_response, 256));
+				buf_response[length] = '\0';
+				response = buf_response;
+				if (response != "+OK") {
+					wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
+					return;
+				}
+
+				//Invio qui la dimensione del file
+				boost::asio::write(s, boost::asio::buffer(fileSize));
+
+				length = s.read_some(boost::asio::buffer(buf_response, 256));
+				buf_response[length] = '\0';
+				if (response != "+OK") {
+					wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
+					return;
+				}
+
+
+				while (dim_send < size) {
+					dim_write = 0;
+					while (dim_write < BUFLEN && dim_send < size) {
+						file_in.get(c);
+						buf_to_send[(int)dim_write] = c;
+						dim_write++;
+						dim_send++;
+
+					}
+					boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
+				}
+				length = s.read_some(boost::asio::buffer(buf_response, 256));
+				buf_response[length] = '\0';
+				if (response != "+OK") {
+					wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
+					return;
+				}
+				file_in.close();
+			}
+			else {
+				wxMessageBox("Errore nell'invio dell'immagine. Immagine inesistente.", wxT("Errore"), wxOK | wxICON_ERROR);
+				return;
+			}
+		}
+		catch (std::exception& e)
+		{
+			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+		}
+
+		//A QUI
+		s.close();
+		io_service.stop();
+	}
+	//***************************//
 	wxPNGHandler *handler = new wxPNGHandler();
 	wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
