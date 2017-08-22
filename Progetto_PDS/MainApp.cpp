@@ -66,8 +66,9 @@ bool MainApp::OnInit()
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
-		m_settings->setGeneralPath(path);
-		m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
+		m_settings->Init(path, wxGetUserName().ToStdString());
+		//m_settings->setGeneralPath(path);
+		//m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
 		m_frame = new MainFrame("LAN Sharing Service", m_settings);
 		SetTopWindow(m_frame);

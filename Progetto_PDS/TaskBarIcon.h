@@ -62,13 +62,16 @@ private:
 	wxTimer* m_timer;
 	wxTextCtrl* m_elencoUser;
 	wxButton* m_changeImage;
+	wxButton* m_changeSavePath;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
 	wxStaticText* m_textStato;
+	wxStaticText* m_textSavePath;
 
-	void OnTimer(wxTimerEvent& event);
-	void OnImage(wxCommandEvent& event);
-	void OnRadioBox(wxCommandEvent& event);
+	void OnTimer(wxTimerEvent&);
+	void OnImage(wxCommandEvent&);
+	void OnChangeSavePath(wxCommandEvent&);
+	void OnRadioBox(wxCommandEvent&);
 	void OnMenuUICheckmark(wxUpdateUIEvent&);
 public:
 	MainFrame(const wxString& title, class Settings* settings);

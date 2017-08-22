@@ -7,6 +7,7 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 
 #include "utente.h"
 #include "sender.h"
@@ -20,17 +21,32 @@ class Settings
 {
 private:
 	utente* m_utenteProprietario;
+	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
+	std::string m_ImagePath;
+	std::string m_DefaultImagePath;
+	std::string m_SavePath; 
 	std::string m_SendPath;
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
-	std::string m_ImagePath;
-	//AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
-	std::string m_GeneralPath;
-
+	
 public:
-	Settings() { m_utenteProprietario = NULL; m_stato = status::STAT_ONLINE; }
+	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }
+
+	/*
+	Da chiamare subito dopo la creazione di una nuovo oggetto settings
+	*/
+	void Init(std::string path, std::string nomeUtente)
+	{
+		m_stato = status::STAT_ONLINE;
+		NewUtenteProprietario(nomeUtente, getOwnIP());
+		m_SavePath = "C:\\Users\\" + nomeUtente + "\\Download\\";
+		m_DefaultImagePath = path + "user_default.png";
+		m_ImagePath = path + "profilo.png";
+		if (!boost::filesystem::is_regular_file(m_ImagePath))
+			boost::filesystem::copy_file(m_DefaultImagePath, m_ImagePath);
+	}
 
 	void NewUtenteProprietario(std::string nomeUtente, std::string ip) { m_utenteProprietario = new utente(nomeUtente, ip); }
 	//void NewUtenteProprietario() { m_utenteProprietario = new utente(); }
@@ -38,12 +54,11 @@ public:
 
 	void setImagePath(std::string imagePath) { m_ImagePath = imagePath; }
 	std::string getImagePath() { return m_ImagePath; }
+	void setSavePath(std::string savePath) { m_SavePath = savePath; }
+	std::string getSavePath() { return  m_SavePath; };
 	//AGGIUNTA DA SERGIO
 	void setGeneralPath(std::string generalPath) { m_GeneralPath = generalPath; }
 	std::string getGeneralPath() {return  m_GeneralPath; };
-
-
-
 
 	std::string getUserName() { return m_utenteProprietario->getUsername(); }
 

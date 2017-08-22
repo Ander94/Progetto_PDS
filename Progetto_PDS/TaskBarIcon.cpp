@@ -1,8 +1,6 @@
 #include <wx/wx.h>
 #include <wx/taskbar.h>
 
-#include <boost/filesystem.hpp>
-
 #include "share_icon.xpm"
 #include "TaskBarIcon.h"
 #include "IPCserver.h"
@@ -14,7 +12,8 @@
 enum {
 	TIMER_ID = 15000,
 	IMG_ID,
-	RADIO_ID
+	RADIO_ID,
+	SAVE_ID
 };
 
 // ----------------------------------------------------------------------------
@@ -33,6 +32,7 @@ EVT_BUTTON(wxID_ABOUT, MainFrame::OnAbout)
 EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
+EVT_BUTTON(SAVE_ID, MainFrame::OnChangeSavePath)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID, MainFrame::OnRadioBox)
@@ -71,7 +71,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		0,
 		wxRA_SPECIFY_ROWS
 	);
-
 	m_changeImage = new wxButton
 	(
 		this,
@@ -80,7 +79,14 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
-	m_settings->setImagePath("" + m_settings->getGeneralPath() + "profilo.png");
+	m_changeSavePath = new wxButton
+	(
+		this,
+		SAVE_ID,
+		"CAMBIA",
+		wxDefaultPosition,
+		wxDefaultSize
+	);
 	wxPNGHandler *handler = new wxPNGHandler();
 	wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
@@ -118,9 +124,30 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	sizer1->Add(sizer2, flags);
 
+	wxSizer* sizer3 = new wxBoxSizer(wxHORIZONTAL);
+	sizer3->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		wxT("Salva in: ")
+	), flags);
+	m_textSavePath = new wxStaticText
+	(
+		this, 
+		wxID_ANY, 
+		m_settings->getSavePath(), 
+		wxDefaultPosition,
+		wxDefaultSize,
+		wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START
+	);
+	sizer3->Add(m_textSavePath, flags);
+	sizer3->Add(m_changeSavePath, flags);
+
 	sizerTop->Add(sizer1, flags);
 
 	sizerTop->Add(m_status, flags);
+
+	sizerTop->Add(sizer3, flags);
 
 	sizerTop->Add(m_elencoUser, flags);
 
@@ -228,6 +255,17 @@ void MainFrame::OnImage(wxCommandEvent& event)
 	m_userImage->SetBitmap(wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)));
 	Update();
 }
+
+void MainFrame::OnChangeSavePath(wxCommandEvent& event)
+{
+	wxDirDialog selectDirDialog(this, "Seleziona cartella di salvataggio", "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	if (selectDirDialog.ShowModal() == wxID_CANCEL)
+		return;     // the user changed idea...
+	m_settings->setSavePath(selectDirDialog.GetPath().ToStdString());
+	m_textSavePath->SetLabel(selectDirDialog.GetPath());
+	Update();
+}
+
 
 void MainFrame::OnRadioBox(wxCommandEvent& event)
 {
