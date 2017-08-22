@@ -11,3 +11,6 @@
 
 void sendTCPfile(utente& utenteProprietario, std::string username, 
 	std::string initialAbsolutePath, UserProgressBar* progBar);
+
+//IP, path dell'immagine
+void sendImage(std::string filePath, std::string ipAddr);

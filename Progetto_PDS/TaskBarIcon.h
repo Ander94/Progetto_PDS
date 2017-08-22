@@ -14,7 +14,7 @@
 //#include "IPCserver.h"
 #include "IPCclient.h"
 #include "Settings.h"
-
+#include "client.h"
 // ----------------------------------------------------------------------------
 // Icona TaskBar
 // ----------------------------------------------------------------------------
@@ -24,7 +24,6 @@ class TaskBarIcon : public wxTaskBarIcon
 private:
 	class Settings* m_settings;
 public:
-	//Strano qui
 	TaskBarIcon(class Settings* settings) {
 		m_settings = settings;
 	}
@@ -80,6 +79,7 @@ public:
 	bool StartClient();
 	MyServer *GetServer() { return m_server; }
 	MyClient *GetClient() { return m_client; }
+	Settings *GetSettings() { return m_settings; };
 
 	void SendFile(std::string path);
 	void MainFrame::showBal(std::string title, std::string message);
