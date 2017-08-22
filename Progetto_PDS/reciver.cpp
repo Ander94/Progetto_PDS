@@ -35,12 +35,15 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
 		char buf[1024];
 		size_t length = s.receive_from( boost::asio::buffer(buf, 1024), reciver_endpoint);
 		std::string ipAddr;
+		std::string reciveMessage;
+		size_t found;
+
 		ipAddr = reciver_endpoint.address().to_string();
 		buf[length] = '\0';
-		std::string reciveMessage(buf);
+		reciveMessage = buf;
 
 		//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
-		size_t found = reciveMessage.find("+GETADDR");
+		found = reciveMessage.find("+GETADDR");
 		if (found == std::string::npos)
 			iscriviUtente(reciveMessage, ipAddr, utenteProprietario, generalPath);
 	}
@@ -60,12 +63,14 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 
 	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
 
+	//Controllo se l'utente è già iscritto
 	if (utenteProprietario.contieneUtente(username) == true) {
+		//Se l'utente è già iscritto, setto un nuovo tempo (cioè vuol dire che l'utente è ancora online)
 		utenteProprietario.getUtente(username).setCurrentTime(currentTime);
 		return;
 	}
 
-	//Se aggiungo l'utente, gli richiedo l'immagine
+	//Invio la mia immagine di profilo al nuovo utente iscritto
 	//Il protocollo che utilizzerò sarà
 	//Invia +IM
 	//Attendi +OK
@@ -76,9 +81,14 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 
 	//Qua dovrà andare il path della mia immagine di default
 	std::string filePath(generalPath + "profilo.png");
-
+	
 	if (boost::filesystem::is_regular_file(filePath)!=true) {
 		filePath = generalPath + "user_default.png";
+		if (boost::filesystem::is_regular_file(filePath) != true) {
+			wxMessageBox("Immagne per profilo non trovata.", wxT("Errore"), wxOK | wxICON_ERROR);
+			//USCIRE IN MODO CORRETTO!
+			exit(-1);
+		}
 	}
 
 	boost::asio::io_service io_service;
@@ -92,7 +102,7 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 		boost::asio::connect(s, iterator);
 	}
 	catch (std::exception e) {
-		std::cerr << "Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo" << std::endl;
+		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 
@@ -101,51 +111,52 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 	try {
 		std::ifstream file_in(filePath, std::ios::in | std::ios::binary);
 		std::ifstream file_dim(filePath, std::ios::in | std::ios::binary);
-		//std::string buf;
 		std::streampos begin, end_pos;
+		std::string fileSize;
+		std::ostringstream convert;
+		char buf_response[256];
+		std::string buf_send, response;
+		size_t length;
+		char c;
+		double dim_write;
+		double dim_send = 0;
+		char buf_to_send[BUFLEN];
+
+		//Calcolo la dimensione dell'immagine
 		begin = file_dim.tellg();
 		file_dim.seekg(0, std::ios::end);
 		end_pos = file_dim.tellg();
 		file_dim.close();
 		long int size = (long)(end_pos - begin); //dim file
 
-		std::string fileSize;
-		std::ostringstream convert;
-
 		convert << size;
 		fileSize = convert.str();
-		char buf[256];
-		std::string buf_send;
-		size_t length;
+		
 		if (file_in.is_open())
 		{
-			//Invio +IM per dire che è un file
-			buf_send = "+IM\0";
+			//Invio +IM per dire che è un file immagine
+			buf_send = "+IM";
 			boost::asio::write(s, boost::asio::buffer(buf_send));
 			//Vedo se il server mi ha detto che va ok
-			length = s.read_some(boost::asio::buffer(buf, 256));
-			buf[length] = '\0';
-			std::string response(buf);
+			length = s.read_some(boost::asio::buffer(buf_response, 256));
+			buf_response[length] = '\0';
+			response = buf_response;
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
+				wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
 				return;
 			}
 
 			//Invio qui la dimensione del file
 			boost::asio::write(s, boost::asio::buffer(fileSize));
 
-			length = s.read_some(boost::asio::buffer(buf, 256));
-			buf[length] = '\0';
+			length = s.read_some(boost::asio::buffer(buf_response, 256));
+			buf_response[length] = '\0';
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
+				wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
 				return;
 			}
 
-			char c;
-			double dim_write;
-			double dim_send = 0;
-			char buf_to_send[BUFLEN];
-			std::cout << "Client: devo scrivere " << size << " byte" << std::endl;
+			
 			while (dim_send < size) {
 				dim_write = 0;
 				while (dim_write < BUFLEN && dim_send < size) {
@@ -155,35 +166,35 @@ void iscriviUtente(std::string username, std::string ipAddr, utente& utentePropr
 					dim_send++;
 
 				}
-				std::cout << "Client: scrivo " << (int)dim_write << " byte" << std::endl;
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
 			}
-			length = s.read_some(boost::asio::buffer(buf, 256));
-			buf[length] = '\0';
+			length = s.read_some(boost::asio::buffer(buf_response, 256));
+			buf_response[length] = '\0';
 			if (response != "+OK") {
-				std::cerr << "Il server ha dato risposta negativa per la ricezione del file." << std::endl;
+				wxMessageBox("Il server ha dato risposta negativa per la ricezione dell'immagine.", wxT("Errore"), wxOK | wxICON_ERROR);
 				return;
 			}
-			file_in.close();
-		}
+			file_in.close();}
 		else {
-			std::cerr << "File inesistente al client." << std::endl;
+			wxMessageBox("Errore nell'invio dell'immagine. Immagine inesistente.", wxT("Errore"), wxOK | wxICON_ERROR);
 			return;
 		}
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Exception: " << e.what() << "\n";
+		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 	}
 
 	//A QUI
-
 	s.close();
 	io_service.stop();
 
 	//IMPORTANTE CHE QUESTO STIA DOPO!
+	//Aggiungo l'utente
 	utenteProprietario.addUtente(username, ipAddr, currentTime);
-
 }
 
+//IP, path dell'immagine
+void sendImage(std::string ipAddr, std::string filePath) {
 
+}
