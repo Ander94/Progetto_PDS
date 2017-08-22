@@ -248,8 +248,8 @@ void MainFrame::OnImage(wxCommandEvent& event)
 			"All files (*.*)|*.*|JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...
-	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getGeneralPath() + "profilo.png", boost::filesystem::copy_option::overwrite_if_exists);
-	m_settings->setImagePath(m_settings->getGeneralPath() + "profilo.png");
+	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getImagePath(), boost::filesystem::copy_option::overwrite_if_exists);
+	
 	//******************************//
 	//Invia l'immagine aggiornata a tutti gli utenti iscritti
 	utente user = m_settings->getUtenteProprietario();

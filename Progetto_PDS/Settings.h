@@ -41,6 +41,7 @@ public:
 	{
 		m_stato = status::STAT_ONLINE;
 		NewUtenteProprietario(nomeUtente, getOwnIP());
+		m_GeneralPath = path;
 		m_SavePath = "C:\\Users\\" + nomeUtente + "\\Download\\";
 		m_DefaultImagePath = path + "user_default.png";
 		m_ImagePath = path + "profilo.png";
