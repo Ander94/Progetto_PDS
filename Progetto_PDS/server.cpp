@@ -74,10 +74,10 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		fileName = buf;
 		//Saranno da levare tutti questi download, servono per il momento a ricever in loopback
 		//Creo la directory per ricevere il file
-		CreateDirectory(L"./download/", NULL);
+		//CreateDirectory(L"./download/", NULL);
 		//Ricevo il file
 		mainframe->showBal("Ricezione file", fileName +"\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-		recive_file(s, "./download/" + fileName, true);
+		recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
 
 		std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
 	}
@@ -99,7 +99,7 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		//**
 		//Saranno da levare tutti questi download, servono per il momento a ricever in loopback
 		//Verranno sostituiti con il path assoluto
-		CreateDirectory(L"./download/", NULL);
+		//CreateDirectory(L"./download/", NULL);
 		boost::posix_time::ptime start = boost::posix_time::second_clock::local_time();
 		boost::posix_time::ptime end;
 		int dif, min = 0, sec = 0;
@@ -133,7 +133,8 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 					mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					first_directory = false;
 				}
-				std::string pathName("./download/" + fileName);
+				//Cambiare qui
+				std::string pathName(mainframe->GetSettings()->getSavePath() + "\\"  + fileName);
 				//Rispondo ok se riesco ad ivniare il path
 				//	std::cout << "**Server: Ricevo " << pathName << std::endl;
 				response = "+OK\0";
@@ -163,7 +164,8 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 				length = s.read_some(boost::asio::buffer(buf, 256));
 				buf[length] = '\0';
 				fileName = buf;
-				std::string fileName("./download/" + fileName);
+				//Cambiare qui
+				std::string fileName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
 				recive_file(s, fileName, false);
 				//Vedo la dim del file che ho ricevuto
 				directory_size_send += (size_t)boost::filesystem::file_size(fileName);
