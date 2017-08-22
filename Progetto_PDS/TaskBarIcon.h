@@ -14,7 +14,6 @@
 //#include "IPCserver.h"
 #include "IPCclient.h"
 #include "Settings.h"
-#include "client.h"
 
 // ----------------------------------------------------------------------------
 // Icona TaskBar
