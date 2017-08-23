@@ -70,10 +70,19 @@ bool MainApp::OnInit()
 		//m_settings->setGeneralPath(path);
 		//m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
+		//Capire qui, ora funziona
 		std::string sendpath;
 		if (argc > 1)
-			for (int i = 1; i < argc; i++)
-				sendpath.append(" " + argv[i]);
+			for (int i = 1; i < argc; i++) {
+				if (i==1) {
+					sendpath.append(argv[i]);
+				}
+				else {
+					sendpath.append(" " + argv[i]);
+				}
+				
+			}
+				
 
 		m_frame = new MainFrame("LAN Sharing Service", m_settings);
 		SetTopWindow(m_frame);
