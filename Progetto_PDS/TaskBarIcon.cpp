@@ -6,7 +6,7 @@
 #include "IPCserver.h"
 #include "Settings.h"
 #include "MainApp.h"
-
+#include <fstream>
 #include <filesystem> //per la funzione "copy"
 
 #define BUFLEN 65536
@@ -272,7 +272,12 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 		return;     // the user changed idea...
 	m_settings->setSavePath(selectDirDialog.GetPath().ToStdString());
 	m_textSavePath->SetLabel(selectDirDialog.GetPath());
+	std::fstream save_path_file;
+	save_path_file.open(m_settings->getGeneralPath() + "save_path.txt", std::fstream::out);
+	save_path_file << m_settings->getSavePath();
+	save_path_file.close();
 	Update();
+	
 }
 
 

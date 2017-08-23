@@ -26,7 +26,7 @@ void sendUDPMessage(std::string& username, status& current_status) {
 				std::cout << e.what() << std::endl;
 			}
 		}	
-		Sleep(500);	
+		Sleep(2000);	
 		
 	}
 	socket.close();

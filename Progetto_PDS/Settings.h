@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 #include <iostream>
 #include <cstdlib>
 #include <memory>
@@ -42,7 +43,18 @@ public:
 		m_stato = status::STAT_ONLINE;
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
-		m_SavePath = "C:\\Users\\" + nomeUtente + "\\Download\\";
+
+		if (!boost::filesystem::is_regular_file(m_GeneralPath + "save_path.txt")) {
+			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
+		}
+		else {
+			//Leggo il path dal file
+			std::fstream save_path_file;
+			save_path_file.open(m_GeneralPath + "save_path.txt", std::fstream::in);
+			std::getline(save_path_file, m_SavePath);
+			save_path_file.close();
+		}
+		//wxMessageBox(m_GeneralPath + "\save_path.txt", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_DefaultImagePath = path + "user_default.png";
 		m_ImagePath = path + "profilo.png";
 		if (!boost::filesystem::is_regular_file(m_ImagePath))
