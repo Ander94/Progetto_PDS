@@ -70,9 +70,9 @@ bool MainApp::OnInit()
 		//m_settings->setGeneralPath(path);
 		//m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
 
-		std::string sendpath = argv[1];
-		if (argc > 2)
-			for (int i = 2; i < argc; i++)
+		std::string sendpath;
+		if (argc > 1)
+			for (int i = 1; i < argc; i++)
 				sendpath.append(" " + argv[i]);
 
 		m_frame = new MainFrame("LAN Sharing Service", m_settings);
