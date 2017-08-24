@@ -57,12 +57,15 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 	std::string query;
 	std::string response;
 	std::string fileName;
+	Settings *m_settings = mainframe->GetSettings(); //Ricordare di liberare
 	ipAddrRemote = s.remote_endpoint().address().to_string();
-
+	
 	//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
 	length = s.read_some(boost::asio::buffer(buf, 256));
 	buf[length] = '\0';
 	query = buf;
+
+
 	if (query == "+FL") {
 		//Qui ricevo un file
 		//Se tutto va bene invio una risposta positiva
@@ -76,10 +79,46 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		//Creo la directory per ricevere il file
 		//CreateDirectory(L"./download/", NULL);
 		//Ricevo il file
-		mainframe->showBal("Ricezione file", fileName +"\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-		recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
+		
 
-		std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
+		//Chiedere qui se accettare o meno il file.
+		
+		if (m_settings->getAutoSaved() == 1) {
+			wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+			if (dial->ShowModal() == wxID_NO) {
+				response = "-ERR";
+				boost::asio::write(s, boost::asio::buffer(response));
+				s.close();
+				return;
+				//Bisogna rispondere in modo negativo
+			}
+			//Bisogna fare richiesta ed eventualmente annullare l'invio
+		}
+
+
+		//Inserire qui richesta recezione
+		if (boost::filesystem::is_regular_file(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+			//Richiedere se salvare o meno
+			//wxMessageBox("", wxT("INFO"), wxYES_NO | wxICON_INFORMATION);
+			wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+			if (dial->ShowModal() == wxID_YES) {
+				recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
+				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+			}
+			else {
+				response = "-ERR\0";
+				boost::asio::write(s, boost::asio::buffer(response));
+			}
+			
+		}
+		else {
+			recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
+			mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+		}
+		
+		
+
+		//std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
 	}
 
 	if (query == "+IM") {
@@ -107,7 +146,6 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 		//Finche non ricevo -END, vuol dire che ho o una directory o un file da ricevere
 		bool firstTime = true;
 		while (query != "-END") {
-
 			if (query == "+DR") {
 				//Rispondo ok 
 				std::string response("+OK");
@@ -123,14 +161,44 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 					boost::asio::write(s, boost::asio::buffer(response));
 					firstTime = false;
 				}
-
 				//Aspetto il nome del path
 				length = s.read_some(boost::asio::buffer(buf, 256));
 				buf[length] = '\0';
 				fileName = buf;
 				//**
 				if (first_directory==true) {
-					mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					//Qui per prendere decisione sulla directory
+
+					if (m_settings->getAutoSaved() == 1) {
+						wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+						if (dial->ShowModal() == wxID_NO) {
+							response = "-ERR";
+							boost::asio::write(s, boost::asio::buffer(response));
+							s.close();
+							return;
+							//Bisogna rispondere in modo negativo
+						}
+						//Bisogna fare richiesta ed eventualmente annullare l'invio
+					}
+
+					if (boost::filesystem::is_directory(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+						//Richiedere se salvare o meno
+						wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+						if (dial->ShowModal() == wxID_YES) {
+							mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+						}
+						else {
+							response = "-ERR\0";
+							boost::asio::write(s, boost::asio::buffer(response));
+							s.close();
+							return;
+						}
+
+					}
+					else {
+						mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					}
+					
 					first_directory = false;
 				}
 				//Cambiare qui

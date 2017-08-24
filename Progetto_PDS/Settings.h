@@ -29,6 +29,7 @@ private:
 	std::string m_SendPath;
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
+	save_request m_save_request;  //Richiesta quando si riceve un file
 	
 public:
 	Settings() {}
@@ -41,6 +42,7 @@ public:
 	void Init(std::string path, std::string nomeUtente)
 	{
 		m_stato = status::STAT_ONLINE;
+		m_save_request = save_request::SAVE_REQUEST_YES;
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
@@ -92,6 +94,19 @@ public:
 	status& getStato() { 
 		
 		return m_stato; }
+
+	void setAutoSavedOn() {
+		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_save_request = save_request::SAVE_REQUEST_YES;
+	}
+	void setAutoSavedOff() {
+		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
+		m_save_request = save_request::SAVE_REQUEST_NO;
+	}
+	save_request & getAutoSaved() {
+
+		return m_save_request;
+	}
 
 	static void string_rand(std::string& unique_str) {
 		srand(time(NULL));

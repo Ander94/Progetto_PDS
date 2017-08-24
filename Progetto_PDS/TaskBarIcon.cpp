@@ -73,6 +73,22 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		0,
 		wxRA_SPECIFY_ROWS
 	);
+
+	items[0] = wxT("Non domandare salvataggio");
+	items[1] = wxT("Domanda salvataggio");
+	m_saved = new wxRadioBox
+	(
+		this,
+		RADIO_ID,
+		wxT("Salvataggio: "),
+		wxDefaultPosition,
+		wxDefaultSize,
+		2,
+		items,
+		0,
+		wxRA_SPECIFY_ROWS
+	);
+
 	m_changeImage = new wxButton
 	(
 		this,
@@ -148,6 +164,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerTop->Add(sizer1, flags);
 
 	sizerTop->Add(m_status, flags);
+
+	sizerTop->Add(m_saved, flags);
 
 	sizerTop->Add(sizer3, flags);
 
@@ -293,6 +311,16 @@ void MainFrame::OnRadioBox(wxCommandEvent& event)
 		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOff();
 		m_textStato->SetLabel("offline");
+	}
+
+	sel = m_saved->GetSelection();
+	if (sel == 0) {
+		//wxMessageBox("salvataggio automatico!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_settings->setAutoSavedOn();
+	}
+	else {
+		//wxMessageBox("salvataggio su richesta!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		m_settings->setAutoSavedOff();
 	}
 	Update();
 	wxQueueEvent(m_taskBarIcon, new wxUpdateUIEvent);

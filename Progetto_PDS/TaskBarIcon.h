@@ -64,6 +64,7 @@ private:
 	wxButton* m_changeSavePath;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
+	wxRadioBox* m_saved;
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
 
