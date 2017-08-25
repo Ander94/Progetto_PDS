@@ -20,12 +20,20 @@ void sendUDPMessage(std::string& username, status& current_status) {
 	while (1) {
 		if (current_status == STAT_ONLINE) {
 			try {
-				socket.send_to(boost::asio::buffer(username), sender_endpoint);
+				socket.send_to(boost::asio::buffer(username + "\r\nONLINE\r\n"), sender_endpoint);
 			}
 			catch (boost::system::system_error e) {
 				std::cout << e.what() << std::endl;
 			}
 		}	
+		else {
+			try {
+				socket.send_to(boost::asio::buffer(username + "\r\nOFFLINE\r\n"), sender_endpoint);
+			}
+			catch (boost::system::system_error e) {
+				std::cout << e.what() << std::endl;
+			}
+		}
 		Sleep(2000);	
 		
 	}

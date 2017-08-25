@@ -7,10 +7,7 @@
 #include "utente.h"
 
 
-enum status {
-	STAT_ONLINE = 0, 
-	STAT_OFFLINE = 1
-};
+
 
 enum save_request {
 	SAVE_REQUEST_YES = 0,

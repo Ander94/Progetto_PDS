@@ -52,7 +52,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	/*utente u("leonardo", "");
 	this->addUtente(u);*/
 
-	std::vector<utente> lista = m_settings->getUtentiConnessi();
+	std::vector<utente> lista = m_settings->getUtentiOnline();
 	if (lista.size() == 0) {
 		n = 0;
 		m_topSizer->AddSpacer(100);
@@ -60,10 +60,11 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	}
 	else {
 		//carico gli utenti connessi
-		for (auto it : (m_settings->getUtentiConnessi())) {
-			UserSizer *u = new UserSizer(this, m_settings, it);
-			m_ListaUtenti.push_back(u);
-			m_topSizer->Add(u, 1, wxALIGN_CENTER);
+		for (auto it : (m_settings->getUtentiOnline())) {
+				UserSizer *u = new UserSizer(this, m_settings, it);
+				m_ListaUtenti.push_back(u);
+				m_topSizer->Add(u, 1, wxALIGN_CENTER);
+			
 		}
 		n = m_ListaUtenti.size();
 	}
@@ -112,7 +113,7 @@ void WindowSelectUser::OnTimer(wxTimerEvent& event) {
 }
 
 void WindowSelectUser::UpdateUI() {
-	std::vector<utente> lista(m_settings->getUtentiConnessi().begin(), m_settings->getUtentiConnessi().end());
+	std::vector<utente> lista = m_settings->getUtentiOnline();
 	int n;
 	if (lista.size() == 0) {
 		n = 0;

@@ -79,6 +79,8 @@ public:
 
 	std::vector<utente>& getUtentiConnessi() { return m_utenteProprietario->getUtentiConnessi(); }
 
+	std::vector<utente> getUtentiOnline() { return m_utenteProprietario->getUtentiOnline(); }
+
 	void setSendPath(std::string sendPath) { m_SendPath = sendPath; }
 	std::string getSendPath() { return m_SendPath; }
 	

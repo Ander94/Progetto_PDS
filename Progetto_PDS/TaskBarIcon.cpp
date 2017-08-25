@@ -253,7 +253,7 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 {
 	utente user = m_settings->getUtenteProprietario();
 	m_elencoUser->Clear();
-	for (auto it : user.getUtentiConnessi()) {
+	for (auto it : user.getUtentiOnline()) {
 		(*m_elencoUser) << it.getUsername();
 	}
 	if (m_elencoUser->IsEmpty())

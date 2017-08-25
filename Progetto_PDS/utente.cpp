@@ -13,6 +13,14 @@ utente::utente()
 {
 }
 
+utente::utente(std::string username, std::string ipAddr, status state)
+{
+	//std::lock_guard<std::recursive_mutex> lk(mut);
+	this->username = username;
+	this->ipAddr = ipAddr;
+	this->state = state;
+}
+
 utente::utente(std::string username, std::string ipAddr)
 {
 	//std::lock_guard<std::recursive_mutex> lk(mut);
@@ -40,6 +48,16 @@ std::vector<utente>& utente::getUtentiConnessi()
 {
 	//std::lock_guard<std::recursive_mutex> lk(mut);
 	return utentiConnessi;
+}
+
+std::vector<utente> utente::getUtentiOnline() {
+	std::vector<utente> utentiOnline;
+	for (auto it : utentiConnessi) {
+		if (it.getState()==STAT_ONLINE) {
+			utentiOnline.push_back(it);
+		}
+	}
+	return utentiOnline;
 }
 
 bool utente::contieneUtente(std::string username) {
@@ -70,10 +88,11 @@ std::string utente::getUsernameFromIp(std::string ipAddr) {
 }
 
 
-void utente::addUtente(std::string username, std::string ipAddr,boost::posix_time::ptime currentTime) {
-	utente nuovoUtente(username, ipAddr);
+void utente::addUtente(std::string username, std::string ipAddr, status state,boost::posix_time::ptime currentTime) {
+	utente nuovoUtente(username, ipAddr, state);
 	nuovoUtente.setCurrentTime(currentTime);
 	nuovoUtente.setIpAddr(ipAddr);
+	nuovoUtente.setState(state);
 	this->utentiConnessi.push_back(nuovoUtente);
 }
 
@@ -144,3 +163,10 @@ void utente::checkTime(utente& utenteProprietario) {
 	}
 }
 
+void utente::setState(status state) {
+	this->state = state;
+}
+
+status utente::getState() {
+	return this->state;
+}
