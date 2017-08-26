@@ -177,17 +177,26 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 
 	//Se sto inviando un file, chiamo send_file
 	if (boost::filesystem::is_regular_file(path_absolutePath)) {
-		send_file(s, initialAbsolutePath, folder, true, progBar);
+		try {
+			send_file(s, initialAbsolutePath, folder, true, progBar);
+		}
+		catch (std::exception& e) {
+			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		}
+		
 	}
 	//Senno chiamo send_directory
 	else if (boost::filesystem::is_directory(path_absolutePath)) {
-		send_directory(s, initialAbsolutePath, folder, progBar);
-
+		try {
+			send_directory(s, initialAbsolutePath, folder, progBar);
+		}
+		catch (std::exception& e) {
+			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		}
 	}
 	//Chiudo il socket e la procedurea di servizio
 	s.close();
 	io_service.stop();
-
 	//segnalo la fine del trasferimento alla GUI
 	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
 	wxQueueEvent(progBar, event.Clone());
@@ -260,8 +269,12 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 		if (!bf::is_directory(*it)) {
 			bf::path p(bf::absolute(*it));
 			progBar->SetNewFile(p.filename().string()); //<-- inizializzo barra progresso file
-			send_file(s, reverse_slash(bf::absolute(*it).string()), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
-
+			try {
+				send_file(s, reverse_slash(bf::absolute(*it).string()), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
+			}
+			catch (std::exception&) {
+				return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
+			}
 			directory_size_send += (size_t)bf::file_size(*it);
 
 			if (directory_size_send > 0) {
@@ -411,9 +424,9 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			return;
 		}
 	}
-	catch (std::exception& e)
+	catch (std::exception&)
 	{
-		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+		return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
 	}
 }
 

@@ -73,6 +73,7 @@ private:
 	void OnChangeSavePath(wxCommandEvent&);
 	void OnRadioBox(wxCommandEvent&);
 	void OnMenuUICheckmark(wxUpdateUIEvent&);
+
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();

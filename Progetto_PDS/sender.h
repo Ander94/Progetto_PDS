@@ -10,8 +10,8 @@
 
 
 enum save_request {
-	SAVE_REQUEST_YES = 0,
-	SAVE_REQUEST_NO = 1
+	SAVE_REQUEST_NO = 0,
+	SAVE_REQUEST_YES = 1
 };
 
 

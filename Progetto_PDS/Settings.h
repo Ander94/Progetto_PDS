@@ -41,22 +41,31 @@ public:
 	*/
 	void Init(std::string path, std::string nomeUtente)
 	{
-		m_stato = status::STAT_ONLINE;
-		m_save_request = save_request::SAVE_REQUEST_YES;
+		
+		m_save_request = save_request::SAVE_REQUEST_NO;
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
-		if (!boost::filesystem::is_regular_file(m_GeneralPath + "save_path.txt")) {
+		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
+			m_stato = status::STAT_ONLINE;
 		}
 		else {
 			//Leggo il path dal file
 			std::fstream save_path_file;
-			save_path_file.open(m_GeneralPath + "save_path.txt", std::fstream::in);
+			std::string stato; //online o offline
+			save_path_file.open(m_GeneralPath + "stato.txt", std::fstream::in);
 			std::getline(save_path_file, m_SavePath);
+			std::getline(save_path_file, stato);
+			if (stato == "online") {
+				m_stato = status::STAT_ONLINE;
+			}
+			else {
+				m_stato = status::STAT_OFFLINE;
+			}
+
 			save_path_file.close();
 		}
-		//wxMessageBox(m_GeneralPath + "\save_path.txt", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_DefaultImagePath = path + "user_default.png";
 		m_ImagePath = path + "profilo.png";
 		if (!boost::filesystem::is_regular_file(m_ImagePath))
