@@ -79,7 +79,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	else
 		SetStatusText("Utenti connessi: " + n);
 
-	m_timer->Start(5000); //5 sec
+	m_timer->Start(500); //5 sec
 
 }
 

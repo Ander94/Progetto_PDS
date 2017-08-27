@@ -150,7 +150,7 @@ void utente::checkTime(utente& utenteProprietario) {
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
 			currentTime = boost::posix_time::second_clock::local_time();
 			//std::cout << "il tempo passato per" <<  utenteProprietario.getUtentiConnessi()[i].getUsername() << "e' " << (currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() << std::endl;
-			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > 5) {
+			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > 2) {
 				for (j = i; j < utenteProprietario.getUtentiConnessi().size() - 1; j++) {
 					utenteProprietario.getUtentiConnessi()[j].setUsername(utenteProprietario.getUtentiConnessi()[j + 1].getUsername());
 					utenteProprietario.getUtentiConnessi()[j].setCurrentTime(utenteProprietario.getUtentiConnessi()[j + 1].getTime());
@@ -159,7 +159,7 @@ void utente::checkTime(utente& utenteProprietario) {
 				utenteProprietario.getUtentiConnessi().pop_back();
 			}
 		}
-		Sleep(5000);
+		Sleep(2000);
 	}
 }
 

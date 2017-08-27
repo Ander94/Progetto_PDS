@@ -34,7 +34,7 @@ void sendUDPMessage(std::string& username, status& current_status) {
 				std::cout << e.what() << std::endl;
 			}
 		}
-		Sleep(2000);	
+		Sleep(500);	
 		
 	}
 	socket.close();

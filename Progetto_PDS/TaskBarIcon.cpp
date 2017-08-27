@@ -207,7 +207,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	gs_dialog = this;
 
-	m_timer->Start(5000); //5 sec
+	m_timer->Start(500); //2 sec
 }
 
 MainFrame::~MainFrame()

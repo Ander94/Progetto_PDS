@@ -11,7 +11,7 @@
 #define BUFLEN 65536
 using boost::asio::ip::tcp;
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, bool print);
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+//void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
 std::wstring s2ws(const std::string& s);
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe) {
@@ -21,18 +21,19 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 		//Dichiaro le strutture boost necessarie
 		boost::asio::io_service io_service;
 		tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), 1400));
-		tcp::socket s(io_service);
+		
 		//Dichiaro le variabili necessarie
 
 		//Accetto richieste finchè non viene chiuso il main
 		for (;;)
 		{
+			tcp::socket s(io_service);
 			//Accetto una nuova richesta
 			a.accept(s);
 			//mainframe->showBal("Ricezione!", "Ricezione di un nuovo file");
 			//service(s, utenteProprietario, generalPath);
 			//Chiamo service qui
-			reciveAfterAccept(s, utenteProprietario, generalPath, mainframe);
+			std::thread(reciveAfterAccept, std::move(s), utenteProprietario, generalPath, mainframe).detach();
 		}
 		io_service.stop();
 	}
@@ -43,12 +44,12 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 	return;
 }
 
-void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
-	service(s, utenteProprietario, generalPath,  mainframe);
+/*void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+	//service(s, utenteProprietario, generalPath,  mainframe);
 	//boost::thread(service, boost::ref(s), utenteProprietario, generalPath);
-}
+}*/
 
-void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	int length;
 	bool first_directory = true;
 	//unsigned int i;
@@ -253,12 +254,7 @@ void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente u
 					sec = (int)(((directory_size_to_send - directory_size_send) / ((directory_size_send)))*dif) % 60;
 				}
 			}
-			printf("Ricevuto %d perc, Tempo rimanente: %d min %d sec \r", (int)(((float)directory_size_send / (float)directory_size_to_send) * 100), min, sec);
-
-
 		}
-		std::cout << std::endl;
-		std::cout << "Ho ricevuto il direttorio " << std::endl;
 	}
 	s.close();
 

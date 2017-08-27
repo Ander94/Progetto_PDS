@@ -230,8 +230,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf_recive[length] = '\0';
 	response = buf_recive;
 	if (response != "+OK") {
-		wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-		return;
+		return throw std::invalid_argument("Errore nell'invio del direttorio.");
 	}
 
 	//Devo inviare qui la dimensione
@@ -246,8 +245,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf_recive[length] = '\0';
 	response = buf_recive;
 	if (response != "+OK") {
-		wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-		return;
+		return throw std::invalid_argument("Errore nell'invio del direttorio.");
 	}
 
 
@@ -260,8 +258,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	buf_recive[length] = '\0';
 	response = buf_recive;
 	if (response != "+OK") {
-		wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-		return;
+		return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
 	}
 
 	for (bf::recursive_directory_iterator it(initialAbsolutePath); it != bf::recursive_directory_iterator(); ++it)
@@ -289,7 +286,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			buf_recive[length] = '\0';
 			std::string  response(buf_recive);
 			if (response != "+CN") {
-				wxMessageBox("Errore nell'invio del file.", wxT("Errore"), wxOK | wxICON_ERROR);
+				return throw std::invalid_argument("Errore nell'invio del direttorio.");
 			}
 
 		}
@@ -301,21 +298,19 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			response = buf_recive;
 			if (response != "+OK") {
 				wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return;
+				return throw std::invalid_argument("Errore nell'invio del direttorio.");
 			}
 			boost::asio::write(s, boost::asio::buffer(relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder)));
 			length = s.read_some(boost::asio::buffer(buf_recive, 256));
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
-				wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return;
+				return throw std::invalid_argument("Errore nell'invio del direttorio.");
 			}
 		}
 	}
 	buf_send = "-END";
 	boost::asio::write(s, boost::asio::buffer(buf_send));
-	std::cout << std::endl;
 }
 
 void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, 
@@ -366,8 +361,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
-				wxMessageBox("Il server ha dato risposta negativa per la ricezione del file.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return;
+				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 			//invio qui il nome del file
 			boost::asio::write(s, boost::asio::buffer(sendPath));
@@ -378,8 +372,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			response.clear();
 			response = buf_recive;
 			if (response != "+OK") {
-				wxMessageBox("Il server ha dato risposta negativa per la ricezione del file.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return;
+				return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
 			}
 
 			//Invio qui la dimensione del file
@@ -388,8 +381,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			length = s.read_some(boost::asio::buffer(buf_recive, 256));
 			buf_recive[length] = '\0';
 			if (response != "+OK") {
-				wxMessageBox("Il server ha dato risposta negativa per la ricezione del file.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return;
+				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 
 			
@@ -420,8 +412,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			file_in.close();
 		}
 		else {
-			wxMessageBox("File non aperto correttamente.", wxT("Errore"), wxOK | wxICON_ERROR);
-			return;
+			return throw std::invalid_argument("File non aperto correttamente.");
 		}
 	}
 	catch (std::exception&)
