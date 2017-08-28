@@ -10,10 +10,9 @@
 
 #define BUFLEN 65536
 using boost::asio::ip::tcp;
-void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, bool print);
-//void service(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
-std::wstring s2ws(const std::string& s);
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe) {
 
 
@@ -21,264 +20,209 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 		//Dichiaro le strutture boost necessarie
 		boost::asio::io_service io_service;
 		tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), 1400));
-		
-		//Dichiaro le variabili necessarie
-
-		//Accetto richieste finchè non viene chiuso il main
 		for (;;)
 		{
 			tcp::socket s(io_service);
 			//Accetto una nuova richesta
 			a.accept(s);
-			//mainframe->showBal("Ricezione!", "Ricezione di un nuovo file");
-			//service(s, utenteProprietario, generalPath);
-			//Chiamo service qui
 			std::thread(reciveAfterAccept, std::move(s), utenteProprietario, generalPath, mainframe).detach();
 		}
 		io_service.stop();
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Exception: " << e.what() << "\n";
+		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
 	}
-	return;
 }
 
-/*void reciveAfterAccept(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
-	//service(s, utenteProprietario, generalPath,  mainframe);
-	//boost::thread(service, boost::ref(s), utenteProprietario, generalPath);
-}*/
 
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	int length;
 	bool first_directory = true;
-	//unsigned int i;
 	char buf[256];
 	std::string ipAddrRemote;
 	std::string query;
 	std::string response;
 	std::string fileName;
 	Settings *m_settings = mainframe->GetSettings(); //Ricordare di liberare
-	ipAddrRemote = s.remote_endpoint().address().to_string();
-	
-	//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
-	length = s.read_some(boost::asio::buffer(buf, 256));
-	buf[length] = '\0';
-	query = buf;
 
+	try {
+		ipAddrRemote = s.remote_endpoint().address().to_string();
 
-	if (query == "+FL") {
-		//Qui ricevo un file
-		//Se tutto va bene invio una risposta positiva
-		response = "+OK\0";
-		boost::asio::write(s, boost::asio::buffer(response));
-		//La risposta conterrà il pathName
+		//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
 		length = s.read_some(boost::asio::buffer(buf, 256));
 		buf[length] = '\0';
-		fileName = buf;
-		//Saranno da levare tutti questi download, servono per il momento a ricever in loopback
-		//Creo la directory per ricevere il file
-		//CreateDirectory(L"./download/", NULL);
-		//Ricevo il file
-		
+		query = buf;
 
-		//Chiedere qui se accettare o meno il file.
-		
-		if (m_settings->getAutoSaved() == 1) {
-			wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-			if (dial->ShowModal() == wxID_NO) {
-				response = "-ERR";
-				boost::asio::write(s, boost::asio::buffer(response));
-				s.close();
-				return;
-				//Bisogna rispondere in modo negativo
+		if (query == "+FL") {
+			//Qui ricevo un file
+			//Se tutto va bene invio una risposta positiva
+			response = "+OK\0";
+			boost::asio::write(s, boost::asio::buffer(response));
+			//La risposta conterrà il pathName
+			length = s.read_some(boost::asio::buffer(buf, 256));
+			buf[length] = '\0';
+			fileName = buf;
+
+			if (m_settings->getAutoSaved() == 1) {
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+				if (dial->ShowModal() == wxID_NO) {
+					response = "-ERR";
+					boost::asio::write(s, boost::asio::buffer(response));
+					s.close();
+					return;
+				}
 			}
-			//Bisogna fare richiesta ed eventualmente annullare l'invio
-		}
 
+			//Inserire qui richesta recezione
+			if (boost::filesystem::is_regular_file(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+				//Richiedere se salvare o meno poichè vuol dire che il file già esiste
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+				if (dial->ShowModal() == wxID_YES) {
+					recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+				}
+				else {
+					//Si rifiuta cosi la ricezione
+					response = "-ERR\0";
+					boost::asio::write(s, boost::asio::buffer(response));
+				}
 
-		//Inserire qui richesta recezione
-		if (boost::filesystem::is_regular_file(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
-			//Richiedere se salvare o meno
-			//wxMessageBox("", wxT("INFO"), wxYES_NO | wxICON_INFORMATION);
-			wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-			if (dial->ShowModal() == wxID_YES) {
-				recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
-				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
 			else {
-				response = "-ERR\0";
-				boost::asio::write(s, boost::asio::buffer(response));
+				recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
-			
 		}
-		else {
-			recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName, true);
-			mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+
+		if (query == "+IM") {
+			//Qui ricevo l'immagine di profilo
+			//Se tutto va bene invio una risposta positiva
+			response = "+OK\0";
+			boost::asio::write(s, boost::asio::buffer(response));
+
+			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
+			recive_file(s, generalPath + "local_image\\" + ipAddrRemote + ".png");
+			response = "+OK\0";
+			boost::asio::write(s, boost::asio::buffer(response));
 		}
-		
-		
 
-		//std::cout << "Ho ricevuto il file " << fileName << " da " << utenteProprietario.getUsernameFromIp(ipAddrRemote) << std::endl;
-	}
-
-	if (query == "+IM") {
-		//Qui ricevo un file
-		//Se tutto va bene invio una risposta positiva
-		response = "+OK\0";
-		boost::asio::write(s, boost::asio::buffer(response));
-
-		//Ricevo il file
-
-		recive_file(s, generalPath + "local_image\\" + ipAddrRemote + ".png", false);
-		response = "+OK\0";
-		boost::asio::write(s, boost::asio::buffer(response));
-	}
-
-	if (query == "+DR") {
-		//**
-		//Saranno da levare tutti questi download, servono per il momento a ricever in loopback
-		//Verranno sostituiti con il path assoluto
-		//CreateDirectory(L"./download/", NULL);
-		boost::posix_time::ptime start = boost::posix_time::second_clock::local_time();
-		boost::posix_time::ptime end;
-		int dif, min = 0, sec = 0;
-		size_t directory_size_to_send, directorySize, directory_size_send = 0;
-		//Finche non ricevo -END, vuol dire che ho o una directory o un file da ricevere
-		bool firstTime = true;
-		while (query != "-END") {
-			if (query == "+DR") {
-				//Rispondo ok 
-				std::string response("+OK");
-				boost::asio::write(s, boost::asio::buffer(response));
-
-				if (firstTime == true) {
-					length = s.read_some(boost::asio::buffer(buf, 256));
-					buf[length] = '\0';
-					directorySize = std::atoi(buf);
-					directory_size_to_send = directorySize;
-					//Comunico al server che può inviare il file
+		if (query == "+DR") {
+			boost::posix_time::ptime start = boost::posix_time::second_clock::local_time();
+			boost::posix_time::ptime end;
+			std::string response;
+			int dif, min = 0, sec = 0;
+			size_t directory_size_to_send, directorySize, directory_size_send = 0;
+			//Finche non ricevo -END, vuol dire che ho o una directory o un file da ricevere
+			bool firstTime = true;
+			while (query != "-END") {
+				if (query == "+DR") {
+					//Rispondo ok 
 					response = "+OK";
 					boost::asio::write(s, boost::asio::buffer(response));
-					firstTime = false;
-				}
-				//Aspetto il nome del path
-				length = s.read_some(boost::asio::buffer(buf, 256));
-				buf[length] = '\0';
-				fileName = buf;
-				//**
-				if (first_directory==true) {
-					//Qui per prendere decisione sulla directory
 
-					if (m_settings->getAutoSaved() == 1) {
-						wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-						if (dial->ShowModal() == wxID_NO) {
-							response = "-ERR";
-							boost::asio::write(s, boost::asio::buffer(response));
-							s.close();
-							return;
-							//Bisogna rispondere in modo negativo
-						}
-						//Bisogna fare richiesta ed eventualmente annullare l'invio
+					//Se è il "primo giro", vuol dire che ricevo le informazioni utili alla ricezione della directory
+					if (firstTime == true) {
+						length = s.read_some(boost::asio::buffer(buf, 256));
+						buf[length] = '\0';
+						directorySize = std::atoi(buf);
+						directory_size_to_send = directorySize;
+						//Comunico al server che può inviare il file
+						response = "+OK";
+						boost::asio::write(s, boost::asio::buffer(response));
+						firstTime = false;
 					}
+					//Aspetto il nome del path
+					length = s.read_some(boost::asio::buffer(buf, 256));
+					buf[length] = '\0';
+					fileName = buf;
+					//**
+					if (first_directory == true) {
+						//Qui per prendere decisione sulla directory
+						if (m_settings->getAutoSaved() == 1) {
+							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+							if (dial->ShowModal() == wxID_NO) {
+								response = "-ERR";
+								boost::asio::write(s, boost::asio::buffer(response));
+								s.close();
+								return;
+								//Bisogna rispondere in modo negativo
+							}
+							//Bisogna fare richiesta ed eventualmente annullare l'invio
+						}
 
-					if (boost::filesystem::is_directory(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
-						//Richiedere se salvare o meno
-						wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-						if (dial->ShowModal() == wxID_YES) {
-							mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+						if (boost::filesystem::is_directory(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+							//Richiedere se salvare o meno
+							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+							if (dial->ShowModal() == wxID_YES) {
+								mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+							}
+							else {
+								response = "-ERR\0";
+								boost::asio::write(s, boost::asio::buffer(response));
+								s.close();
+								return;
+							}
+
 						}
 						else {
-							response = "-ERR\0";
-							boost::asio::write(s, boost::asio::buffer(response));
-							s.close();
-							return;
+							mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 						}
-
+						first_directory = false;
 					}
-					else {
-						mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					}
-					
-					first_directory = false;
-				}
-				//Cambiare qui
-				std::string pathName(mainframe->GetSettings()->getSavePath() + "\\"  + fileName);
-				//Rispondo ok se riesco ad ivniare il path
-				//	std::cout << "**Server: Ricevo " << pathName << std::endl;
-				response = "+OK\0";
-				boost::asio::write(s, boost::asio::buffer(response));
-				//Coverto il path name in un char, perchè la funzione createDirectory vuole un char e non string
-				/*char *pathNameChar = (char*)malloc((pathName.length() + 1) * sizeof(char));
-				for (i = 0; i < pathName.length(); i++) {
-				pathNameChar[i] = pathName[i];
-				}
-				pathNameChar[pathName.length()] = '\0';
-				//Creo la directory ricevuta
-				//	printf("**Server: Creo la directory %s\n", pathNameChar);
-				*/
-				std::wstring stemp = s2ws(pathName);
-				LPCWSTR result = stemp.c_str();
+					//Cambiare qui
+					std::string pathName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					//Rispondo ok se riesco ad ivniare il path
+					response = "+OK\0";
+					boost::asio::write(s, boost::asio::buffer(response));
+					boost::filesystem::create_directory(pathName);
 
-				CreateDirectory(result, NULL);
-				//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
-				length = s.read_some(boost::asio::buffer(buf, 256));
-				buf[length] = '\0';
-				query = buf;
-			}
-			if (query == "+FL") {
-				response = "+OK\0";
-				boost::asio::write(s, boost::asio::buffer(response));
-				//Leggo il path del file
-				length = s.read_some(boost::asio::buffer(buf, 256));
-				buf[length] = '\0';
-				fileName = buf;
-				//Cambiare qui
-				std::string fileName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
-				recive_file(s, fileName, false);
-				//Vedo la dim del file che ho ricevuto
-				directory_size_send += (size_t)boost::filesystem::file_size(fileName);
-				//std::cout << "Server: ricevuto " << fileName << " di dim " << boost::filesystem::file_size(fileName) << std::endl;
-				//Invio la risposta +CN per dire al client che ho ricevuto il tutto, e può continuare ad inviare.
-				response = "+CN\0";
-				boost::asio::write(s, boost::asio::buffer(response));
-				//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
-				length = s.read_some(boost::asio::buffer(buf, 256));
-				buf[length] = '\0';
-				query = buf;
-				//Devo fare la stampa della progressione qui
-				if (directory_size_send > 0) {
-					end = boost::posix_time::second_clock::local_time();
-					dif = (end - start).total_seconds();
-					min = (int)(((directory_size_to_send - directory_size_send) / ((directory_size_send)))*dif) / 60;
-					sec = (int)(((directory_size_to_send - directory_size_send) / ((directory_size_send)))*dif) % 60;
+					//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
+					length = s.read_some(boost::asio::buffer(buf, 256));
+					buf[length] = '\0';
+					query = buf;
+				}
+				if (query == "+FL") {
+					response = "+OK\0";
+					boost::asio::write(s, boost::asio::buffer(response));
+					//Leggo il path del file
+					length = s.read_some(boost::asio::buffer(buf, 256));
+					buf[length] = '\0';
+					fileName = buf;
+					//Cambiare qui
+					std::string fileName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					recive_file(s, fileName);
+					//Vedo la dim del file che ho ricevuto
+					directory_size_send += (size_t)boost::filesystem::file_size(fileName);
+					//Invio la risposta +CN per dire al client che ho ricevuto il tutto, e può continuare ad inviare.
+					response = "+CN";
+					boost::asio::write(s, boost::asio::buffer(response));
+					//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
+					length = s.read_some(boost::asio::buffer(buf, 256));
+					buf[length] = '\0';
+					query = buf;
+					//Devo fare la stampa della progressione qui
+					if (directory_size_send > 0) {
+						end = boost::posix_time::second_clock::local_time();
+						dif = (end - start).total_seconds();
+						min = (int)(((directory_size_to_send - directory_size_send) / ((directory_size_send)))*dif) / 60;
+						sec = (int)(((directory_size_to_send - directory_size_send) / ((directory_size_send)))*dif) % 60;
+					}
 				}
 			}
 		}
 	}
+	catch (std::exception& e) {
+		s.close();
+		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		return;
+	}
 	s.close();
-
 }
 
-std::wstring s2ws(const std::string& s)
-{
-	int len;
-	int slength = (int)s.length() + 1;
-	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-	wchar_t* buf = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-	std::wstring r(buf);
-	delete[] buf;
-	return r;
-}
-
-
-
-void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, bool print) {
+void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
 
 	std::ofstream file_out(fileName, std::ios::out | std::ios::binary);
-	//Attenzione: quando si inviano i file devo mettere questo!
-	//std::ofstream file_out(".//scaricato//" + fileName + "", std::ios::out | std::ios::binary);
 	std::string response;
 	boost::system::error_code error;
 	char buf[BUFLEN];
@@ -286,14 +230,15 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 	long int size;
 	long int dif = 0, min = 0, sec = 0;
 	long int calcola_tempo = 0;
-	char buf_recive[BUFLEN];  //serve a memorizzare i pacchetti TCP
+	char buf_recive[BUFLEN]; 
 	double dim_recived = 0, dim_read;
+	boost::posix_time::ptime start, end;
 
 	try
 	{
 		if (file_out.is_open()) {
-			//Dico che posso ricevere il file con +OK\0
-			response = "+OK\0";
+			//Se tutto va bene, dico che posso ricevere il file con +OK\0
+			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 			//Leggo la dimensione del file che ricevero, e la salvo su size
 			length = s.read_some(boost::asio::buffer(buf, 256));
@@ -303,17 +248,18 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 
-			boost::posix_time::ptime start = boost::posix_time::second_clock::local_time();
-			boost::posix_time::ptime end;
+			start = boost::posix_time::second_clock::local_time();
 
 			//ricevo finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
-				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN), error);
-				if (error == boost::asio::error::eof)
+				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+			/*	if (error == boost::asio::error::eof)
 					break;
-				else if (error)
-					throw boost::system::system_error(error);
+				else if (error) {
+					file_out.close();
+					return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
+				}*/
 				//Scarico tutto il buffer nel file
 				for (i = 0; i<dim_read; i++)
 					file_out << buf_recive[i];
@@ -328,23 +274,20 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 					sec = (long int)((((size - dim_recived) / ((dim_recived)))*dif)) % 60;
 				}
 				calcola_tempo++;
-				if (print == true)
-					printf("Ricevuto %d perc, Tempo rimanente: %d min %d sec \r", (int)(((float)dim_recived / (float)size) * 100), min, sec);
 			}
-			if (print == true)
-				std::cout << std::endl;
 			file_out.close();
 		}
 		else
 		{
-			std::cout << "Server: errore nell'apertura del file " << fileName << std::endl;
-			//Se ho avuto qualche errore nella ricezione del file, invio -ERR
+			//Se ho avuto qualche errore nell'apertura del file, invio -ERR
 			response = "-ERR";
 			boost::asio::write(s, boost::asio::buffer(response));
+			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}
-	catch (std::exception& e)
+	catch (std::exception&)
 	{
-		std::cerr << "Exception in thread: " << e.what() << "\n";
+		file_out.close();
+		return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
 	}
 }

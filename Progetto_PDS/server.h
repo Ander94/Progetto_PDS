@@ -7,4 +7,4 @@
 #include "MainApp.h"
 
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
-void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+

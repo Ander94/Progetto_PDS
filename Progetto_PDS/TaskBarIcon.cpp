@@ -207,7 +207,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	gs_dialog = this;
 
-	m_timer->Start(500); //2 sec
+	m_timer->Start(1000); //2 sec
 }
 
 MainFrame::~MainFrame()
@@ -254,7 +254,7 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 	utente user = m_settings->getUtenteProprietario();
 	m_elencoUser->Clear();
 	for (auto it : user.getUtentiOnline()) {
-		(*m_elencoUser) << it.getUsername();
+		(*m_elencoUser) << it.getUsername() + " ";
 	}
 	if (m_elencoUser->IsEmpty())
 		(*m_elencoUser) << "Nessun utente connesso.";

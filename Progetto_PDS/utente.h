@@ -6,6 +6,10 @@
 #include <string>
 #include <mutex>
 
+#include "wx/wx.h"
+
+
+
 enum status {
 	STAT_ONLINE = 0,
 	STAT_OFFLINE = 1
@@ -19,6 +23,13 @@ class utente
 	status state;
 	std::vector<utente> utentiConnessi;
 	boost::posix_time::ptime currentTime;
+
+	std::recursive_mutex m_username; //(1)
+	std::recursive_mutex m_ipAddr; //(2)
+	std::recursive_mutex m_state; //(3)
+	std::recursive_mutex m_currentTime; //(4)
+	std::recursive_mutex m_utentiConnessi; //()
+	
 	
 public:
 	utente();
@@ -41,4 +52,7 @@ public:
 	static void checkTime(utente& utenteProprietario);
 	void utente::setState(status state);
 	status utente::getState();
+	utente::utente(const utente& source);
+	utente &utente::operator =(const utente & source);
+	
 };

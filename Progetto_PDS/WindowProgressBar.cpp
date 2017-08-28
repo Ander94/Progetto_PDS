@@ -65,6 +65,7 @@ void WindowProgressBar::StartSending() {
 }
 
 void WindowProgressBar::decreseCountUtenti() {
+	//Cosi è sbagliato, bisogna chiudere solamente la finestra dell'utente di riferimento
 	this->m_CountUtenti--;
 	if (this->m_CountUtenti == 0) {
 		wxMessageBox(wxT("Tutti i trasferimenti terminati!"), wxT("Info"), wxOK | wxICON_INFORMATION, this);

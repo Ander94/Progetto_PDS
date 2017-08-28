@@ -42,7 +42,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		//m_percFile->SetFont((m_percFile->GetFont()));
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
 		//m_nameFile->SetFont((m_percFile->GetFont()));
-		m_timeFile = new wxStaticText(this, wxID_ANY, "Tempo rimanente: ???", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "Calcolo del tempo rimanente", wxDefaultPosition, wxDefaultSize);
 		//m_timeFile->SetFont((m_timeFile->GetFont()));
 		m_progFile = new wxGauge(this, wxID_ANY, 1000, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		//m_progFile->Pulse();
@@ -68,7 +68,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxGridSizer* hFileSizer = new wxGridSizer(2);
 		m_percFile = new wxStaticText(this, wxID_ANY, "0 %", wxDefaultPosition, wxDefaultSize);
 		//m_percFile->SetFont((m_percFile->GetFont()));
-		m_timeFile = new wxStaticText(this, wxID_ANY, "Tempo rimanente: ???", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "Calcolo del tempo rimanente", wxDefaultPosition, wxDefaultSize);
 		//m_timeFile->SetFont((m_percFile->GetFont()));
 		m_progFile = new wxGauge(this, wxID_ANY, 1000, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
@@ -89,7 +89,8 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 
 //interrompe trasferimento
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
-	wxMessageBox(wxT("Invio interrotto!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
+	wxMessageBox(wxT("Invio interrotto qui!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
+	//Bisogna bloccare il thread
 	//this->m_progBar->SetValue(50);
 	this->m_parentWindow->decreseCountUtenti();
 }
@@ -120,8 +121,24 @@ void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
 //setta il tempo mancante alla fine del trasferimento
 void UserProgressBar::SetTimeFile(long min, long sec) {
 	std::lock_guard<std::mutex> lk(mut);
-	std::string time("Tempo rimanente: " + std::to_string(min) + ":" + std::to_string(sec));
-	m_timeFile->SetLabelText(time);
+	std::string s_min;
+	std::string s_sec;
+
+	if (sec <= 9)
+		s_sec = "0" +std::to_string(sec);
+	else
+		s_sec = std::to_string(sec);
+
+	if (min <= 9)
+		s_min = "0" + std::to_string(min);
+	else
+		s_min = std::to_string(min);
+
+	
+		std::string time("Tempo rimanente: " + s_min + ":" + s_sec);
+		m_timeFile->SetLabelText(time);
+	
+	
 }
 
 void UserProgressBar::SetMaxDir(long dim) {
