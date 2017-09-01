@@ -27,7 +27,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username,
 
 //Questa è la funzione che vedrà il thread, a noi non importa.
 void sendTCPfile(utente& utenteProprietario, std::string username, std::string initialAbsolutePath, UserProgressBar* progBar) {
-	boost::thread sendTCPfileThread(sendThreadTCPfile, boost::ref(utenteProprietario), username, initialAbsolutePath, progBar);
+	boost::thread(sendThreadTCPfile, boost::ref(utenteProprietario), username, initialAbsolutePath, progBar).detach();
 	//sendTCPfileThread.join();
 }
 

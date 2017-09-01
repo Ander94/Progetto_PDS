@@ -4,7 +4,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "protoType.h"
 
-void sendUDPMessage(std::string& username, status& current_status) {
+void sendUDPMessage(std::string& username, status& current_status, std::atomic<bool>& exit_app) {
 
 
 	boost::asio::io_service io_service;
@@ -17,7 +17,7 @@ void sendUDPMessage(std::string& username, status& current_status) {
 	socket.set_option(boost::asio::socket_base::broadcast(true));
 	sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), 1500);
 
-	while (1) {
+	while (!exit_app.load()) {
 		if (current_status == STAT_ONLINE) {
 			try {
 				socket.send_to(boost::asio::buffer(username + "\r\nONLINE\r\n"), sender_endpoint);

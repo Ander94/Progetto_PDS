@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <memory>
 #include <ctime>
+#include <atomic>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -32,6 +33,9 @@ private:
 	save_request m_save_request;  //Richiesta quando si riceve un file
 	
 public:
+	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
+	std::atomic<bool> exit_send_udp, exit_recive_udp, exit_recive_tcp;
+	boost::asio::io_service io_service_tcp_file;
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }
@@ -151,7 +155,7 @@ public:
 
 		boost::asio::io_service io_service;
 		udp::socket s(io_service);
-
+		
 		boost::asio::ip::udp::endpoint local_endpoint;
 		boost::asio::ip::udp::endpoint reciver_endpoint;
 

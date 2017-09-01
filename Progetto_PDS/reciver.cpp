@@ -10,10 +10,9 @@
 
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
-
 void iscriviUtente(std::string username, std::string ipAddr, enum status ,utente& utenteProprietario, std::string generalPath);
 
-void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
 	
 
 	boost::asio::io_service io_service;
@@ -29,9 +28,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
 	s.bind(local_endpoint);
 
 	//Lancio il thread che fa il check sul vettore
-	boost::thread check(utente::checkTime, boost::ref(utenteProprietario));
+	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), boost::ref(exit_app));
 
-	while(1){
+	while(!exit_app.load()){
 		
 		char buf[1024];
 		char buf_username[1024];
@@ -65,7 +64,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath) {
 			
 		}
 	}
+	check.join();
 	s.close();
+	io_service.stop();
 	return;
 }
 

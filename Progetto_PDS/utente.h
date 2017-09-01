@@ -49,7 +49,7 @@ public:
 	boost::posix_time::ptime utente::getTime();
 	int utente::removeUtente(std::string username);
 	std::string getUsernameFromIp(std::string ipAddr);
-	static void checkTime(utente& utenteProprietario);
+	static void checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app);
 	void utente::setState(status state);
 	status utente::getState();
 	utente::utente(const utente& source);

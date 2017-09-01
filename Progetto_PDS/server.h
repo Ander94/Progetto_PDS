@@ -6,5 +6,5 @@
 #include "Settings.h"
 #include "MainApp.h"
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe, boost::asio::io_service& io_service);
 

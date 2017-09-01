@@ -156,10 +156,10 @@ std::string utente::getIpAddr() {
 
 
 
-void utente::checkTime(utente& utenteProprietario) {
+void utente::checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app) {
 
 	boost::posix_time::ptime currentTime;
-	while (1) {
+	while (!exit_app.load()) {
 		unsigned int i, j;
 		//std::cout << "Controllo " << std::endl;
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {

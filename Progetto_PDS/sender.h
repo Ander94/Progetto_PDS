@@ -5,9 +5,7 @@
 #include <vector>
 #include <string>
 #include "utente.h"
-
-
-
+#include <atomic>
 
 enum save_request {
 	SAVE_REQUEST_NO = 0,
@@ -15,4 +13,4 @@ enum save_request {
 };
 
 
-void sendUDPMessage(std::string& username, status& current_status);
+void sendUDPMessage(std::string& username, status& current_status, std::atomic<bool>& exit_app);

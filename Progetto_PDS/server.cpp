@@ -13,12 +13,12 @@ using boost::asio::ip::tcp;
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, boost::asio::io_service& io_service) {
 
 
 	try {
 		//Dichiaro le strutture boost necessarie
-		boost::asio::io_service io_service;
+		
 		tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), 1400));
 		for (;;)
 		{
@@ -27,7 +27,6 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 			a.accept(s);
 			std::thread(reciveAfterAccept, std::move(s), utenteProprietario, generalPath, mainframe).detach();
 		}
-		io_service.stop();
 	}
 	catch (std::exception& e)
 	{
@@ -172,7 +171,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 					}
 					//Cambiare qui
 					std::string pathName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
-					//Rispondo ok se riesco ad ivniare il path
+					//Rispondo ok se riescxo ad ivniare il path
 					response = "+OK\0";
 					boost::asio::write(s, boost::asio::buffer(response));
 					boost::filesystem::create_directory(pathName);

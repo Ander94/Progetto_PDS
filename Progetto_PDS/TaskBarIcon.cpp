@@ -245,6 +245,14 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
+
+	m_settings->exit_recive_udp.store(true);
+	m_settings->reciveUdpMessageThread.join();
+	m_settings->exit_send_udp.store(true);
+	m_settings->sendUdpMessageThread.join();
+	m_settings->exit_recive_tcp.store(true);
+	m_settings->io_service_tcp_file.stop();
+	m_settings->sendUdpMessageThread.join();
 	m_timer->Stop();
 	Destroy();
 }
@@ -436,6 +444,7 @@ void TaskBarIcon::OnMenuRestore(wxCommandEvent&)
 
 void TaskBarIcon::OnMenuExit(wxCommandEvent&)
 {
+	
 	gs_dialog->Close(true);
 }
 
