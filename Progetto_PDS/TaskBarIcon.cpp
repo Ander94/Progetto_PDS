@@ -420,6 +420,7 @@ EVT_UPDATE_UI(PU_CHECKMARK, TaskBarIcon::OnMenuUICheckmark)
 EVT_MENU(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuCheckmarkOnline)
 EVT_UPDATE_UI(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuUICheckmarkOnline)
 EVT_MENU(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuCheckmarkOffline)
+EVT_UPDATE_UI(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuUICheckmarkOffline)
 //MIO
 EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_SUB1, TaskBarIcon::OnMenuSub)
@@ -482,7 +483,6 @@ void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
 }
 void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
 {
-	//event.Check(Offline);
 	event.Check(m_settings->getStato());
 }
 
