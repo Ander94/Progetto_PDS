@@ -5,10 +5,16 @@
 
 wxBEGIN_EVENT_TABLE(UserProgressBar, wxWindow)
 EVT_THREAD(CLIENT_EVENT, UserProgressBar::OnClientEvent)
+EVT_THREAD(SetTimeFile_EVENT, UserProgressBar::OnSetTimeFile)
+EVT_THREAD(SetMaxDir_EVENT, UserProgressBar::OnSetMaxDir)
+EVT_THREAD(SetNewFile_EVENT, UserProgressBar::OnSetNewFile)
+EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
+EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
 wxEND_EVENT_TABLE()
 
 UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, bool isDir) : wxWindow(parent, id)
 {
+	flagAbort.store(false);
 	m_parentWindow = dynamic_cast<WindowProgressBar*>(parent);
 	m_utente = user;
 	m_isDir = isDir;
@@ -84,15 +90,14 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	}
 	
 	m_abort->Bind(wxEVT_BUTTON, &UserProgressBar::OnAbortClick, this);	
+
 	this->SetSizerAndFit(m_sizer);
 }
 
 //interrompe trasferimento
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
-	wxMessageBox(wxT("Invio interrotto qui!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
-	//Bisogna bloccare il thread
-	//this->m_progBar->SetValue(50);
-	this->m_parentWindow->decreseCountUtenti();
+	//wxMessageBox(wxT("Invio interrotto qui!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
+	flagAbort.store(true);
 }
 
 //void UserProgressBar::UpdateUI() {
@@ -119,10 +124,13 @@ void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
 
 
 //setta il tempo mancante alla fine del trasferimento
-void UserProgressBar::SetTimeFile(long min, long sec) {
+void UserProgressBar::SetTimeFile(long sec) {
 	std::lock_guard<std::mutex> lk(mut);
 	std::string s_min;
 	std::string s_sec;
+
+	long min = sec / 60;
+	sec = sec % 60;
 
 	if (sec <= 9)
 		s_sec = "0" +std::to_string(sec);
@@ -182,4 +190,3 @@ void UserProgressBar::IncFile(long dim) {
 	}
 	this->Layout();
 }
-

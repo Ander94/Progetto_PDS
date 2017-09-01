@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mutex>
+#include <atomic>
 
 #include "utente.h"
 
@@ -11,7 +11,12 @@
 
 enum {
 	CLIENT_EVENT = 5000,
-	SERVER_EVENT = 5001
+	SERVER_EVENT,
+	SetTimeFile_EVENT,
+	SetMaxDir_EVENT,
+	SetNewFile_EVENT,
+	SetMaxFile_EVENT,
+	IncFile_EVENT
 };
 
 class UserProgressBar : public wxWindow
@@ -27,7 +32,7 @@ private:
 	//barre avanzamento
 	wxGauge *m_progDir;
 	wxGauge *m_progFile;
-	 
+
 	std::string m_utente;
 
 	std::mutex mut;
@@ -37,9 +42,20 @@ private:
 	long m_totDir=0, m_parzialeDir=0;
 	long m_totFile=0, m_parzialeFile=0;
 	long m_min=0, m_sec=0;
-	bool flagAbort = false;
+	std::atomic<bool> flagAbort;
 
 	void OnAbortClick(wxCommandEvent& event);
+
+	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetExtraLong()); };
+	
+	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetExtraLong()); };
+	
+	void OnSetNewFile(wxThreadEvent& event) { SetNewFile(event.GetString().ToStdString()); };
+	
+	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetExtraLong()); };
+	
+	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetExtraLong()); };
+	
 	void OnClientEvent(wxThreadEvent& event);
 	wxDECLARE_EVENT_TABLE();
 public:
@@ -51,7 +67,7 @@ public:
 	//void UpdateUI();
 
 	//setta il tempo rimasto del file
-	void SetTimeFile(long min, long sec);
+	void SetTimeFile(long sec);
 
 	//passare la dimensione del direttorio
 	void SetMaxDir(long dim);
@@ -66,5 +82,5 @@ public:
 	void IncFile(long dim);
 
 	//per testare se bisogna interrompere l'invio
-	bool testAbort() { return flagAbort; }
+	bool testAbort() { return flagAbort.load(); }
 };

@@ -59,7 +59,6 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 void WindowProgressBar::StartSending() {
 	for (auto it : m_ListaUtenti) {
 		sendTCPfile(m_settings->getUtenteProprietario(), it->GetUsername(), m_settings->getSendPath(), it);
-		//Sleep(5000);
 	}
 		
 }
@@ -68,7 +67,7 @@ void WindowProgressBar::decreseCountUtenti() {
 	//Cosi è sbagliato, bisogna chiudere solamente la finestra dell'utente di riferimento
 	this->m_CountUtenti--;
 	if (this->m_CountUtenti == 0) {
-		wxMessageBox(wxT("Tutti i trasferimenti terminati!"), wxT("Info"), wxOK | wxICON_INFORMATION, this);
+		//wxMessageBox(wxT("Tutti i trasferimenti terminati!"), wxT("Info"), wxOK | wxICON_INFORMATION, this);
 		this->Close();
 	}
 }

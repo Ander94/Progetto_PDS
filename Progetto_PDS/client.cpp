@@ -235,7 +235,11 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 
 	//Devo inviare qui la dimensione
 	directory_size_to_send = folder_size(initialAbsolutePath); // dimensione directory
-	progBar->SetMaxDir(directory_size_to_send); //<-- inizializzo barra progresso directory
+	
+	wxThreadEvent event(wxEVT_THREAD, SetMaxDir_EVENT);
+	event.SetExtraLong(directory_size_to_send);
+	wxQueueEvent(progBar, event.Clone());
+	//progBar->SetMaxDir(directory_size_to_send); //<-- inizializzo barra progresso directory
 	
 	//Converto in string la dimensione cosi da poterla inviare al server.
 	convert << directory_size_to_send;
@@ -265,7 +269,11 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	{
 		if (!bf::is_directory(*it)) {
 			bf::path p(bf::absolute(*it));
-			progBar->SetNewFile(p.filename().string()); //<-- inizializzo barra progresso file
+
+			wxThreadEvent event(wxEVT_THREAD, SetNewFile_EVENT);
+			event.SetString(p.filename().string());
+			wxQueueEvent(progBar, event.Clone());
+			//progBar->SetNewFile(p.filename().string()); //<-- inizializzo barra progresso file
 			try {
 				send_file(s, reverse_slash(bf::absolute(*it).string()), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
 			}
@@ -344,7 +352,11 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 		//E la salvo su size
 		size = (long)(end_pos - begin); //dim file
 		
-		progBar->SetMaxFile(size);  //<-- inizializzo barra di progresso
+
+		wxThreadEvent event(wxEVT_THREAD, SetMaxFile_EVENT);
+		event.SetExtraLong(size);
+		wxQueueEvent(progBar, event.Clone());
+		//progBar->SetMaxFile(size);  //<-- inizializzo barra di progresso
 
 		//Converto la dimensione in una stringa cosi da poterla inviare al server
 		convert << size;
@@ -385,9 +397,10 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			}
 
 			
-
+			wxThreadEvent event1(wxEVT_THREAD, IncFile_EVENT);
+			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);
 			//Carico il buffer da caricare 
-			while (dim_send < size) {
+			while (dim_send < size && !progBar->testAbort()) {
 				dim_write = 0;
 				while (dim_write < BUFLEN && dim_send < size) {
 					file_in.get(c);
@@ -401,12 +414,19 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 				{
 					end = boost::posix_time::second_clock::local_time();
 					dif = (end - start).total_seconds();
-					min = (int)(((size - dim_send) / ((dim_send)))*dif) / 60;
-					sec = (int)((((size - dim_send) / ((dim_send)))*dif)) % 60;
+					//min = (int)(((size - dim_send) / ((dim_send)))*dif) / 60;
+					//sec = (int)((((size - dim_send) / ((dim_send)))*dif)) % 60;
+					sec = (int)((((size - dim_send) / ((dim_send)))*dif));
 				}
 				calcola_tempo++;	
-				progBar->IncFile(dim_send);
-				progBar->SetTimeFile(min, sec);
+				
+				event1.SetExtraLong(dim_send);
+				wxQueueEvent(progBar, event1.Clone());
+				event2.SetExtraLong(sec);
+				wxQueueEvent(progBar, event2.Clone());
+
+				//progBar->IncFile(dim_send);
+				//progBar->SetTimeFile(sec);
 				
 			}
 			file_in.close();
