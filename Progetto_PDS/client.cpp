@@ -137,12 +137,14 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	std::string ipAddr;       //Indirizzo ip dell'utente a cui inviare il file
 	std::string folder;       //Nome della cartella che contiene il file
 
+	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
 
 	//controllare se l'user esiste
 	try {
 		ipAddr = utenteProprietario.getUtente(username).getIpAddr(); //Se l'username non esiste, lancio un eccezione e torno, altrimenti ottengo il suo ip
 	}
 	catch (std::exception e) {
+		wxQueueEvent(progBar, event.Clone());
 		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
@@ -171,6 +173,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 		boost::asio::connect(s, iterator);
 	}
 	catch (std::exception e) {
+		wxQueueEvent(progBar, event.Clone());
 		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
@@ -181,6 +184,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 			send_file(s, initialAbsolutePath, folder, true, progBar);
 		}
 		catch (std::exception& e) {
+			wxQueueEvent(progBar, event.Clone());
 			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
 		}
 		
@@ -191,6 +195,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 			send_directory(s, initialAbsolutePath, folder, progBar);
 		}
 		catch (std::exception& e) {
+			wxQueueEvent(progBar, event.Clone());
 			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
 		}
 	}
@@ -198,7 +203,6 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	s.close();
 	io_service.stop();
 	//segnalo la fine del trasferimento alla GUI
-	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
 	wxQueueEvent(progBar, event.Clone());
 	return;
 
@@ -276,6 +280,8 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			//progBar->SetNewFile(p.filename().string()); //<-- inizializzo barra progresso file
 			try {
 				send_file(s, reverse_slash(bf::absolute(*it).string()), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
+				if (progBar->testAbort())
+					return;
 			}
 			catch (std::exception&) {
 				return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
