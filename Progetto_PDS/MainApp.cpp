@@ -146,7 +146,7 @@ bool MainApp::OnInit()
 			//Qua dovrei passare anche m_settings->getGeneralPath();
 			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->exit_recive_udp));
 			//Qua dovrei passare anche m_settings
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame, boost::ref(m_settings->io_service_tcp_file));
+			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame, boost::ref(m_settings->io_service_tcp_file), boost::ref(m_settings->exit_recive_tcp));
 			
 			m_frame->StartServer();
 			

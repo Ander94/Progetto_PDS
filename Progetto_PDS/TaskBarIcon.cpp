@@ -256,8 +256,11 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 	m_settings->exit_send_udp.store(true);
 	m_settings->sendUdpMessageThread.join();
 	m_settings->exit_recive_tcp.store(true);
-	m_settings->io_service_tcp_file.stop();
-	m_settings->sendUdpMessageThread.join();
+	//Problemi in uscita da questo thread dove vi è l'accept, io_service non si blocca con stop.
+	//m_settings->io_service_tcp_file.stop();
+	//m_settings->reciveTCPfileThread.join();
+	m_timer->Stop();
+
 	m_timer->Stop();
 	Destroy();
 }
