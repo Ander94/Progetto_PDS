@@ -71,7 +71,8 @@ private:
 	void OnTimer(wxTimerEvent&);
 	void OnImage(wxCommandEvent&);
 	void OnChangeSavePath(wxCommandEvent&);
-	void OnRadioBox(wxCommandEvent&);
+	void OnRadioBoxStato(wxCommandEvent&);
+	void OnRadioBoxSalvataggio(wxCommandEvent&);
 	void OnMenuUICheckmark(wxUpdateUIEvent&);
 
 public:

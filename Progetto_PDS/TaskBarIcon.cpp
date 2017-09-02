@@ -2,6 +2,9 @@
 #include <wx/taskbar.h>
 
 #include "share_icon.xpm"
+//#include "share_icon_online.xpm"
+//#include "share_icon_offline.xpm"
+
 #include "TaskBarIcon.h"
 #include "IPCserver.h"
 #include "Settings.h"
@@ -14,7 +17,8 @@
 enum {
 	TIMER_ID = 15000,
 	IMG_ID,
-	RADIO_ID,
+	RADIO_ID1,
+	RADIO_ID2,
 	SAVE_ID
 };
 
@@ -37,8 +41,9 @@ EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_BUTTON(SAVE_ID, MainFrame::OnChangeSavePath)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
-EVT_RADIOBOX(RADIO_ID, MainFrame::OnRadioBox)
-EVT_UPDATE_UI(RADIO_ID, MainFrame::OnMenuUICheckmark)
+EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
+EVT_UPDATE_UI(RADIO_ID1, MainFrame::OnMenuUICheckmark)
+EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
 wxEND_EVENT_TABLE()
 
 
@@ -64,7 +69,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	m_status = new wxRadioBox
 	(
 		this,
-		RADIO_ID,
+		RADIO_ID1,
 		wxT("Stato: "),
 		wxDefaultPosition,
 		wxDefaultSize,
@@ -79,7 +84,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	m_saved = new wxRadioBox
 	(
 		this,
-		RADIO_ID,
+		RADIO_ID2,
 		wxT("Salvataggio: "),
 		wxDefaultPosition,
 		wxDefaultSize,
@@ -207,7 +212,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	gs_dialog = this;
 
-	m_timer->Start(1000); //2 sec
+	m_timer->Start(1000); //1 sec
 }
 
 MainFrame::~MainFrame()
@@ -313,21 +318,33 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 }
 
 
-void MainFrame::OnRadioBox(wxCommandEvent& event)
+void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 {
+	std::fstream save_path_file;
+	save_path_file.open(m_settings->getGeneralPath() + "stato.txt", std::fstream::out);
+	save_path_file << m_settings->getSavePath() << std::endl;
 	int sel = m_status->GetSelection();
 	if (sel == 0) {
 		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOn();
 		m_textStato->SetLabel("online");
+		save_path_file << "online\n";
 	}
 	else {
 		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOff();
 		m_textStato->SetLabel("offline");
+		save_path_file << "offline\n";
 	}
+	save_path_file.close();
 
-	sel = m_saved->GetSelection();
+	Update();
+	wxQueueEvent(m_taskBarIcon, new wxUpdateUIEvent);
+}
+
+void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
+{
+	int sel = m_saved->GetSelection();
 	if (sel == 0) {
 		//wxMessageBox("salvataggio automatico!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOff();
@@ -336,20 +353,6 @@ void MainFrame::OnRadioBox(wxCommandEvent& event)
 		//wxMessageBox("salvataggio su richesta!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOn();
 	}
-
-	std::fstream save_path_file;
-	save_path_file.open(m_settings->getGeneralPath() + "stato.txt", std::fstream::out);
-	save_path_file << m_settings->getSavePath() << std::endl;
-	if (m_settings->getStato() == 0) {
-		save_path_file << "online\n";
-	}
-	else {
-		save_path_file << "offline\n";
-	}
-	save_path_file.close();
-
-	Update();
-	wxQueueEvent(m_taskBarIcon, new wxUpdateUIEvent);
 }
 
 void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
