@@ -125,7 +125,6 @@ void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
 
 //setta il tempo mancante alla fine del trasferimento
 void UserProgressBar::SetTimeFile(long sec) {
-	std::lock_guard<std::mutex> lk(mut);
 	std::string s_min;
 	std::string s_sec;
 
@@ -150,7 +149,11 @@ void UserProgressBar::SetTimeFile(long sec) {
 }
 
 void UserProgressBar::SetMaxDir(long dim) {
-	std::lock_guard<std::mutex> lk(mut);
+	if (dim <= 0) {
+		m_percDir->SetLabelText("??? %");
+		m_progDir->Pulse();
+		return;
+	}
 	m_totDir = dim;
 	m_parzialeDir = 0;
 	m_progDir->SetValue(0);
@@ -158,7 +161,6 @@ void UserProgressBar::SetMaxDir(long dim) {
 }
 
 void UserProgressBar::SetNewFile(std::string path) {
-	std::lock_guard<std::mutex> lk(mut);
 	m_File = path;
 	m_nameFile->SetLabelText("File: " + path);
 	m_progFile->SetValue(0);
@@ -166,7 +168,6 @@ void UserProgressBar::SetNewFile(std::string path) {
 }
 
 void UserProgressBar::SetMaxFile(long dim) {
-	std::lock_guard<std::mutex> lk(mut);
 	m_totFile = dim;
 	m_parzialeFile = 0;
 	m_percFile->SetLabelText("0 %");
@@ -174,14 +175,13 @@ void UserProgressBar::SetMaxFile(long dim) {
 }
 
 void UserProgressBar::IncFile(long dim) {
-	std::lock_guard<std::mutex> lk(mut);
 	long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
 	float value = (float)m_parzialeFile * 1000 / (float)m_totFile;
 	int intval = (int)floor(value + 0.5);
 	m_progFile->SetValue(intval);
 	m_percFile->SetLabelText(std::to_string(intval/10) + "%");
-	if (m_isDir) {
+	if (m_isDir && m_totDir > 0) {
 		m_parzialeDir += diff;
 		value = (float)m_parzialeDir * 1000 / (float)m_totDir;
 		intval = (int)floor(value + 0.5);
