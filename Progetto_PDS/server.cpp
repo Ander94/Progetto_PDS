@@ -62,19 +62,30 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 			length = s.read_some(boost::asio::buffer(buf, 256));
 			buf[length] = '\0';
 			fileName = buf;
+			std::string savePath = mainframe->GetSettings()->getSavePath() + "\\" + fileName;
+			std::string extension = boost::filesystem::extension(fileName);
 
 			if (m_settings->getAutoSaved() == 1) {
-				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-				if (dial->ShowModal() == wxID_NO) {
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file \"" + fileName + "\" da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxHELP | wxICON_QUESTION);
+				dial->SetHelpLabel(wxID_SAVEAS);
+				int ret_val = dial->ShowModal();
+				if (ret_val == wxID_NO) {
 					response = "-ERR";
 					boost::asio::write(s, boost::asio::buffer(response));
 					s.close();
 					return;
 				}
+				else if (ret_val == wxID_HELP) {
+					wxFileDialog saveFileDialog(NULL, "Salva " + fileName + " come", mainframe->GetSettings()->getSavePath(), fileName,
+							"(*" + extension + ")|*" + extension, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+					if (saveFileDialog.ShowModal() == wxID_CANCEL)
+						return;     // the user changed idea...
+					savePath = saveFileDialog.GetPath().ToStdString();
+				}
 			}
 
 			//Inserire qui richesta recezione
-			if (boost::filesystem::is_regular_file(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+			if (boost::filesystem::is_regular_file(savePath)) {
 				//Richiedere se salvare o meno poichè vuol dire che il file già esiste
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
@@ -89,7 +100,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 
 			}
 			else {
-				recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+				recive_file(s, savePath);
 				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
 		}
@@ -114,6 +125,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 			size_t directory_size_to_send, directorySize, directory_size_send = 0;
 			//Finche non ricevo -END, vuol dire che ho o una directory o un file da ricevere
 			bool firstTime = true;
+			
 			while (query != "-END") {
 				if (query == "+DR") {
 					//Rispondo ok 
