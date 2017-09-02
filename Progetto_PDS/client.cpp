@@ -31,12 +31,37 @@ void sendTCPfile(utente& utenteProprietario, std::string username, std::string i
 	//sendTCPfileThread.join();
 }
 
+void sendClose(std::string ipAddr) {
+	boost::asio::io_service io_service;
+	tcp::resolver resolver(io_service);
+	tcp::resolver::query query(tcp::v4(), ipAddr, "1400");
+	tcp::resolver::iterator iterator = resolver.resolve(query);
+	tcp::socket s(io_service);
+	std::string buf_send("+CL");
+
+	try {
+		boost::asio::connect(s, iterator);
+	}
+	catch (std::exception e) {
+		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+		return;
+	}
+	
+	boost::asio::write(s, boost::asio::buffer(buf_send));
+	
+	s.close();
+	io_service.stop();
+
+}
+
 void sendImage(std::string filePath, std::string ipAddr) {
 	boost::asio::io_service io_service;
 	tcp::resolver resolver(io_service);
 	tcp::resolver::query query(tcp::v4(), ipAddr, "1400");
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 	tcp::socket s(io_service);
+
+
 
 	//Mi connetto al server, se qualcosa non va a buon fine, ritorno al main
 	try {

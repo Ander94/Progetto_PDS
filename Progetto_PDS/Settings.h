@@ -31,11 +31,9 @@ private:
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
 	save_request m_save_request;  //Richiesta quando si riceve un file
-	
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	std::atomic<bool> exit_send_udp, exit_recive_udp, exit_recive_tcp;
-	boost::asio::io_service io_service_tcp_file;
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }

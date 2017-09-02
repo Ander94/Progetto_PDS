@@ -13,14 +13,14 @@ using boost::asio::ip::tcp;
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, boost::asio::io_service& io_service, std::atomic<bool>& exit_app) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, std::atomic<bool>& exit_app) {
 
 
 	try {
 		//Dichiaro le strutture boost necessarie
-		
+		boost::asio::io_service io_service;
 		tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), 1400));
-		while (!exit_app.load())
+		while (1)
 		{
 			tcp::socket s(io_service);
 			//Accetto una nuova richesta
