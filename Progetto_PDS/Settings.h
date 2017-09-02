@@ -46,26 +46,35 @@ public:
 	void Init(std::string path, std::string nomeUtente)
 	{
 		
-		m_save_request = save_request::SAVE_REQUEST_NO;
+		
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
+			m_save_request = save_request::SAVE_REQUEST_NO;
 		}
 		else {
 			//Leggo il path dal file
 			std::fstream save_path_file;
 			std::string stato; //online o offline
+			std::string save;
 			save_path_file.open(m_GeneralPath + "stato.txt", std::fstream::in);
 			std::getline(save_path_file, m_SavePath);
 			std::getline(save_path_file, stato);
+			std::getline(save_path_file, save);
 			if (stato == "online") {
 				m_stato = status::STAT_ONLINE;
 			}
 			else {
 				m_stato = status::STAT_OFFLINE;
+			}
+			if (save == "autoSavedOn") {
+				m_save_request = save_request::SAVE_REQUEST_YES;
+			}
+			else {
+				m_save_request = save_request::SAVE_REQUEST_NO;
 			}
 
 			save_path_file.close();

@@ -315,6 +315,12 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 	else {
 		save_path_file << "offline\n";
 	}
+	if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+		save_path_file << "autoSavedOn\n";
+	}
+	else {
+		save_path_file << "autoSavedOff\n";
+	}
 	save_path_file.close();
 	Update();
 	
@@ -332,12 +338,24 @@ void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 		m_settings->setStatoOn();
 		m_textStato->SetLabel("online");
 		save_path_file << "online\n";
+		if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+			save_path_file << "autoSavedOn\n";
+		}
+		else {
+			save_path_file << "autoSavedOff\n";
+		}
 	}
 	else {
 		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOff();
 		m_textStato->SetLabel("offline");
 		save_path_file << "offline\n";
+		if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+			save_path_file << "autoSavedOn\n";
+		}
+		else {
+			save_path_file << "autoSavedOff\n";
+		}
 	}
 	save_path_file.close();
 
@@ -348,20 +366,37 @@ void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 {
 	int sel = m_saved->GetSelection();
+
+	std::fstream save_path_file;
+	save_path_file.open(m_settings->getGeneralPath() + "stato.txt", std::fstream::out);
+	save_path_file << m_settings->getSavePath() << std::endl;
+	
+	if (m_settings->getStato()==status::STAT_ONLINE) {
+		save_path_file << "online\n";
+	}
+	else {
+		save_path_file << "offline\n";
+	}
+
 	if (sel == 0) {
 		//wxMessageBox("salvataggio automatico!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOff();
+		save_path_file << "autoSavedOff\n";
 	}
 	else {
 		//wxMessageBox("salvataggio su richesta!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOn();
+		save_path_file << "autoSavedOn\n";
 	}
+
+	save_path_file.close();
 }
 
 void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
 {
 	
 	m_status->SetSelection(m_settings->getStato());
+	m_saved->SetSelection(m_settings->getAutoSaved()); //Aggiunta da sergio
 	std::string stato;
 	m_settings->getStato() ? stato = "offline" : stato = "online";
 	m_textStato->SetLabel(stato);
@@ -476,6 +511,12 @@ void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
 	save_path_file.open(m_settings->getGeneralPath() + "stato.txt", std::fstream::out);
 	save_path_file << m_settings->getSavePath() << std::endl;
 	save_path_file << "online\n";
+	if (m_settings->getAutoSaved()==save_request::SAVE_REQUEST_YES) {
+		save_path_file << "autoSavedOn\n";
+	}
+	else {
+		save_path_file << "autoSavedOff\n";
+	}
 	save_path_file.close();
 	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
@@ -493,6 +534,12 @@ void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
 	save_path_file.open(m_settings->getGeneralPath() + "stato.txt", std::fstream::out);
 	save_path_file << m_settings->getSavePath() << std::endl;
 	save_path_file << "offline\n";
+	if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+		save_path_file << "autoSavedOn\n";
+	}
+	else {
+		save_path_file << "autoSavedOff\n";
+	}
 	save_path_file.close();
 	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
