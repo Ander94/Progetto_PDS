@@ -13,6 +13,8 @@
 
 #include "utente.h"
 #include "sender.h"
+#include "ipcsetup.h"
+#include "IPCclient.h"
 
 #include "MainApp.h"
 
@@ -28,6 +30,7 @@ private:
 	std::string m_DefaultImagePath;
 	std::string m_SavePath; 
 	std::string m_SendPath;
+	MyClient* m_client;
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
 	save_request m_save_request;  //Richiesta quando si riceve un file
@@ -211,4 +214,16 @@ public:
 		return;
 	}
 
+	bool StartClient()
+	{
+		m_client = new MyClient();
+		if (!m_client->Connect(IPC_HOST, IPC_SERVICE, IPC_TOPIC)) {
+			wxDELETE(m_client);
+			return false;
+		}
+		return true;
+	}
+
+	MyClient *GetClient() { return m_client; }
+	void DeleteClient() { wxDELETE(m_client); }
 };

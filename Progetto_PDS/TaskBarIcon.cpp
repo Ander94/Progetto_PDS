@@ -218,8 +218,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 MainFrame::~MainFrame()
 {
 	delete m_taskBarIcon;
-	wxDELETE(m_client);
 	wxDELETE(m_server);
+	//wxDELETE(m_client);
 }
 
 void MainFrame::showBal(std::string title, std::string message) {
@@ -413,15 +413,15 @@ bool MainFrame::StartServer()
 	return true;
 }
 
-bool MainFrame::StartClient() 
-{
-	m_client = new MyClient();
-	if (!m_client->Connect(IPC_HOST, IPC_SERVICE, IPC_TOPIC)) {
-		wxDELETE(m_client);
-		return false;
-	}
-	return true;
-}
+//bool MainFrame::StartClient() 
+//{
+//	m_client = new MyClient();
+//	if (!m_client->Connect(IPC_HOST, IPC_SERVICE, IPC_TOPIC)) {
+//		wxDELETE(m_client);
+//		return false;
+//	}
+//	return true;
+//}
 
 void MainFrame::SendFile(std::string path)
 {

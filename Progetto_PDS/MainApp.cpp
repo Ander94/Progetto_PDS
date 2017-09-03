@@ -117,18 +117,19 @@ bool MainApp::OnInit()
 
 			//l'applicazione è già in esecuzione in background
 			//wxMessageBox("Esiste processo già in esecuzione", wxT("INFO"), wxOK | wxICON_INFORMATION);
-		if (m_frame->StartClient()) {
+		if (m_settings->StartClient()) {
 			//m_frame->StartClient();
 			if (argc == 1) {
 				//è stata aperta una nuova istanza, ma non è stato passato nessun argomento
 				//si apre la finestra principare dell'istanza già in esecuzione
-				m_frame->GetClient()->GetConnection()->Execute("");
+				m_settings->GetClient()->GetConnection()->Execute("");
 			}
 			else {
 				//è stato ricevuto un path, si notifica l'istanza in esecuzione
-				m_frame->GetClient()->GetConnection()->Poke(sendpath, "path", 5);
+				m_settings->GetClient()->GetConnection()->Poke(sendpath, "path", 5);
 			}
-			m_frame->GetClient()->Disconnect();
+			m_settings->GetClient()->Disconnect();
+			m_settings->DeleteClient();
 			m_frame->Destroy();
 		}
 		else {

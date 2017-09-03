@@ -79,9 +79,9 @@ public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
 	bool StartServer();
-	bool StartClient();
+	//bool StartClient();
 	MyServer *GetServer() { return m_server; }
-	MyClient *GetClient() { return m_client; }
+	//MyClient *GetClient() { return m_client; }
 	Settings *GetSettings() { return m_settings; };
 
 	void SendFile(std::string path);
