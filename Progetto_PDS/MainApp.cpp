@@ -62,7 +62,7 @@ bool MainApp::OnInit()
 	
 	try
 	{
-		m_settings = new Settings();
+		setSettings(new Settings());
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
@@ -84,9 +84,9 @@ bool MainApp::OnInit()
 			}
 				
 
-		m_frame = new MainFrame("LAN Sharing Service", m_settings);
-		SetTopWindow(m_frame);
-		m_frame->Show();
+		setFrame( new MainFrame("LAN Sharing Service", GetSettings()));
+		SetTopWindow(GetFrame());
+		GetFrame()->Show();
 		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
 		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
 		//m_settings->setImagePath(path);
@@ -118,7 +118,7 @@ bool MainApp::OnInit()
 			//l'applicazione è già in esecuzione in background
 			//wxMessageBox("Esiste processo già in esecuzione", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		if (m_settings->StartClient()) {
-			//m_frame->StartClient();
+			//GetFrame()->StartClient();
 			if (argc == 1) {
 				//è stata aperta una nuova istanza, ma non è stato passato nessun argomento
 				//si apre la finestra principare dell'istanza già in esecuzione
@@ -130,7 +130,7 @@ bool MainApp::OnInit()
 			}
 			m_settings->GetClient()->Disconnect();
 			m_settings->DeleteClient();
-			m_frame->Destroy();
+			GetFrame()->Destroy();
 		}
 		else {
 			/*status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::out);
@@ -141,16 +141,16 @@ bool MainApp::OnInit()
 			//avvio l'applicazione per la prima volta
 			m_settings->setExitRecive(false);
 			m_settings->setExitSend(false);
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame, boost::ref(m_settings->getIoService()));
+			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), GetFrame(), boost::ref(m_settings->getIoService()));
 			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->getExitRecive()));
 			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, m_settings->getUserName(), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
 			
 			
 			
-			m_frame->StartServer();
+			GetFrame()->StartServer();
 			
 			if (argc > 1) {
-				m_frame->SendFile(sendpath);
+				GetFrame()->SendFile(sendpath);
 			}
 		}
 	}
