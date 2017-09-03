@@ -12,26 +12,46 @@
 using boost::asio::ip::tcp;
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
+void StartAccept(boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
+	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, std::atomic<bool>& exit_app) {
+void StartAccept(boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+	boost::shared_ptr< tcp::socket > socket(new tcp::socket(acceptor.get_io_service()));
 
+	acceptor.async_accept(*socket, boost::bind(HandleAccept, boost::asio::placeholders::error, socket, boost::ref(acceptor), boost::ref(utenteProprietario), generalPath, mainframe));
 
-	try {
-		//Dichiaro le strutture boost necessarie
-		boost::asio::io_service io_service;
-		tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), 1400));
-		while (1)
-		{
-			tcp::socket s(io_service);
-			//Accetto una nuova richesta
-			a.accept(s);
-			std::thread(reciveAfterAccept, std::move(s), utenteProprietario, generalPath, mainframe).detach();
-		}
-	}
-	catch (std::exception& e)
+}
+
+void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
+ , utente& utenteProprietario, std::string generalPath, MainFrame* mainframe)
+{
+	// If there was an error, then do not add any more jobs to the service.
+	if (error)
 	{
-		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		wxMessageBox("Errore nell'accettazione della connessione: " + error.message(), "Errore", wxOK | wxICON_ERROR);
+		return;
 	}
+
+	// Otherwise, the socket is good to use.
+	// Perform async operations on the socket.
+	std::thread(reciveAfterAccept, std::move( *socket), utenteProprietario, generalPath, mainframe).detach();
+
+
+	// Done using the socket, so start accepting another connection.  This
+	// will add a job to the service, preventing io_service::run() from
+	// returning.
+	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
+};
+
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, boost::asio::io_service& io_service) {
+
+	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 1400));
+
+	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
+
+	// Process event loop.
+	io_service.run();
 }
 
 

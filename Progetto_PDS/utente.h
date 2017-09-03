@@ -28,7 +28,7 @@ class utente
 	std::recursive_mutex m_ipAddr; //(2)
 	std::recursive_mutex m_state; //(3)
 	std::recursive_mutex m_currentTime; //(4)
-	std::recursive_mutex m_utentiConnessi; //()
+	std::recursive_mutex m_utentiConnessi; //(5)
 	
 	
 public:

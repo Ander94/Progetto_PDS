@@ -250,9 +250,8 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
-	//m_settings->exit_recive_tcp.store(true);
-	//sendClose(m_settings->getUtenteProprietario().getIpAddr());
-	//m_settings->reciveTCPfileThread.join();
+	m_settings->io_service_tcp.stop();
+	m_settings->reciveTCPfileThread.join();
 	m_settings->exit_recive_udp.store(true);
 	m_settings->reciveUdpMessageThread.join();
 	m_settings->exit_send_udp.store(true);

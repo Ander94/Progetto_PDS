@@ -36,7 +36,8 @@ private:
 	save_request m_save_request;  //Richiesta quando si riceve un file
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
-	std::atomic<bool> exit_send_udp, exit_recive_udp, exit_recive_tcp;
+	std::atomic<bool> exit_send_udp, exit_recive_udp;
+	boost::asio::io_service io_service_tcp;
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }
