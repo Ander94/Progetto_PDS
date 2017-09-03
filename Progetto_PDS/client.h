@@ -14,5 +14,3 @@ void sendTCPfile(utente& utenteProprietario, std::string username,
 
 //IP, path dell'immagine
 void sendImage(std::string filePath, std::string ipAddr);
-
-void sendClose(std::string ipAddr);
