@@ -3,6 +3,7 @@
 #include "utente.h"
 
 #include <wx/wx.h>
+#include <wx/tglbtn.h>
 
 #include "WindowSelectUser.h"
 
@@ -10,14 +11,9 @@ class UserSizer : public wxWindow
 {
 private:
 	class WindowSelectUser* m_parentWindow;
-	wxBoxSizer* m_sizer;
 	wxStaticText* m_text;
-	wxBitmapButton* m_button;
+	wxBitmapToggleButton* m_button;
 	Settings* m_settings;
-
-	//stato utente (selezionato o no)
-	bool clicked;
-	wxColour backgroundColour;
 
 	//riferimento all'utente, valutere shared_ptr
 	utente m_utente;

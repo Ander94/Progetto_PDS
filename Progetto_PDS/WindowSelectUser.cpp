@@ -20,64 +20,62 @@ EVT_TIMER(TIMER_ID, WindowSelectUser::OnTimer)
 wxEND_EVENT_TABLE()
 
 WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
-	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize)
+	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
 	m_settings = settings;
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_ListaUtenti = std::list<UserSizer *>();  //utenti attualmente presenti nella finestra
 	m_MappaInvio = std::map<std::string, utente>();  //utenti attualmente selezionati
-	m_sizer = new wxFlexGridSizer(1);
-	m_topSizer = new wxGridSizer(4, 5, 5);
-	m_botSizer = new wxBoxSizer(wxVERTICAL);
-	m_botSizerH = new wxBoxSizer(wxHORIZONTAL);
 	m_ok = new wxButton(this, wxID_OK, "OK");
+	m_ok->SetDefault();
 	m_cancel = new wxButton(this, wxID_CANCEL, "CANCEL");
 	m_timer = new wxTimer(this, TIMER_ID);
 	int n=0;
 	
 	//inizializzazione barra stato
-	//int l[] = { 200 };
 	CreateStatusBar(1); //TODO barra stato non funziona
-	//SetStatusWidths(1, l);
 
-	m_botSizerH->Add(m_cancel, 1);
-	m_botSizerH->Add(m_ok, 0, wxLEFT, 5);
-	m_ok->SetDefault();
-	m_botSizer->Add(m_botSizerH, 1, wxALIGN_RIGHT);
+	wxSizerFlags flags;
+	flags.Border(wxALL, 5);
 
-	m_sizer->Add(m_topSizer, 1, wxALL, 5);
-	m_sizer->Add(m_botSizer, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 5);
-
-
-	/*utente u("leonardo", "");
-	this->addUtente(u);*/
-
+	wxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
+	
+	m_sizerUsers = new wxGridSizer(4, 5, 5);
 	std::vector<utente> lista = m_settings->getUtentiOnline();
 	if (lista.size() == 0) {
 		n = 0;
-		m_topSizer->AddSpacer(100);
+		m_sizerUsers->AddSpacer(90);
 		m_ok->Disable();
 	}
 	else {
 		//carico gli utenti connessi
 		for (auto it : (m_settings->getUtentiOnline())) {
-				UserSizer *u = new UserSizer(this, m_settings, it);
-				m_ListaUtenti.push_back(u);
-				m_topSizer->Add(u, 1, wxALIGN_CENTER);
-			
+			UserSizer *u = new UserSizer(this, m_settings, it);
+			m_ListaUtenti.push_back(u);
+			m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
+
 		}
 		n = m_ListaUtenti.size();
 	}
 	
+	sizerTop->Add(m_sizerUsers);
 
-	this->SetSizerAndFit(m_sizer);
+	sizerTop->AddStretchSpacer()->SetMinSize(200, 20);
+
+	wxSizer* const sizerBtns = new wxBoxSizer(wxHORIZONTAL);
+	sizerBtns->Add(m_cancel, flags);
+	sizerBtns->Add(m_ok, flags);
+
+	sizerTop->Add(sizerBtns, flags.Align(wxALIGN_CENTER_HORIZONTAL));
+
+	this->SetSizerAndFit(sizerTop);
 	this->Show();
 	this->Centre();
 
 	if (n == 0)
-		SetStatusText("Nessun utente è attualmente connesso.");
-	else
-		SetStatusText("Utenti connessi: " + n);
+		SetStatusText("In attesa di altri utenti...");
+	else 
+		SetStatusText("Seleziona uno o più utenti");
 
 	m_timer->Start(1000); //2 sec
 
@@ -117,19 +115,19 @@ void WindowSelectUser::UpdateUI() {
 	int n;
 	if (lista.size() == 0) {
 		n = 0;
-		m_topSizer->Clear();
+		m_sizerUsers->Clear();
 		int i = 0;
 		for (auto it : m_ListaUtenti)
 			it->Destroy();
-		
-		m_topSizer->AddSpacer(100);
+
+		m_sizerUsers->AddSpacer(90);
 		m_ListaUtenti.clear();
 		m_MappaInvio.clear();
 		m_ok->Disable();
 	}
 	else {
 		if (m_ListaUtenti.size() == 0)
-			m_topSizer->Remove(0); //tolgo lo spacer se presente
+			m_sizerUsers->Remove(0); //tolgo lo spacer se presente
 		std::unique_ptr<std::vector<utente>> tmp = this->getListaInvio();
 		m_MappaInvio.clear();
 		std::vector<UserSizer *> tmp2(m_ListaUtenti.begin(), m_ListaUtenti.end());
@@ -161,7 +159,7 @@ void WindowSelectUser::UpdateUI() {
 		for (auto it : lista) {	
 			UserSizer *u = new UserSizer(this, m_settings, it);
 			m_ListaUtenti.push_back(u);
-			m_topSizer->Add(u, 1, wxALIGN_CENTER);
+			m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
 			////rieseguo il click sugli utenti selezionati prima dell'aggiornamento
 			//for (auto it2 : *tmp) {
 			//	if (it2.getUsername() == it.getUsername()) {
@@ -172,33 +170,35 @@ void WindowSelectUser::UpdateUI() {
 		}
 		tmp.reset();
 		n = m_ListaUtenti.size();
-		m_ok->Enable();
 	}
 
 	this->Layout();
 	this->Fit();
-	if (n==0)
-		SetStatusText("Nessun utente è attualmente connesso.");
+	if (n == 0)
+		SetStatusText("In attesa di altri utenti...");
 	else
-		SetStatusText("Utenti connessi: " + n);
+		SetStatusText("Seleziona uno o più utenti");
 	this->Show();
 }
 
 //aggiunge un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::insertUtenteLista(utente user) {
 	m_MappaInvio.insert(std::pair<std::string, utente>(user.getUsername(), user));
+	m_ok->Enable();
 }
 
 //rimuove un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::deleteUtenteLista(utente user) {
 	m_MappaInvio.erase(user.getUsername());
+	if (m_MappaInvio.size() == 0)
+		m_ok->Disable();
 }
 
 //aggiunge un nuovo utente alla finestra
 void WindowSelectUser::addUtente(utente user) {
 	UserSizer *u = new UserSizer(this, m_settings, user);
 	m_ListaUtenti.push_back(u);
-	m_topSizer->Add(u, 1, wxALIGN_CENTER);
+	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
 	
 	//da rimuovere
 	this->Layout();
@@ -216,7 +216,7 @@ void WindowSelectUser::removeUtente(utente user) {
 		//if ((*it)->getIpAddr() == ip) {
 		if ((*it)->getUsername() == name) {
 			this->m_ListaUtenti.erase(it);
-			m_topSizer->Remove(i);
+			m_sizerUsers->Remove(i);
 			break;
 		}
 		i++;

@@ -10,9 +10,7 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 {
 	//inizializzo alcuni parametri
 	m_parentWindow = dynamic_cast<WindowSelectUser*>(parent);
-	clicked = FALSE;
 	m_utente = user;
-	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_settings = settings;
 
 	//preparo l'immagine utente
@@ -30,7 +28,14 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 	img->LoadFile(filepath, wxBITMAP_TYPE_PNG, -1);
 	//img->LoadFile(filepath, wxBITMAP_TYPE_JPEG, -1);
 	//creo il pulsante con l'immagine dell'utente
-	m_button = new wxBitmapButton(this, wxID_ANY, wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)), wxDefaultPosition);
+	m_button = new wxBitmapToggleButton
+	(
+		this, 
+		wxID_ANY, 
+		wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition,
+		wxDefaultSize
+	);
 	
 	//wxImage::AddHandler(new wxPNGHandler);
 	//wxBitmap bitmap;
@@ -41,20 +46,27 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 
 
 	//m_button = new wxBitmapButton(this, wxID_ANY, bitmap, wxDefaultPosition);
-	m_sizer->Add(m_button, 0, wxALIGN_CENTER);
+	wxBoxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
+	
+	sizerTop->Add(m_button, 0, wxALIGN_CENTER);
 
 	//aggiungo il nome utente al sizer
-	m_text = new wxStaticText(this, wxID_ANY, m_utente.getUsername(), wxDefaultPosition, wxDefaultSize, 
-											wxALIGN_CENTER_HORIZONTAL);
+	m_text = new wxStaticText
+	(
+		this,
+		wxID_ANY, 
+		m_utente.getUsername(), 
+		wxDefaultPosition, 
+		wxDefaultSize, 
+		wxALIGN_CENTER_HORIZONTAL | wxELLIPSIZE_END
+	);
 	m_text->SetFont((m_text->GetFont()).Larger());
-	m_sizer->Add(m_text, 1, wxALIGN_CENTER | wxALL, 5);
+	sizerTop->Add(m_text, 1, wxALIGN_CENTER | wxALL, 5);
+	sizerTop->SetDimension(wxDefaultPosition, wxSize(90, 90));
+	this->SetSizerAndFit(sizerTop);
 	
-	this->SetSizerAndFit(m_sizer);
-
 	//collego l'evento click alla funzione OnUserClick
-	m_button->Bind(wxEVT_BUTTON, &UserSizer::OnUserClick, this);
-	
-	backgroundColour = m_button->GetBackgroundColour();
+	m_button->Bind(wxEVT_TOGGLEBUTTON, &UserSizer::OnUserClick, this);
 }
 
 UserSizer::~UserSizer() {
@@ -62,16 +74,10 @@ UserSizer::~UserSizer() {
 
 //seleziona o deseleziona utente
 void UserSizer::PerformClick() {
-	if (clicked == FALSE) {
-		clicked = TRUE;
+	if (m_button->GetValue())
 		m_parentWindow->insertUtenteLista(m_utente);
-		m_button->SetBackgroundColour(wxT("cyan"));
-	}
-	else {
-		clicked = FALSE;
+	else
 		m_parentWindow->deleteUtenteLista(m_utente);
-		m_button->SetBackgroundColour(backgroundColour);
-	}
 }
 
 //esegue il click dell'utente

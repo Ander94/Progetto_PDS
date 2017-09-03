@@ -17,12 +17,9 @@ private:
 	class MainFrame* m_frame;
 	std::map <std::string, utente> m_MappaInvio;
 	std::list <class UserSizer *> m_ListaUtenti;
-	wxGridSizer* m_topSizer;
-	wxFlexGridSizer* m_sizer;
-	wxBoxSizer* m_botSizer;
-	wxBoxSizer* m_botSizerH;
 	wxButton* m_ok;
-	wxButton* m_cancel;	
+	wxButton* m_cancel;
+	wxGridSizer* m_sizerUsers;
 	wxTimer* m_timer;
 
 	void OnOk(wxCommandEvent& event);
