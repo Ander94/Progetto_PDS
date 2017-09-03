@@ -47,7 +47,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		boost::asio::connect(s, iterator);
 	}
 	catch (std::exception e) {
-		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo.", wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 
@@ -189,7 +189,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 		}
 		catch (std::exception& e) {
 			wxQueueEvent(progBar, event.Clone());
-			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 		
 	}
@@ -200,7 +200,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 		}
 		catch (std::exception& e) {
 			wxQueueEvent(progBar, event.Clone());
-			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 	}
 	//Chiudo il socket e la procedurea di servizio

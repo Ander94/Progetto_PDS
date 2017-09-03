@@ -105,7 +105,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state,u
 	if (boost::filesystem::is_regular_file(filePath)!=true) {
 		filePath = generalPath + "user_default.png";
 		if (boost::filesystem::is_regular_file(filePath) != true) {
-			wxMessageBox("Immagne per profilo non trovata.", wxT("Errore"), wxOK | wxICON_ERROR);
+			wxMessageBox("Immagne per profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
 			//USCIRE IN MODO CORRETTO!
 			exit(-1);
 		}

@@ -29,7 +29,7 @@ void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boo
 	// If there was an error, then do not add any more jobs to the service.
 	if (error)
 	{
-		wxMessageBox("Errore nell'accettazione della connessione: " + error.message(), "Errore", wxOK | wxICON_ERROR);
+		wxMessageBox("Errore nell'accettazione della connessione: " + error.message(), wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 
@@ -245,7 +245,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 	}
 	catch (std::exception& e) {
 		s.close();
-		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 	s.close();

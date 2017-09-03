@@ -310,15 +310,12 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 
 void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 {
-	//stato.txt
 	int sel = m_status->GetSelection();
 	if (sel == 0) {
-		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOn();
 		m_textStato->SetLabel("online");
 	}
 	else {
-		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setStatoOff();
 		m_textStato->SetLabel("offline");
 		
@@ -334,11 +331,9 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 	//stato.txt
 
 	if (sel == 0) {
-		//wxMessageBox("salvataggio automatico!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOff();
 	}
 	else {
-		//wxMessageBox("salvataggio su richesta!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_settings->setAutoSavedOn();
 	}
 
@@ -346,7 +341,8 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 
 void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
 {
-	
+	//X LEO: Penso che la scritta online/offline lampeggi perchè l'app entra continuamente qui (Non so il perchè!)
+	//wxMessageBox("Entro");
 	m_status->SetSelection(m_settings->getStato());
 	m_saved->SetSelection(m_settings->getAutoSaved()); //Aggiunta da sergio
 	std::string stato;
@@ -386,7 +382,7 @@ void MainFrame::SendFile(std::string path)
 	else if (boost::filesystem::is_regular_file(path))
 		m_settings->setIsDir(false);
 	else {
-		wxMessageBox("Il path specificato è non valido!", "Warning", wxOK | wxICON_EXCLAMATION);
+		wxMessageBox("Il path specificato è non valido", "Errore", wxOK | wxICON_ERROR);
 		return;
 	}
 	m_selectUser = new WindowSelectUser(this, m_settings);
