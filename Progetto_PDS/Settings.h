@@ -42,6 +42,25 @@ public:
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() { delete(m_utenteProprietario); }
 
+	void updateState() {
+		std::fstream save_path_file;
+		save_path_file.open(this->getGeneralPath() + "stato.txt", std::fstream::out);
+		save_path_file << this->getSavePath() << std::endl;
+		if (this->getStato() == status::STAT_ONLINE) {
+			save_path_file << "online\n";
+		}
+		else {
+			save_path_file << "offline\n";
+		}
+		if (this->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+			save_path_file << "autoSavedOn\n";
+		}
+		else {
+			save_path_file << "autoSavedOff\n";
+		}
+		save_path_file.close();
+	}
+
 	/*
 	Da chiamare subito dopo la creazione di una nuovo oggetto settings
 	*/
@@ -52,6 +71,8 @@ public:
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
+
+		//Inizializzo lo stato
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
@@ -93,7 +114,10 @@ public:
 
 	void setImagePath(std::string imagePath) { m_ImagePath = imagePath; }
 	std::string getImagePath() { return m_ImagePath; }
-	void setSavePath(std::string savePath) { m_SavePath = savePath; }
+	void setSavePath(std::string savePath) { 
+		m_SavePath = savePath; 
+		this->updateState();
+	}
 	std::string getSavePath() { return  m_SavePath; };
 	//AGGIUNTA DA SERGIO
 	void setGeneralPath(std::string generalPath) { m_GeneralPath = generalPath; }
@@ -113,10 +137,14 @@ public:
 
 	void setStatoOn() {
 		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
-		m_stato = status::STAT_ONLINE; }
+		m_stato = status::STAT_ONLINE; 
+		this->updateState();
+	}
 	void setStatoOff() {
 		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
-		m_stato = status::STAT_OFFLINE; }
+		m_stato = status::STAT_OFFLINE; 
+		this->updateState();
+	}
 	status& getStato() { 
 		
 		return m_stato; }
@@ -124,10 +152,12 @@ public:
 	void setAutoSavedOn() {
 		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		m_save_request = save_request::SAVE_REQUEST_YES;
+		this->updateState();
 	}
 	void setAutoSavedOff() {
 		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
 		m_save_request = save_request::SAVE_REQUEST_NO;
+		this->updateState();
 	}
 	save_request & getAutoSaved() {
 
