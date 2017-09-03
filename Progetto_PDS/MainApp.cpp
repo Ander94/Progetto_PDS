@@ -139,13 +139,13 @@ bool MainApp::OnInit()
 			//wxMessageBox("Stampato running", wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 			//avvio l'applicazione per la prima volta
-			m_settings->exit_recive_udp.store(false);
-			m_settings->exit_send_udp.store(false);
-			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, m_settings->getUserName(), boost::ref(m_settings->getStato()), boost::ref(m_settings->exit_send_udp));
-			//Qua dovrei passare anche m_settings->getGeneralPath();
-			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->exit_recive_udp));
-			//Qua dovrei passare anche m_settings
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame, boost::ref(m_settings->io_service_tcp));
+			m_settings->setExitRecive(false);
+			m_settings->setExitSend(false);
+			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_frame, boost::ref(m_settings->getIoService()));
+			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->getExitRecive()));
+			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, m_settings->getUserName(), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
+			
+			
 			
 			m_frame->StartServer();
 			

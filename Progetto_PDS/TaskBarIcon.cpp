@@ -250,11 +250,11 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
-	m_settings->io_service_tcp.stop();
+	m_settings->getIoService().stop();
 	m_settings->reciveTCPfileThread.join();
-	m_settings->exit_recive_udp.store(true);
+	m_settings->setExitRecive(true);
 	m_settings->reciveUdpMessageThread.join();
-	m_settings->exit_send_udp.store(true);
+	m_settings->setExitSend(true);
 	m_settings->sendUdpMessageThread.join();
 
 	m_timer->Stop();

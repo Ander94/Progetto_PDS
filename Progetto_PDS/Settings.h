@@ -24,6 +24,22 @@ using boost::asio::ip::tcp;
 class Settings
 {
 private:
+	std::recursive_mutex rm_utenteProprietario;  //1
+	std::recursive_mutex rm_GeneralPath;//2
+	std::recursive_mutex rm_ImagePath;//3
+	std::recursive_mutex rm_DefaultImagePath;//4
+	std::recursive_mutex rm_SavePath;//5
+	std::recursive_mutex rm_SendPath;//6
+	std::recursive_mutex rm_client;//7
+	std::recursive_mutex rm_isDir;//8
+	std::recursive_mutex rm_stato;//9
+	std::recursive_mutex rm_save_request;//10
+	std::recursive_mutex rm_exit_send_udp;//11
+	std::recursive_mutex rm_exit_recive_udp;//12
+	std::recursive_mutex rm_io_service_tcp;//13
+	
+
+
 	utente* m_utenteProprietario;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
@@ -34,16 +50,50 @@ private:
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
 	save_request m_save_request;  //Richiesta quando si riceve un file
-public:
-	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;
 	boost::asio::io_service io_service_tcp;
+public:
+	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
+	
+
+
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
-	~Settings() { delete(m_utenteProprietario); }
+	~Settings() { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		delete(m_utenteProprietario); 
+	}
+
+	void setExitSend(bool value) {
+		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
+		this->exit_send_udp.store(value);
+	}
+	std::atomic<bool>& getExitSend() {
+		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
+		return this->exit_send_udp;
+	}
+	void setExitRecive(bool value) {
+		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_send_udp);
+		this->exit_recive_udp.store(value);
+	}
+	std::atomic<bool>& getExitRecive() {
+		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_send_udp);
+		return this->exit_recive_udp;
+	}
+
+
+	boost::asio::io_service& getIoService() {
+		std::lock_guard<std::recursive_mutex> lk_io_service(rm_io_service_tcp);
+		return this->io_service_tcp;
+	}
 
 	void updateState() {
 		std::fstream save_path_file;
+		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
+		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
+		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
+		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
+
 		save_path_file.open(this->getGeneralPath() + "stato.txt", std::fstream::out);
 		save_path_file << this->getSavePath() << std::endl;
 		if (this->getStato() == status::STAT_ONLINE) {
@@ -66,13 +116,23 @@ public:
 	*/
 	void Init(std::string path, std::string nomeUtente)
 	{
-		
-		
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
+		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
+		std::lock_guard<std::recursive_mutex> lk_DefaultImagePath(rm_DefaultImagePath);
+		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
+		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
+		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
+		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
+		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
+		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
+		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
+		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_recive_udp);
+		std::lock_guard<std::recursive_mutex> lk_io_service_tcp(rm_io_service_tcp);
+	
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
-
-		//Inizializzo lo stato
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
@@ -108,59 +168,102 @@ public:
 			boost::filesystem::copy_file(m_DefaultImagePath, m_ImagePath);
 	}
 
-	void NewUtenteProprietario(std::string nomeUtente, std::string ip) { m_utenteProprietario = new utente(nomeUtente, ip); }
-	//void NewUtenteProprietario() { m_utenteProprietario = new utente(); }
-	utente& getUtenteProprietario() { return *m_utenteProprietario; }
+	void NewUtenteProprietario(std::string nomeUtente, std::string ip) { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		m_utenteProprietario = new utente(nomeUtente, ip); 
+	}
 
-	void setImagePath(std::string imagePath) { m_ImagePath = imagePath; }
-	std::string getImagePath() { return m_ImagePath; }
+	utente& getUtenteProprietario() { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		return *m_utenteProprietario; }
+
+	void setImagePath(std::string imagePath) { 
+		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
+		m_ImagePath = imagePath; 
+	}
+
+	std::string getImagePath() { 
+		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
+		return m_ImagePath; 
+	}
+
 	void setSavePath(std::string savePath) { 
+		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
 		m_SavePath = savePath; 
 		this->updateState();
 	}
-	std::string getSavePath() { return  m_SavePath; };
+	std::string getSavePath() {
+		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
+		return  m_SavePath; 
+	};
+
 	//AGGIUNTA DA SERGIO
-	void setGeneralPath(std::string generalPath) { m_GeneralPath = generalPath; }
-	std::string getGeneralPath() {return  m_GeneralPath; };
+	void setGeneralPath(std::string generalPath) { 
+		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
+		m_GeneralPath = generalPath; 
+	}
+	std::string getGeneralPath() {
+		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
+		return  m_GeneralPath; 
+	};
 
-	std::string getUserName() { return m_utenteProprietario->getUsername(); }
+	std::string getUserName() { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		return m_utenteProprietario->getUsername(); }
 
-	std::vector<utente>& getUtentiConnessi() { return m_utenteProprietario->getUtentiConnessi(); }
+	std::vector<utente>& getUtentiConnessi() { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		return m_utenteProprietario->getUtentiConnessi(); }
 
-	std::vector<utente> getUtentiOnline() { return m_utenteProprietario->getUtentiOnline(); }
+	std::vector<utente> getUtentiOnline() { 
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		return m_utenteProprietario->getUtentiOnline(); }
 
-	void setSendPath(std::string sendPath) { m_SendPath = sendPath; }
-	std::string getSendPath() { return m_SendPath; }
+	void setSendPath(std::string sendPath) {
+		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
+		m_SendPath = sendPath; 
+	}
+
+	std::string getSendPath() { 
+		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
+		return m_SendPath; 
+	}
 	
-	void setIsDir(bool isDir) { m_isDir = isDir; }
-	bool getIsDir() { return m_isDir; }
+	void setIsDir(bool isDir) {
+		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
+		m_isDir = isDir; 
+	}
+	bool getIsDir() { 
+		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
+		return m_isDir; 
+	}
 
 	void setStatoOn() {
-		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		m_stato = status::STAT_ONLINE; 
 		this->updateState();
 	}
 	void setStatoOff() {
-		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
+		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		m_stato = status::STAT_OFFLINE; 
 		this->updateState();
 	}
 	status& getStato() { 
-		
+		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		return m_stato; }
 
 	void setAutoSavedOn() {
-		//wxMessageBox("Setto Online!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		m_save_request = save_request::SAVE_REQUEST_YES;
 		this->updateState();
 	}
 	void setAutoSavedOff() {
-		//wxMessageBox("Setto Offline!", wxT("INFO"), wxOK | wxICON_INFORMATION); 
+		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		m_save_request = save_request::SAVE_REQUEST_NO;
 		this->updateState();
 	}
 	save_request & getAutoSaved() {
-
+		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		return m_save_request;
 	}
 
@@ -193,7 +296,6 @@ public:
 	//Riceve un messaggio di tipo "+GETADDR_unique_str" al fine di capire il proprio ip
 	//Salva in ownIpAddr il proprio ip poichè è passato per riferimento
 	static void reciveUDPMessageGETIP(std::string& ownIpAddr, std::string& unique_str) {
-
 		boost::asio::io_service io_service;
 		udp::socket s(io_service);
 		
@@ -255,6 +357,12 @@ public:
 		return true;
 	}
 
-	MyClient *GetClient() { return m_client; }
-	void DeleteClient() { wxDELETE(m_client); }
+	MyClient *GetClient() { 
+		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
+		return m_client; 
+	}
+	void DeleteClient() {
+		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
+		wxDELETE(m_client); 
+	}
 };
