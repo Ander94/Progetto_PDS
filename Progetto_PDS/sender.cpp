@@ -15,7 +15,7 @@ void sendUDPMessage(std::string& username, status& current_status, std::atomic<b
 	socket.open(boost::asio::ip::udp::v4());
 	socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 	socket.set_option(boost::asio::socket_base::broadcast(true));
-	sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), 1500);
+	sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), PORT_UDP);
 
 	while (!exit_app.load()) {
 		if (current_status == STAT_ONLINE) {

@@ -164,7 +164,7 @@ void utente::checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app) 
 		//std::cout << "Controllo " << std::endl;
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
 			currentTime = boost::posix_time::second_clock::local_time();
-			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > 3) {
+			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
 				for (j = i; j < utenteProprietario.getUtentiConnessi().size() - 1; j++) {
 					utenteProprietario.getUtentiConnessi()[j].setUsername(utenteProprietario.getUtentiConnessi()[j + 1].getUsername());
 					utenteProprietario.getUtentiConnessi()[j].setCurrentTime(utenteProprietario.getUtentiConnessi()[j + 1].getTime());
@@ -173,7 +173,7 @@ void utente::checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app) 
 				utenteProprietario.getUtentiConnessi().pop_back();
 			}
 		}
-		Sleep(1000);
+		Sleep(CHECK_TIME);
 	}
 }
 

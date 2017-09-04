@@ -46,7 +46,7 @@ void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boo
 
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, boost::asio::io_service& io_service) {
 
-	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 1400));
+	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), PORT_TCP));
 
 	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
 

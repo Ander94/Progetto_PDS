@@ -1,12 +1,11 @@
 #include "reciver.h"
 #include "sender.h"
+#include "protoType.h"
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost\filesystem.hpp>
 #include <iterator>
 #include <fstream>
-
-#define BUFLEN 65536
 
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
@@ -24,7 +23,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	s.open(boost::asio::ip::udp::v4());
 	s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 	s.set_option(boost::asio::socket_base::broadcast(true));
-	local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), 1500);
+	local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
 	s.bind(local_endpoint);
 
 	//Lancio il thread che fa il check sul vettore

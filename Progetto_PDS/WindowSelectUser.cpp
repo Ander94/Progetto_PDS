@@ -77,7 +77,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	else 
 		SetStatusText("Seleziona uno o più utenti");
 
-	m_timer->Start(1000); //2 sec
+	m_timer->Start(UPDATE_WINDOW); //1 sec
 
 }
 

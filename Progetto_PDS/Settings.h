@@ -305,7 +305,7 @@ public:
 		s.open(boost::asio::ip::udp::v4());
 		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 		s.set_option(boost::asio::socket_base::broadcast(true));
-		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), 1500);
+		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
 		s.bind(local_endpoint);
 
 		char buf[1024];
@@ -333,7 +333,7 @@ public:
 		socket.open(boost::asio::ip::udp::v4());
 		socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 		socket.set_option(boost::asio::socket_base::broadcast(true));
-		sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), 1500);
+		sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), PORT_UDP);
 
 		try {
 			//std::cout << "entro\n";

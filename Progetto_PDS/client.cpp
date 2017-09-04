@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "client.h"
+#include "protoType.h"
 #include <stdio.h>
 #include <filesystem>
 #include <sys/types.h>
@@ -10,7 +11,6 @@
 #include "boost\asio.hpp"
 #include <boost/filesystem.hpp>
 
-#define BUFLEN 65536
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
 
@@ -36,7 +36,7 @@ void sendTCPfile(utente& utenteProprietario, std::string username, std::string i
 void sendImage(std::string filePath, std::string ipAddr) {
 	boost::asio::io_service io_service;
 	tcp::resolver resolver(io_service);
-	tcp::resolver::query query(tcp::v4(), ipAddr, "1400");
+	tcp::resolver::query query(tcp::v4(), ipAddr, std::to_string(PORT_TCP));
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 	tcp::socket s(io_service);
 
@@ -168,7 +168,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	//La porta utilizzata in ambito TCP e' la 1400																		  
 	boost::asio::io_service io_service;
 	tcp::resolver resolver(io_service);
-	tcp::resolver::query query(tcp::v4(), ipAddr, "1400");
+	tcp::resolver::query query(tcp::v4(), ipAddr, std::to_string(PORT_TCP));
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 	tcp::socket s(io_service);
 

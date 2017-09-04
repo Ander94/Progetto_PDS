@@ -9,10 +9,10 @@
 #include "IPCserver.h"
 #include "Settings.h"
 #include "MainApp.h"
+#include "protoType.h"
 #include <fstream>
 #include <filesystem> //per la funzione "copy"
 
-#define BUFLEN 65536
 
 enum {
 	TIMER_ID = 15000,
@@ -212,7 +212,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	gs_dialog = this;
 
-	m_timer->Start(1000); //1 sec
+	m_timer->Start(UPDATE_WINDOW); //1 sec
 }
 
 MainFrame::~MainFrame()
