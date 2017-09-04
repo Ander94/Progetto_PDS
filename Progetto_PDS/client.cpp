@@ -347,7 +347,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::ostringstream convert;
 	std::string response; //Risposta del server
 	std::string buf_send; //Buffer utile all'invio di un pacchetto
-	char buf_to_send[BUFLEN], c; //char utili per caricare il pacchetto di lunghezza BUFLEN da inviare al server.
+	char buf_to_send[BUFLEN+1]; //char utili per caricare il pacchetto di lunghezza BUFLEN da inviare al server.
 	char buf_recive[256]; //Buffer utile alla ricezione di un pacchetto. La funzione da me utilizzata prevede di ricevere un char di lunghezza fissa.
 	size_t length; //Lunghezza della risposta ricevuta.
 
@@ -411,8 +411,10 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			wxThreadEvent event1(wxEVT_THREAD, IncFile_EVENT);
 			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);
 			//Carico il buffer da caricare 
+			size_t dim_to_send = size;
 			while (dim_send < size && !progBar->testAbort()) {
-				dim_write = 0;
+				//Funzionante
+				/*dim_write = 0;
 				while (dim_write < BUFLEN && dim_send < size) {
 					file_in.get(c);
 					buf_to_send[(int)dim_write] = c;
@@ -420,7 +422,14 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 					dim_send++;
 				}
 				//Invio il buffer al server, ricordare di mettere un controllo qui
+				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));*/
+
+				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
+				dim_send += dim_write;
+				dim_to_send -= dim_write;
+				file_in.read(buf_to_send, dim_write);
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
+
 				if (calcola_tempo % 50 == 0)
 				{
 					end = boost::posix_time::second_clock::local_time();
@@ -428,9 +437,10 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 					//min = (int)(((size - dim_send) / ((dim_send)))*dif) / 60;
 					//sec = (int)((((size - dim_send) / ((dim_send)))*dif)) % 60;
 					sec = (int)((((size - dim_send) / ((dim_send)))*dif));
+					
 				}
 				calcola_tempo++;	
-				
+
 				event1.SetExtraLong(dim_send);
 				wxQueueEvent(progBar, event1.Clone());
 				event2.SetExtraLong(sec);

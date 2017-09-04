@@ -257,7 +257,7 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 	std::string response;
 	boost::system::error_code error;
 	char buf[BUFLEN];
-	int length, i;
+	int length;
 	long int size;
 	long int dif = 0, min = 0, sec = 0;
 	long int calcola_tempo = 0;
