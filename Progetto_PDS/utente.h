@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
-
+#include "protoType.h"
 #include "wx/wx.h"
 
 

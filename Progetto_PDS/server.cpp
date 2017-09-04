@@ -8,7 +8,7 @@
 
 #include <windows.h>
 
-#define BUFLEN 65536
+
 using boost::asio::ip::tcp;
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);

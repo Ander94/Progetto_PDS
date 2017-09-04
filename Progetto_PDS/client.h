@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include "utente.h"
-
+#include "protoType.h"
 #include "UserProgressBar.h"
 #include "WindowProgressBar.h"
 
