@@ -20,7 +20,6 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::string initialAbsolutePath, std::string folder, UserProgressBar* progBar);
 std::string relative_path(std::string absolutePath, std::string initialAbsolutePath, std::string folder);
 std::string takeFolder(std::string path);
-std::string reverse_slash(std::string str);
 size_t folder_size(std::string absolutePath);
 void sendThreadTCPfile(utente& utenteProprietario, std::string username, 
 	std::string initialAbsolutePath, UserProgressBar* progBar);
@@ -139,7 +138,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::string initialAbsolutePath, UserProgressBar* progBar) {
 
 	std::string ipAddr;       //Indirizzo ip dell'utente a cui inviare il file
-	std::string folder;       //Nome della cartella che contiene il file
+	std::string basename;       //Nome dell'inizio da inviare
 
 	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
 
@@ -160,7 +159,9 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	}
 
 	//Ottengo il nome della cartella che contiene il file da inviare 
-	folder = takeFolder(initialAbsolutePath);
+	//folder = takeFolder(initialAbsolutePath);
+	basename = boost::filesystem::basename(initialAbsolutePath);
+
 	//Ne ottengo il path assoluto
 	boost::filesystem::path path_absolutePath(initialAbsolutePath); 
 
@@ -185,7 +186,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	//Se sto inviando un file, chiamo send_file
 	if (boost::filesystem::is_regular_file(path_absolutePath)) {
 		try {
-			send_file(s, initialAbsolutePath, folder, true, progBar);
+			send_file(s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), true, progBar);
 		}
 		catch (std::exception& e) {
 			wxQueueEvent(progBar, event.Clone());
@@ -196,7 +197,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	//Senno chiamo send_directory
 	else if (boost::filesystem::is_directory(path_absolutePath)) {
 		try {
-			send_directory(s, initialAbsolutePath, folder, progBar);
+			send_directory(s, initialAbsolutePath, basename, progBar);
 		}
 		catch (std::exception& e) {
 			wxQueueEvent(progBar, event.Clone());
@@ -283,7 +284,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			wxQueueEvent(progBar, event.Clone());
 			//progBar->SetNewFile(p.filename().string()); //<-- inizializzo barra progresso file
 			try {
-				send_file(s, reverse_slash(bf::absolute(*it).string()), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
+				send_file(s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), true, progBar);
 				if (progBar->testAbort())
 					return;
 			}
@@ -492,14 +493,6 @@ std::string takeFolder(std::string path) {
 	folderName = buf;
 	free(buf);
 	return folderName;
-}
-
-std::string reverse_slash(std::string str) {
-	for (unsigned int i = 0; i < str.length(); i++)
-		if (str[i] == '\\')
-			str[i] = '/';
-
-	return str;
 }
 
 size_t folder_size(std::string absolutePath) {

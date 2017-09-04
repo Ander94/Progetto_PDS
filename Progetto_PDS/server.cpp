@@ -292,8 +292,7 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 					return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
 				}*/
 				//Scarico tutto il buffer nel file
-				for (i = 0; i<dim_read; i++)
-					file_out << buf_recive[i];
+				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
 
 				//Faccio una valutazione, ogni 50 pacchetti ricevuti, del tempo rimanente
