@@ -187,6 +187,25 @@ public:
 		return m_ImagePath; 
 	}
 
+	void resizeImage(std::string path) {
+		wxPNGHandler *handler = new wxPNGHandler();
+		wxImage::AddHandler(handler);
+		wxImage *img = new wxImage();
+		img->LoadFile(path, wxBITMAP_TYPE_PNG, -1);
+		int h = img->GetHeight();
+		int w = img->GetWidth();
+		int s, ph, pw;
+		if (h < w) {
+			s = h; ph = 0; pw = (w - h) / 2;
+		}
+		else {
+			s = w; ph = (h - w) / 2; pw = 0;
+		}
+		wxImage tmp = img->GetSubImage(wxRect(pw,ph,s,s));
+		tmp.Rescale(200, 200, wxIMAGE_QUALITY_HIGH);
+		tmp.SaveFile(""+path, wxBITMAP_TYPE_PNG);
+	}
+
 	void setSavePath(std::string savePath) { 
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
 		m_SavePath = savePath; 

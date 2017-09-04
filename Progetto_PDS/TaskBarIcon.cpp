@@ -279,7 +279,7 @@ void MainFrame::OnImage(wxCommandEvent& event)
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...
 	boost::filesystem::copy_file(openFileDialog.GetPath().ToStdString(), m_settings->getImagePath(), boost::filesystem::copy_option::overwrite_if_exists);
-	
+	m_settings->resizeImage(m_settings->getImagePath());
 	//******************************//
 	//Invia l'immagine aggiornata a tutti gli utenti iscritti
 	utente user = m_settings->getUtenteProprietario();

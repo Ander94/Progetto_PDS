@@ -21,6 +21,7 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 
 	//wxMessageBox("" + m_settings->getGeneralPath() + "local_image\\" + user.getIpAddr() + ".png", wxT("INFO"), wxOK | wxICON_INFORMATION);
 	wxString filepath = wxT("" + m_settings->getGeneralPath() +"local_image\\" + user.getIpAddr() + ".png");
+	m_settings->resizeImage(filepath.ToStdString());
 	wxPNGHandler *handler = new wxPNGHandler();
 	////wxJPEGHandler *handler = new wxJPEGHandler();
 	wxImage::AddHandler(handler);
