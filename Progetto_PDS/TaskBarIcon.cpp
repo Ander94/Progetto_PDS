@@ -110,10 +110,10 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
-	wxPNGHandler *handler = new wxPNGHandler();
-	wxImage::AddHandler(handler);
+	//wxPNGHandler *handler = new wxPNGHandler();
+	//wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
-	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_PNG, -1);
+	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage = new wxStaticBitmap
 	(
 		this,
@@ -287,10 +287,10 @@ void MainFrame::OnImage(wxCommandEvent& event)
 		sendImage(m_settings->getImagePath(), it.getIpAddr());
 	}
 	//***************************//
-	wxPNGHandler *handler = new wxPNGHandler();
-	wxImage::AddHandler(handler);
+	//wxPNGHandler *handler = new wxPNGHandler();
+	//wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
-	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_PNG, -1);
+	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage->SetBitmap(wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)));
 	Update();
 }
@@ -347,6 +347,8 @@ void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
 	m_saved->SetSelection(m_settings->getAutoSaved()); //Aggiunta da sergio
 	std::string stato;
 	m_settings->getStato() ? stato = "offline" : stato = "online";
+	if (m_textStato->GetLabel().ToStdString() == stato)
+		return;
 	m_textStato->SetLabel(stato);
 	Update();
 }

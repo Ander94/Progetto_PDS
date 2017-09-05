@@ -28,6 +28,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	m_MappaInvio = std::map<std::string, utente>();  //utenti attualmente selezionati
 	m_ok = new wxButton(this, wxID_OK, "OK");
 	m_ok->SetDefault();
+	m_ok->Disable();
 	m_cancel = new wxButton(this, wxID_CANCEL, "CANCEL");
 	m_timer = new wxTimer(this, TIMER_ID);
 	int n=0;
@@ -45,7 +46,6 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	if (lista.size() == 0) {
 		n = 0;
 		m_sizerUsers->AddSpacer(90);
-		m_ok->Disable();
 	}
 	else {
 		//carico gli utenti connessi
@@ -77,7 +77,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	else 
 		SetStatusText("Seleziona uno o più utenti");
 
-	m_timer->Start(UPDATE_WINDOW); //1 sec
+	m_timer->Start(UPDATE_WINDOW);
 
 }
 

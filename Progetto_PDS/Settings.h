@@ -129,7 +129,9 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
 		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_recive_udp);
 		std::lock_guard<std::recursive_mutex> lk_io_service_tcp(rm_io_service_tcp);
-	
+		
+		wxInitAllImageHandlers();
+
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 
@@ -188,10 +190,13 @@ public:
 	}
 
 	void resizeImage(std::string path) {
-		wxPNGHandler *handler = new wxPNGHandler();
-		wxImage::AddHandler(handler);
+		//wxPNGHandler *handler = new wxPNGHandler();
+		//wxImage::AddHandler(handler);
 		wxImage *img = new wxImage();
-		img->LoadFile(path, wxBITMAP_TYPE_PNG, -1);
+		if (!img->LoadFile(path, wxBITMAP_TYPE_ANY, -1)) {
+			wxMessageBox("Errore caricamento immagine", wxT("ERRORE"), wxOK | wxICON_ERROR);
+			return;
+		}
 		int h = img->GetHeight();
 		int w = img->GetWidth();
 		int s, ph, pw;
@@ -203,7 +208,7 @@ public:
 		}
 		wxImage tmp = img->GetSubImage(wxRect(pw,ph,s,s));
 		tmp.Rescale(200, 200, wxIMAGE_QUALITY_HIGH);
-		tmp.SaveFile(""+path, wxBITMAP_TYPE_PNG);
+		tmp.SaveFile(""+path);
 	}
 
 	void setSavePath(std::string savePath) { 

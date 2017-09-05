@@ -22,11 +22,10 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 	//wxMessageBox("" + m_settings->getGeneralPath() + "local_image\\" + user.getIpAddr() + ".png", wxT("INFO"), wxOK | wxICON_INFORMATION);
 	wxString filepath = wxT("" + m_settings->getGeneralPath() +"local_image\\" + user.getIpAddr() + ".png");
 	m_settings->resizeImage(filepath.ToStdString());
-	wxPNGHandler *handler = new wxPNGHandler();
-	////wxJPEGHandler *handler = new wxJPEGHandler();
-	wxImage::AddHandler(handler);
+	//wxPNGHandler *handler = new wxPNGHandler();
+	//wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
-	img->LoadFile(filepath, wxBITMAP_TYPE_PNG, -1);
+	img->LoadFile(filepath, wxBITMAP_TYPE_ANY, -1);
 	//img->LoadFile(filepath, wxBITMAP_TYPE_JPEG, -1);
 	//creo il pulsante con l'immagine dell'utente
 	m_button = new wxBitmapToggleButton
