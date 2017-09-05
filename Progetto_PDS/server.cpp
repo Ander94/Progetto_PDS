@@ -58,7 +58,7 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFra
 void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	int length;
 	bool first_directory = true;
-	char buf[256];
+	char buf[PROTOCOL_PACKET];
 	std::string ipAddrRemote;
 	std::string query;
 	std::string response;
@@ -69,7 +69,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 		ipAddrRemote = s.remote_endpoint().address().to_string();
 
 		//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
-		length = s.read_some(boost::asio::buffer(buf, 256));
+		length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 		buf[length] = '\0';
 		query = buf;
 
@@ -79,7 +79,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 			response = "+OK\0";
 			boost::asio::write(s, boost::asio::buffer(response));
 			//La risposta conterrà il pathName
-			length = s.read_some(boost::asio::buffer(buf, 256));
+			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 			buf[length] = '\0';
 			fileName = buf;
 			std::string savePath = mainframe->GetSettings()->getSavePath() + "\\" + fileName;
@@ -154,7 +154,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 
 					//Se è il "primo giro", vuol dire che ricevo le informazioni utili alla ricezione della directory
 					if (firstTime == true) {
-						length = s.read_some(boost::asio::buffer(buf, 256));
+						length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 						buf[length] = '\0';
 						directorySize = std::atoi(buf);
 						directory_size_to_send = directorySize;
@@ -164,7 +164,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 						firstTime = false;
 					}
 					//Aspetto il nome del path
-					length = s.read_some(boost::asio::buffer(buf, 256));
+					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 					buf[length] = '\0';
 					fileName = buf;
 					//**
@@ -209,7 +209,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 					boost::filesystem::create_directory(pathName);
 
 					//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
-					length = s.read_some(boost::asio::buffer(buf, 256));
+					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 					buf[length] = '\0';
 					query = buf;
 				}
@@ -217,7 +217,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 					response = "+OK\0";
 					boost::asio::write(s, boost::asio::buffer(response));
 					//Leggo il path del file
-					length = s.read_some(boost::asio::buffer(buf, 256));
+					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 					buf[length] = '\0';
 					fileName = buf;
 					//Cambiare qui
@@ -229,7 +229,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 					response = "+CN";
 					boost::asio::write(s, boost::asio::buffer(response));
 					//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
-					length = s.read_some(boost::asio::buffer(buf, 256));
+					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 					buf[length] = '\0';
 					query = buf;
 					//Devo fare la stampa della progressione qui
@@ -272,7 +272,7 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 			//Leggo la dimensione del file che ricevero, e la salvo su size
-			length = s.read_some(boost::asio::buffer(buf, 256));
+			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 			buf[length] = '\0';
 			size = std::atoi(buf);
 			//Comunico al server che può inviare il file

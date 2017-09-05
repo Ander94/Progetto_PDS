@@ -6,3 +6,4 @@
 #define CHECK_TIME 1000 //ms
 #define DELETE_USER 2 //s
 #define UPDATE_WINDOW 1000 //ms
+#define PROTOCOL_PACKET 256
