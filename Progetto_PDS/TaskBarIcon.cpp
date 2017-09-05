@@ -34,7 +34,6 @@ static MainFrame *gs_dialog = NULL;
 // ----------------------------------------------------------------------------
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
-EVT_BUTTON(wxID_ABOUT, MainFrame::OnAbout)
 EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
@@ -110,8 +109,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
-	//wxPNGHandler *handler = new wxPNGHandler();
-	//wxImage::AddHandler(handler);
+
 	wxImage *img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage = new wxStaticBitmap
@@ -166,36 +164,30 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizer3->Add(m_textSavePath, flags);
 	sizer3->Add(m_changeSavePath, flags);
 
+	wxSizer* sizerBox = new wxBoxSizer(wxHORIZONTAL);
+	sizerBox->Add(m_status, flags);
+	sizerBox->Add(m_saved, flags);
+
 	sizerTop->Add(sizer1, flags);
 
-	sizerTop->Add(m_status, flags);
-
-	sizerTop->Add(m_saved, flags);
+	sizerTop->Add(sizerBox, flags);
 
 	sizerTop->Add(sizer3, flags);
 
+	sizerTop->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		wxT("Utenti attualmente online:")
+	), flags);
+
 	sizerTop->Add(m_elencoUser, flags);
-
-	sizerTop->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		wxT("Press 'Hide me' to hide this window, Exit to quit.")
-	), flags);
-
-	sizerTop->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		wxT("Double-click on the taskbar icon to show me again.")
-	), flags);
 
 	sizerTop->AddStretchSpacer()->SetMinSize(200, 50);
 
 	wxSizer * const sizerBtns = new wxBoxSizer(wxHORIZONTAL);
-	sizerBtns->Add(new wxButton(this, wxID_ABOUT, wxT("&About")), flags);
-	sizerBtns->Add(new wxButton(this, wxID_OK, wxT("&Hide")), flags);
-	sizerBtns->Add(new wxButton(this, wxID_EXIT, wxT("E&xit")), flags);
+	sizerBtns->Add(new wxButton(this, wxID_OK, wxT("Nascondi")), flags);
+	sizerBtns->Add(new wxButton(this, wxID_EXIT, wxT("Esci")), flags);
 
 	sizerTop->Add(sizerBtns, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 	SetSizerAndFit(sizerTop);
@@ -205,7 +197,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	if (!m_taskBarIcon->SetIcon(wxIcon(share_icon),
 		"Sharing service\n"
-		"Click to start sharing!"))
+		"Clicca per iniziare a condividere file!"))
 	{
 		wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
 	}
@@ -223,18 +215,6 @@ MainFrame::~MainFrame()
 }
 
 void MainFrame::showBal(std::string title, std::string message) {
-	m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
-}
-
-void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
-{
-	static const char * const title = "About wxWidgets Taskbar Sample";
-	static const char * const message
-		= "wxWidgets sample showing wxTaskBarIcon class\n"
-		"\n"
-		"(C) 1997 Julian Smart\n"
-		"(C) 2007 Vadim Zeitlin";
-
 	m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
 }
 
@@ -412,18 +392,12 @@ enum
 
 wxBEGIN_EVENT_TABLE(TaskBarIcon, wxTaskBarIcon)
 EVT_MENU(PU_RESTORE, TaskBarIcon::OnMenuRestore)
+EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
-EVT_MENU(PU_CHECKMARK, TaskBarIcon::OnMenuCheckmark)
-EVT_UPDATE_UI(PU_CHECKMARK, TaskBarIcon::OnMenuUICheckmark)
-//MIO
 EVT_MENU(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuCheckmarkOnline)
 EVT_UPDATE_UI(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuUICheckmarkOnline)
 EVT_MENU(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuCheckmarkOffline)
 EVT_UPDATE_UI(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuUICheckmarkOffline)
-//MIO
-EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
-EVT_MENU(PU_SUB1, TaskBarIcon::OnMenuSub)
-EVT_MENU(PU_SUB2, TaskBarIcon::OnMenuSub)
 wxEND_EVENT_TABLE()
 
 
@@ -431,43 +405,31 @@ wxEND_EVENT_TABLE()
 void TaskBarIcon::OnMenuRestore(wxCommandEvent&)
 {
 	gs_dialog->Show(true);
+	gs_dialog->Iconize(false);
+}
+
+void TaskBarIcon::OnLeftButtonDClick(wxTaskBarIconEvent&)
+{
+	gs_dialog->Show(true);
+	gs_dialog->Iconize(false);
 }
 
 void TaskBarIcon::OnMenuExit(wxCommandEvent&)
 {
-	
 	gs_dialog->Close(true);
 }
 
-static bool check = true;
-//static bool Online = true;
-//static bool Offline = false;
-void TaskBarIcon::OnMenuCheckmark(wxCommandEvent&)
-{
-	check = !check;
-}
-
-void TaskBarIcon::OnMenuUICheckmark(wxUpdateUIEvent &event)
-{
-	event.Check(check);
-}
-
-/*MIO*/
 void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
-	//Online = true;
-	//Offline = false;
 	m_settings->setStatoOn();
 	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
+
 void TaskBarIcon::OnMenuUICheckmarkOnline(wxUpdateUIEvent &event)
 {
 	event.Check(!m_settings->getStato());
 }
 
-
 void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
-	//Online = false;
-	//Offline = true;
 	m_settings->setStatoOff();
 	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
 }
@@ -476,26 +438,14 @@ void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
 	event.Check(m_settings->getStato());
 }
 
-void TaskBarIcon::OnMenuSub(wxCommandEvent&)
-{
-	wxMessageBox(wxT("You clicked on a submenu!"));
-}
-
-// Overridables
 wxMenu *TaskBarIcon::CreatePopupMenu()
 {
 	wxMenu *menu = new wxMenu;
-	menu->Append(PU_RESTORE, wxT("&Restore main window"));
-	menu->AppendSeparator();
-	menu->AppendCheckItem(PU_CHECKMARK, wxT("Test &check mark"));
-	menu->AppendRadioItem(-1, wxT("Prova bottone"));
+	menu->Append(PU_RESTORE, wxT("Apri Sharing Service"));
 	menu->AppendSeparator();
 	wxMenu *submenu = new wxMenu;
-	submenu->AppendCheckItem(PU_CHECKMARK_ONLINE, wxT("&Online"));
-	submenu->AppendCheckItem(PU_CHECKMARK_OFFLINE, wxT("&Offline"));
-	/*submenu->Append(PU_SUB1, wxT("One submenu"));
-	submenu->AppendSeparator();
-	submenu->Append(PU_SUB2, wxT("Another submenu"));*/
+	submenu->AppendCheckItem(PU_CHECKMARK_ONLINE, wxT("Online"));
+	submenu->AppendCheckItem(PU_CHECKMARK_OFFLINE, wxT("Offline"));
 	menu->Append(PU_SUBMAIN, wxT("Stato"), submenu);
 	/* OSX has built-in quit menu for the dock menu, but not for the status item */
 #ifdef __WXOSX__ 
@@ -503,12 +453,7 @@ wxMenu *TaskBarIcon::CreatePopupMenu()
 #endif
 	{
 		menu->AppendSeparator();
-		menu->Append(PU_EXIT, wxT("E&xit"));
+		menu->Append(PU_EXIT, wxT("Esci"));
 	}
 	return menu;
-}
-
-void TaskBarIcon::OnLeftButtonDClick(wxTaskBarIconEvent&)
-{
-	gs_dialog->Show(true);
 }

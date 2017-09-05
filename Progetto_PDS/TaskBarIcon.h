@@ -31,15 +31,10 @@ public:
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
 	void OnMenuRestore(wxCommandEvent&);
 	void OnMenuExit(wxCommandEvent&);
-	void OnMenuCheckmark(wxCommandEvent&);
-	void OnMenuUICheckmark(wxUpdateUIEvent&);
-	//MIO
 	void OnMenuCheckmarkOnline(wxCommandEvent&);
 	void OnMenuUICheckmarkOnline(wxUpdateUIEvent&);
 	void OnMenuCheckmarkOffline(wxCommandEvent&);
 	void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
-	//
-	void OnMenuSub(wxCommandEvent&);
 	
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
@@ -87,7 +82,6 @@ public:
 	void SendFile(std::string path);
 	void MainFrame::showBal(std::string title, std::string message);
 protected:
-	void OnAbout(wxCommandEvent& event);
 	void OnOK(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
