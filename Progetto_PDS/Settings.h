@@ -21,6 +21,11 @@
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
+enum save_request {
+	SAVE_REQUEST_NO = 0,
+	SAVE_REQUEST_YES = 1
+};
+
 class Settings
 {
 private:
@@ -55,6 +60,9 @@ private:
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	
+	
+
+
 
 
 	Settings() {}

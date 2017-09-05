@@ -1,15 +1,4 @@
-#include <fstream>
-#include <cstdlib>
-#include <cstring>
 #include "client.h"
-#include "protoType.h"
-#include <stdio.h>
-#include <filesystem>
-#include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
-#include "boost\asio.hpp"
-#include <boost/filesystem.hpp>
 
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;

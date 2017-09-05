@@ -1,13 +1,23 @@
 #pragma once
-
 #include <boost/thread.hpp>
+#include <boost\asio.hpp>
+#include <boost/filesystem.hpp>
+#include <stdio.h>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <string>
+#include <filesystem>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 #include "utente.h"
 #include "protoType.h"
 #include "UserProgressBar.h"
 #include "WindowProgressBar.h"
+#include "protoType.h"
 
 
 /********************************************************************************
