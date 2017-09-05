@@ -110,7 +110,14 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state,u
 		}
 	}
 
-	sendImage(filePath, ipAddr);
+	try {
+		sendImage(filePath, ipAddr);
+	}
+	catch (std::exception& e) {
+		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
+		exit(-1);
+	}
+	
 
 	//IMPORTANTE CHE QUESTO STIA DOPO!
 	//Aggiungo l'utente e il suo stato
