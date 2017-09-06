@@ -62,7 +62,13 @@ private:
 	wxRadioBox* m_saved;
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
+	TaskBarIcon *m_taskBarIcon;
 
+	void OnInviaFile(wxCommandEvent&);
+	void OnInviaDir(wxCommandEvent&);
+	void OnOK(wxCommandEvent&);
+	void OnExit(wxCommandEvent&);
+	void OnCloseWindow(wxCloseEvent&);
 	void OnTimer(wxTimerEvent&);
 	void OnImage(wxCommandEvent&);
 	void OnChangeSavePath(wxCommandEvent&);
@@ -70,6 +76,7 @@ private:
 	void OnRadioBoxSalvataggio(wxCommandEvent&);
 	void OnMenuUICheckmark(wxUpdateUIEvent&);
 
+	wxDECLARE_EVENT_TABLE();
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	virtual ~MainFrame();
@@ -81,14 +88,5 @@ public:
 
 	void SendFile(std::string path);
 	void MainFrame::showBal(std::string title, std::string message);
-protected:
-	void OnOK(wxCommandEvent& event);
-	void OnExit(wxCommandEvent& event);
-	void OnCloseWindow(wxCloseEvent& event);
-
-
-	TaskBarIcon *m_taskBarIcon;
-
-	wxDECLARE_EVENT_TABLE();
 };
 

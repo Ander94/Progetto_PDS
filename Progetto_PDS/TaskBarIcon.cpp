@@ -34,6 +34,8 @@ static MainFrame *gs_dialog = NULL;
 // ----------------------------------------------------------------------------
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
+EVT_BUTTON(wxID_FILE, MainFrame::OnInviaFile)
+EVT_BUTTON(wxID_FILE1, MainFrame::OnInviaDir)
 EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
@@ -183,13 +185,17 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 	sizerTop->Add(m_elencoUser, flags);
 
+	wxSizer * const sizerBtns1 = new wxBoxSizer(wxHORIZONTAL);
+	sizerBtns1->Add(new wxButton(this, wxID_FILE, wxT("Invia file")), flags);
+	sizerBtns1->Add(new wxButton(this, wxID_FILE1, wxT("Invia cartella")), flags);
+
+	wxSizer * const sizerBtns2 = new wxBoxSizer(wxHORIZONTAL);
+	sizerBtns2->Add(new wxButton(this, wxID_OK, wxT("Nascondi")), flags);
+	sizerBtns2->Add(new wxButton(this, wxID_EXIT, wxT("Esci")), flags);
+
+	sizerTop->Add(sizerBtns1, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 	sizerTop->AddStretchSpacer()->SetMinSize(200, 50);
-
-	wxSizer * const sizerBtns = new wxBoxSizer(wxHORIZONTAL);
-	sizerBtns->Add(new wxButton(this, wxID_OK, wxT("Nascondi")), flags);
-	sizerBtns->Add(new wxButton(this, wxID_EXIT, wxT("Esci")), flags);
-
-	sizerTop->Add(sizerBtns, flags.Align(wxALIGN_CENTER_HORIZONTAL));
+	sizerTop->Add(sizerBtns2, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 	SetSizerAndFit(sizerTop);
 	Centre();
 
@@ -216,6 +222,24 @@ MainFrame::~MainFrame()
 
 void MainFrame::showBal(std::string title, std::string message) {
 	m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
+}
+
+void MainFrame::OnInviaFile(wxCommandEvent& WXUNUSED(event))
+{
+	wxFileDialog selectFileDialog(this, "Seleziona un file o una cartella da inviare", "", "",
+		"All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	if (selectFileDialog.ShowModal() == wxID_CANCEL)
+		return;     // the user changed idea...
+	SendFile(selectFileDialog.GetPath().ToStdString());
+}
+
+void MainFrame::OnInviaDir(wxCommandEvent& WXUNUSED(event))
+{
+	wxDirDialog selectDirDialog(this, "Seleziona un file o una cartella da inviare", "",
+		wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	if (selectDirDialog.ShowModal() == wxID_CANCEL)
+		return;     // the user changed idea...
+	SendFile(selectDirDialog.GetPath().ToStdString());
 }
 
 void MainFrame::OnOK(wxCommandEvent& WXUNUSED(event))
