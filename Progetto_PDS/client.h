@@ -21,14 +21,14 @@
 
 
 /********************************************************************************
-Invia il file specificato in initialAbsolutePath all'user con username "username" 
+Invia il file specificato in initialAbsolutePath all'user con username "username"
 Riceve come parametri:
 -utenteProprietario, ovvero il riferimento all'utente che ha aperto l'applicazione con tutti gli utenti ad esso connessi
 -L'username dell'utente a cui inviare il file
 -Il path assoluto del file da inviare
 -Il riferimento alla barra di progresso
 **********************************************************************************/
-void sendTCPfile(utente& utenteProprietario, std::string username, 
+void sendTCPfile(utente& utenteProprietario, std::string username,
 	std::string initialAbsolutePath, UserProgressBar* progBar);
 
 

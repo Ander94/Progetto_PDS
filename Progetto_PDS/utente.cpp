@@ -57,7 +57,7 @@ std::vector<utente> utente::getUtentiOnline() {
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 	std::vector<utente> utentiOnline;
 	for (auto it : this->getUtentiConnessi()) {
-		if (it.getState()==STAT_ONLINE) {
+		if (it.getState() == STAT_ONLINE) {
 			utentiOnline.push_back(it);
 		}
 	}
@@ -74,13 +74,13 @@ bool utente::contieneUtente(std::string username) {
 	return false;
 }
 
-utente& utente::getUtente(std::string username){
+utente& utente::getUtente(std::string username) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 	for (auto& it : this->getUtentiConnessi()) {
 		if (it.getUsername() == username) {
 			return it;
-		}	
+		}
 	}
 	throw std::invalid_argument("Utente mancante.");
 }
@@ -98,7 +98,7 @@ std::string utente::getUsernameFromIp(std::string ipAddr) {
 }
 
 
-void utente::addUtente(std::string username, std::string ipAddr, status state,boost::posix_time::ptime currentTime) {
+void utente::addUtente(std::string username, std::string ipAddr, status state, boost::posix_time::ptime currentTime) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	std::lock_guard<std::recursive_mutex> lk_ipAddr(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
@@ -131,7 +131,7 @@ int utente::removeUtente(std::string username) {
 		}
 	}
 	return 0;
-	
+
 }
 
 void utente::setCurrentTime(boost::posix_time::ptime currentTime) {

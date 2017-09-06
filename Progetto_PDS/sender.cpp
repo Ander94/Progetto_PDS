@@ -9,7 +9,7 @@ void sendUDPMessage(std::string& username, status& current_status, std::atomic<b
 
 	socket.open(boost::asio::ip::udp::v4()); //Inizializzo il socket per l'utilizzo di pacchetti IPv4
 	socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-	socket.set_option(boost::asio::socket_base::broadcast(true)); 
+	socket.set_option(boost::asio::socket_base::broadcast(true));
 	//Dico che il "sender_endpoint", ovvero colui che riceverà i pacchetti UDP, è tutta la LAN
 	//Inviando cosi i pacchetti IPv4 all'indirizzo 255.255.255.255
 	sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), PORT_UDP);
@@ -26,18 +26,17 @@ void sendUDPMessage(std::string& username, status& current_status, std::atomic<b
 		//Invio sulla LAN un pacchetto contentente la stringa nella forma username\r\nstato\r\n, così che tutti gli altri
 		//utenti che utilizzano l'applicazione possano registrare gli altri utenti.
 		try {
-			socket.send_to(boost::asio::buffer(username + "\r\n" + stato +"\r\n"), sender_endpoint);
+			socket.send_to(boost::asio::buffer(username + "\r\n" + stato + "\r\n"), sender_endpoint);
 		}
 		catch (std::exception& e) {
 			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
 		}
-		
+
 		//I pacchetti vengonoo inviati ongi TIME_SEND_MESSAGE_UDP ms
-		Sleep(TIME_SEND_MESSAGE_UDP);	
-		
+		Sleep(TIME_SEND_MESSAGE_UDP);
+
 	}
 	socket.close();
 	io_service.stop();
 	return;
 }
-

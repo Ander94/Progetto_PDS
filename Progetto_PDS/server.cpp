@@ -24,7 +24,7 @@ void StartAccept(boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprie
 }
 
 void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
- , utente& utenteProprietario, std::string generalPath, MainFrame* mainframe)
+	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe)
 {
 	// If there was an error, then do not add any more jobs to the service.
 	if (error)
@@ -35,7 +35,7 @@ void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boo
 
 	// Otherwise, the socket is good to use.
 	// Perform async operations on the socket.
-	std::thread(reciveAfterAccept, std::move( *socket), utenteProprietario, generalPath, mainframe).detach();
+	std::thread(reciveAfterAccept, std::move(*socket), utenteProprietario, generalPath, mainframe).detach();
 
 
 	// Done using the socket, so start accepting another connection.  This
@@ -44,7 +44,7 @@ void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boo
 	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
 };
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath , MainFrame* mainframe, boost::asio::io_service& io_service) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe, boost::asio::io_service& io_service) {
 
 	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), PORT_TCP));
 
@@ -97,7 +97,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 				}
 				else if (ret_val == wxID_HELP) {
 					wxFileDialog saveFileDialog(NULL, "Salva " + fileName + " come", mainframe->GetSettings()->getSavePath(), fileName,
-							"(*" + extension + ")|*" + extension, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+						"(*" + extension + ")|*" + extension, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 					if (saveFileDialog.ShowModal() == wxID_CANCEL)
 						return;     // the user changed idea...
 					savePath = saveFileDialog.GetPath().ToStdString();
@@ -145,7 +145,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 			size_t directory_size_to_send, directorySize, directory_size_send = 0;
 			//Finche non ricevo -END, vuol dire che ho o una directory o un file da ricevere
 			bool firstTime = true;
-			
+
 			while (query != "-END") {
 				if (query == "+DR") {
 					//Rispondo ok 
@@ -261,7 +261,7 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 	long int size;
 	long int dif = 0, min = 0, sec = 0;
 	long int calcola_tempo = 0;
-	char buf_recive[BUFLEN]; 
+	char buf_recive[BUFLEN];
 	double dim_recived = 0, dim_read;
 	boost::posix_time::ptime start, end;
 
@@ -285,11 +285,11 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 			while (dim_recived<size)
 			{
 				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
-			/*	if (error == boost::asio::error::eof)
-					break;
+				/*	if (error == boost::asio::error::eof)
+				break;
 				else if (error) {
-					file_out.close();
-					return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
+				file_out.close();
+				return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
 				}*/
 				//Scarico tutto il buffer nel file
 				file_out.write(buf_recive, dim_read);

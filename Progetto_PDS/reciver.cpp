@@ -13,10 +13,10 @@ Riceve come parametri:
 -status: stato online/offline dell'utente da iscrivere
 -generalPath: path da cui prelevare l'immagine del profilo.
 **********************************************************************************/
-void iscriviUtente(std::string username, std::string ipAddr, enum status ,utente& utenteProprietario, std::string generalPath);
+void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath);
 
 void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
-	
+
 
 	boost::asio::io_service io_service; //Procedura di servizio boost
 	udp::socket s(io_service);  //Socket su cui ricevere i pacchetti UDP
@@ -29,7 +29,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	status state;
 
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-	s.open(boost::asio::ip::udp::v4()); 
+	s.open(boost::asio::ip::udp::v4());
 	s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 	s.set_option(boost::asio::socket_base::broadcast(true));
 	local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
@@ -38,8 +38,8 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), boost::ref(exit_app));
 
-	while(!exit_app.load()){
-		
+	while (!exit_app.load()) {
+
 		//Ricevo un messaggio
 		length = s.receive_from(boost::asio::buffer(buf, 1024), reciver_endpoint);
 		//Estraggo l'ip di chi mi ha inviato il mesasggio
@@ -60,7 +60,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 				state = status::STAT_OFFLINE;
 			}
 			//Iscrivo l'utente.
-			std::thread(iscriviUtente,username, ipAddr, state, std::ref(utenteProprietario), generalPath).detach();
+			std::thread(iscriviUtente, username, ipAddr, state, std::ref(utenteProprietario), generalPath).detach();
 			//Lancio il thread cosi son pronto a ricevere altri pacchetti UDP.
 		}
 	}
@@ -73,7 +73,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	return;
 }
 
-void iscriviUtente(std::string username, std::string ipAddr, enum status state,utente& utenteProprietario, std::string generalPath) {
+void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
 	//Evita di registrare se stessi.
 	if (false) {
@@ -96,7 +96,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state,u
 	//Se l'utente non è ancora iscritto, invio la mia immagine di profilo al nuovo utente iscritto
 	//Se l'utente ha settato già un immagine, essa viene presa da profilo.png, altrimenti su usa un immagine di default.
 	std::string filePath(generalPath + "profilo.png");
-	if (boost::filesystem::is_regular_file(filePath)!=true) {
+	if (boost::filesystem::is_regular_file(filePath) != true) {
 		filePath = generalPath + "user_default.png";
 		if (boost::filesystem::is_regular_file(filePath) != true) {
 			wxMessageBox("Immagne per profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
@@ -111,8 +111,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state,u
 		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
 		exit(-1);
 	}
-	
-	//Aggiungo il nuovo utente e il suo stato.
-	utenteProprietario.addUtente(username, ipAddr, state,currentTime);
-}
 
+	//Aggiungo il nuovo utente e il suo stato.
+	utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+}

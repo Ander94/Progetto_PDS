@@ -42,14 +42,14 @@ private:
 	std::recursive_mutex rm_exit_send_udp;//11
 	std::recursive_mutex rm_exit_recive_udp;//12
 	std::recursive_mutex rm_io_service_tcp;//13
-	
+
 
 
 	utente* m_utenteProprietario;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
-	std::string m_SavePath; 
+	std::string m_SavePath;
 	std::string m_SendPath;
 	MyClient* m_client;
 	bool m_isDir; //si sta inviando cartella o file
@@ -59,17 +59,17 @@ private:
 	boost::asio::io_service io_service_tcp;
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
-	
-	
+
+
 
 
 
 
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
-	~Settings() { 
+	~Settings() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		delete(m_utenteProprietario); 
+		delete(m_utenteProprietario);
 	}
 
 	void setExitSend(bool value) {
@@ -137,7 +137,7 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
 		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_recive_udp);
 		std::lock_guard<std::recursive_mutex> lk_io_service_tcp(rm_io_service_tcp);
-		
+
 		wxInitAllImageHandlers();
 
 		NewUtenteProprietario(nomeUtente, getOwnIP());
@@ -178,23 +178,24 @@ public:
 			boost::filesystem::copy_file(m_DefaultImagePath, m_ImagePath);
 	}
 
-	void NewUtenteProprietario(std::string nomeUtente, std::string ip) { 
+	void NewUtenteProprietario(std::string nomeUtente, std::string ip) {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		m_utenteProprietario = new utente(nomeUtente, ip); 
+		m_utenteProprietario = new utente(nomeUtente, ip);
 	}
 
-	utente& getUtenteProprietario() { 
+	utente& getUtenteProprietario() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		return *m_utenteProprietario; }
-
-	void setImagePath(std::string imagePath) { 
-		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
-		m_ImagePath = imagePath; 
+		return *m_utenteProprietario;
 	}
 
-	std::string getImagePath() { 
+	void setImagePath(std::string imagePath) {
 		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
-		return m_ImagePath; 
+		m_ImagePath = imagePath;
+	}
+
+	std::string getImagePath() {
+		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
+		return m_ImagePath;
 	}
 
 	void resizeImage(std::string path) {
@@ -214,75 +215,79 @@ public:
 		else {
 			s = w; ph = (h - w) / 2; pw = 0;
 		}
-		wxImage tmp = img->GetSubImage(wxRect(pw,ph,s,s));
+		wxImage tmp = img->GetSubImage(wxRect(pw, ph, s, s));
 		tmp.Rescale(200, 200, wxIMAGE_QUALITY_HIGH);
-		tmp.SaveFile(""+path);
+		tmp.SaveFile("" + path);
 	}
 
-	void setSavePath(std::string savePath) { 
+	void setSavePath(std::string savePath) {
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
-		m_SavePath = savePath; 
+		m_SavePath = savePath;
 		this->updateState();
 	}
 	std::string getSavePath() {
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
-		return  m_SavePath; 
+		return  m_SavePath;
 	};
 
 	//AGGIUNTA DA SERGIO
-	void setGeneralPath(std::string generalPath) { 
+	void setGeneralPath(std::string generalPath) {
 		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
-		m_GeneralPath = generalPath; 
+		m_GeneralPath = generalPath;
 	}
 	std::string getGeneralPath() {
 		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
-		return  m_GeneralPath; 
+		return  m_GeneralPath;
 	};
 
-	std::string getUserName() { 
+	std::string getUserName() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		return m_utenteProprietario->getUsername(); }
+		return m_utenteProprietario->getUsername();
+	}
 
-	std::vector<utente>& getUtentiConnessi() { 
+	std::vector<utente>& getUtentiConnessi() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		return m_utenteProprietario->getUtentiConnessi(); }
+		return m_utenteProprietario->getUtentiConnessi();
+	}
 
-	std::vector<utente> getUtentiOnline() { 
+	std::vector<utente> getUtentiOnline() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
-		return m_utenteProprietario->getUtentiOnline(); }
+		return m_utenteProprietario->getUtentiOnline();
+	}
 
 	void setSendPath(std::string sendPath) {
 		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
-		m_SendPath = sendPath; 
+		m_SendPath = sendPath;
 	}
 
-	std::string getSendPath() { 
+	std::string getSendPath() {
 		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
-		return m_SendPath; 
+		return m_SendPath;
 	}
-	
+
 	void setIsDir(bool isDir) {
 		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
-		m_isDir = isDir; 
+		m_isDir = isDir;
 	}
-	bool getIsDir() { 
+	bool getIsDir() {
 		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
-		return m_isDir; 
+		return m_isDir;
 	}
 
 	void setStatoOn() {
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
-		m_stato = status::STAT_ONLINE; 
+		m_stato = status::STAT_ONLINE;
 		this->updateState();
 	}
 	void setStatoOff() {
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
-		m_stato = status::STAT_OFFLINE; 
+		m_stato = status::STAT_OFFLINE;
 		this->updateState();
 	}
-	status& getStato() { 
+	status& getStato() {
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
-		return m_stato; }
+		return m_stato;
+	}
 
 	void setAutoSavedOn() {
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
@@ -330,7 +335,7 @@ public:
 	static void reciveUDPMessageGETIP(std::string& ownIpAddr, std::string& unique_str) {
 		boost::asio::io_service io_service;
 		udp::socket s(io_service);
-		
+
 		boost::asio::ip::udp::endpoint local_endpoint;
 		boost::asio::ip::udp::endpoint reciver_endpoint;
 
@@ -389,12 +394,12 @@ public:
 		return true;
 	}
 
-	MyClient *GetClient() { 
+	MyClient *GetClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
-		return m_client; 
+		return m_client;
 	}
 	void DeleteClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
-		wxDELETE(m_client); 
+		wxDELETE(m_client);
 	}
 };

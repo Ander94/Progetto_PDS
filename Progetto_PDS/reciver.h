@@ -26,4 +26,3 @@ Riceve come parametri:
 -l'atomic exit_app, che indica quando interrompere la ricezione di messaggi UDP dalla LAN.
 **********************************************************************************/
 void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app);
-

@@ -16,7 +16,7 @@
 /********************************************************************************
 Invia in tutta la LAN un pacchetto nella forma username\r\nstato\r\n.
 Riceve come parametri:
--L'username da inviare 
+-L'username da inviare
 -Lo stato da inviare
 -l'atomic exit_app, che indica quando interrompere l'invio di messaggi UDP in LAN.
 **********************************************************************************/
