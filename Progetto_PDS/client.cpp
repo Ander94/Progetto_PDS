@@ -119,7 +119,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			buf_response[length] = '\0';
 			response = buf_response;
 			if (response != "+OK") {
-				return throw std::invalid_argument("Il server ha dato risposta negativa per la ricezione dell'immagine.");
+				return;
 			}
 
 			//Invio qui la dimensione del file
@@ -128,7 +128,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
 			buf_response[length] = '\0';
 			if (response != "+OK") {
-				return throw std::invalid_argument("Il server ha dato risposta negativa per la ricezione dell'immagine.");
+				return; 
 			}
 
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
@@ -144,7 +144,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
 			buf_response[length] = '\0';
 			if (response != "+OK") {
-				return throw std::invalid_argument("Il server ha dato risposta negativa per la ricezione dell'immagine.");
+				return; 
 			}
 			file_in.close();
 		}

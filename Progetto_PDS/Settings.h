@@ -202,6 +202,13 @@ public:
 		//wxPNGHandler *handler = new wxPNGHandler();
 		//wxImage::AddHandler(handler);
 		wxImage *img = new wxImage();
+
+		if (!boost::filesystem::is_regular_file(path)) {
+			boost::filesystem::copy_file(getGeneralPath() + "user_default.png", path, boost::filesystem::copy_option::overwrite_if_exists);
+			return;
+		}
+		
+
 		if (!img->LoadFile(path, wxBITMAP_TYPE_ANY, -1)) {
 			wxMessageBox("Errore caricamento immagine", wxT("ERRORE"), wxOK | wxICON_ERROR);
 			return;
