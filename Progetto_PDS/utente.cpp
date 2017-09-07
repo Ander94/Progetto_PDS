@@ -32,6 +32,7 @@ utente::utente(std::string username, std::string ipAddr)
 
 utente::~utente()
 {
+
 }
 
 std::string utente::getUsername()

@@ -10,7 +10,6 @@
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
-
 #include "utente.h"
 #include "sender.h"
 #include "ipcsetup.h"
@@ -210,7 +209,8 @@ public:
 		
 
 		if (!img->LoadFile(path, wxBITMAP_TYPE_ANY, -1)) {
-			wxMessageBox("Errore caricamento immagine", wxT("ERRORE"), wxOK | wxICON_ERROR);
+			wxMessageBox("Errore caricamento immagine di " + m_utenteProprietario->getUsernameFromIp(boost::filesystem::basename(path) + boost::filesystem::extension(path)), wxT("ERRORE"), wxOK | wxICON_ERROR);
+			boost::filesystem::copy_file(getGeneralPath() + "user_default.png", path, boost::filesystem::copy_option::overwrite_if_exists);
 			return;
 		}
 		int h = img->GetHeight();

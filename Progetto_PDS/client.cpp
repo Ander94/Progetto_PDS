@@ -66,7 +66,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username,
 
 void sendTCPfile(utente& utenteProprietario, std::string username, std::string initialAbsolutePath, UserProgressBar* progBar) {
 	//Sgancia il thread che permette l'invio del file
-	std::thread(sendThreadTCPfile, std::ref(utenteProprietario), username, initialAbsolutePath, progBar).detach();
+	boost::thread(sendThreadTCPfile, boost::ref(utenteProprietario), username, initialAbsolutePath, progBar).detach();
 }
 
 
@@ -213,7 +213,6 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 			send_file(s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
 		}
 		catch (std::exception& e) {
-			wxQueueEvent(progBar, event.Clone());
 			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 
@@ -224,7 +223,6 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 			send_directory(s, initialAbsolutePath, basename, progBar);
 		}
 		catch (std::exception& e) {
-			wxQueueEvent(progBar, event.Clone());
 			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 	}
@@ -376,12 +374,13 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 
 	std::ifstream file_in(filePath, std::ios::in | std::ios::binary);  //Fiel da inviare
 	std::string fileSize; //Dimensione del file sotto forma di stringa 
-	size_t size, dim_write, dim_send = 0, dim_to_send, length;    //Dimensione del file sotto forma di intero
+	double long size, dim_write, dim_send = 0, dim_to_send;    //Dimensione del file sotto forma di double per effettuare la divisione
+	size_t length;
 	boost::posix_time::ptime start, end; //Utile per valuare il tempo di invio di un pacchetto verso il server
 	long int dif = 0, sec = 0;  //Utile per valuare il tempo di invio di un pacchetto verso il server
 	int calcola_tempo = 1; //è utile per non valutare il tempo troppe volte, ma solo ogni 50 pacchetti inviati.
 	std::string response, send; //Risposta del server e Buffer utile all'invio di un pacchetto
-	char buf_to_send[BUFLEN]; //char utili per caricare il pacchetto di lunghezza BUFLEN da inviare al server.
+	char buf_to_send[BUFLEN];  //char utili per caricare il pacchetto di lunghezza BUFLEN da inviare al server.
 	char buf_recive[PROTOCOL_PACKET]; //Buffer utile alla ricezione di un pacchetto. La funzione da me utilizzata prevede di ricevere un char di lunghezza fissa.
 
 	try {
@@ -445,15 +444,18 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
 
-																						   //Valuto il tempo di invio di EVALUATE_TIME pacchetti.
-																						   //Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
-																						   //pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
+				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
+				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
+				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
 				if (calcola_tempo % EVALUATE_TIME == 0)
 				{
 					end = boost::posix_time::second_clock::local_time();
 					dif = (end - start).total_seconds();
 					//Valuto quanti secondi sono stati necessari per inviare dim_send byte.
 					sec = (int)((((size - dim_send) / ((dim_send)))*dif));
+					// dif : EVALUATE_TIME = sec : size-dim_send/BUFLEN pacchetti?
+
+					//start = boost::posix_time::second_clock::local_time();
 
 				}
 				calcola_tempo++;
@@ -475,6 +477,8 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 		return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
 	}
 }
+
+
 
 
 
