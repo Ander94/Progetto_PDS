@@ -405,8 +405,38 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
 		return m_client;
 	}
+
 	void DeleteClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
 		wxDELETE(m_client);
+	}
+
+	void CreateRegFiles() {
+		std::string path = m_GeneralPath + "RegKey";
+		if (!boost::filesystem::is_directory(path)) {
+			if (!boost::filesystem::create_directories(path)) {
+				wxMessageBox("Impossibile creare directory: " + path, wxT("INFO"), wxOK | wxICON_INFORMATION);
+				return;
+			}
+		}
+		std::fstream add_key, rem_key;
+		add_key.open(path + "\\Add.reg", std::fstream::out);
+		std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "\icon1.ico\"";
+		std::string str2 = "@=" + m_GeneralPath + "\Progetto_PDS.exe %1\"";
+		boost::replace_all(str1, "\\", "\\\\");
+		boost::replace_all(str2, "\\", "\\\\");
+		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share]\n";
+		add_key << str1;
+		add_key << "\n\n";
+		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share\\command]\n";
+		add_key << str2;
+		add_key.close();
+
+		rem_key.open(path + "\\Rem.reg", std::fstream::out);
+		add_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
+		add_key << "\n\n";
+		add_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
+		rem_key.close();
+
 	}
 };
