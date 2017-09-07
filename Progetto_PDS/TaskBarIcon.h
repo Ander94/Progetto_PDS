@@ -31,11 +31,13 @@ public:
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
 	void OnMenuRestore(wxCommandEvent&);
 	void OnMenuExit(wxCommandEvent&);
-	void OnMenuCheckmarkOnline(wxCommandEvent&);
-	void OnMenuUICheckmarkOnline(wxUpdateUIEvent&);
-	void OnMenuCheckmarkOffline(wxCommandEvent&);
-	void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
-	
+	//void OnMenuCheckmarkOnline(wxCommandEvent&);
+	//void OnMenuUICheckmarkOnline(wxUpdateUIEvent&);
+	//void OnMenuCheckmarkOffline(wxCommandEvent&);
+	//void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
+	void OnMenuStato(wxCommandEvent&);
+	void OnMenuUIStato(wxUpdateUIEvent&);
+
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
 	wxDECLARE_EVENT_TABLE();
@@ -74,7 +76,8 @@ private:
 	void OnChangeSavePath(wxCommandEvent&);
 	void OnRadioBoxStato(wxCommandEvent&);
 	void OnRadioBoxSalvataggio(wxCommandEvent&);
-	void OnMenuUICheckmark(wxUpdateUIEvent&);
+	void OnMenuUICheckmark(wxCommandEvent&);
+	void UpdateIcon();
 
 	wxDECLARE_EVENT_TABLE();
 public:
@@ -82,7 +85,7 @@ public:
 	virtual ~MainFrame();
 	bool StartServer();
 	//bool StartClient();
-	MyServer *GetServer() { return m_server; }
+	class MyServer *GetServer() { return m_server; }
 	//MyClient *GetClient() { return m_client; }
 	Settings *GetSettings() { return m_settings; };
 

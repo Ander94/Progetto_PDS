@@ -2,6 +2,7 @@
 #include <wx/taskbar.h>
 
 #include "share_icon.xpm"
+#include "share_icon_offline.xpm"
 //#include "share_icon_online.xpm"
 //#include "share_icon_offline.xpm"
 
@@ -33,6 +34,8 @@ static MainFrame *gs_dialog = NULL;
 // MainFrame implementation
 // ----------------------------------------------------------------------------
 
+wxDEFINE_EVENT(UPDATE_EVENT, wxCommandEvent);
+
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_BUTTON(wxID_FILE, MainFrame::OnInviaFile)
 EVT_BUTTON(wxID_FILE1, MainFrame::OnInviaDir)
@@ -43,9 +46,10 @@ EVT_BUTTON(SAVE_ID, MainFrame::OnChangeSavePath)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
-EVT_UPDATE_UI(RADIO_ID1, MainFrame::OnMenuUICheckmark)
+EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
 wxEND_EVENT_TABLE()
+
 
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title)
@@ -79,6 +83,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		0,
 		wxRA_SPECIFY_ROWS
 	);
+	m_status->SetSelection(m_settings->getStato());
 
 	items[0] = wxT("Non domandare salvataggio");
 	items[1] = wxT("Domanda salvataggio");
@@ -94,6 +99,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		0,
 		wxRA_SPECIFY_ROWS
 	);
+	m_saved->SetSelection(m_settings->getAutoSaved());
 
 	m_changeImage = new wxButton
 	(
@@ -153,7 +159,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		this,
 		wxID_ANY,
 		wxT("Salva in: ")
-	), flags);
+	), 0, wxALIGN_CENTER_VERTICAL);
 	m_textSavePath = new wxStaticText
 	(
 		this, 
@@ -163,7 +169,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize,
 		wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START
 	);
-	sizer3->Add(m_textSavePath, flags);
+	sizer3->Add(m_textSavePath, 0, wxALIGN_CENTER_VERTICAL);
 	sizer3->Add(m_changeSavePath, flags);
 
 	wxSizer* sizerBox = new wxBoxSizer(wxHORIZONTAL);
@@ -200,13 +206,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	Centre();
 
 	m_taskBarIcon = new TaskBarIcon(m_settings);
-
-	if (!m_taskBarIcon->SetIcon(wxIcon(share_icon),
-		"Sharing service\n"
-		"Clicca per iniziare a condividere file!"))
-	{
-		wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
-	}
+	UpdateIcon();	
 
 	gs_dialog = this;
 
@@ -324,15 +324,13 @@ void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 		m_textStato->SetLabel("offline");
 		
 	}
-
+	UpdateIcon();
 	Update();
-	wxQueueEvent(m_taskBarIcon, new wxUpdateUIEvent);
 }
 
 void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 {
 	int sel = m_saved->GetSelection();
-	//stato.txt
 
 	if (sel == 0) {
 		m_settings->setAutoSavedOff();
@@ -343,20 +341,34 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 
 }
 
-void MainFrame::OnMenuUICheckmark(wxUpdateUIEvent& event)
+void MainFrame::OnMenuUICheckmark(wxCommandEvent& event)
 {
-	//X LEO: Penso che la scritta online/offline lampeggi perchè l'app entra continuamente qui (Non so il perchè!)
-	//wxMessageBox("Entro");
-	m_status->SetSelection(m_settings->getStato());
-	m_saved->SetSelection(m_settings->getAutoSaved()); //Aggiunta da sergio
 	std::string stato;
+	m_status->SetSelection(m_settings->getStato());
 	m_settings->getStato() ? stato = "offline" : stato = "online";
-	if (m_textStato->GetLabel().ToStdString() == stato)
-		return;
 	m_textStato->SetLabel(stato);
+	UpdateIcon();
 	Update();
 }
 
+void MainFrame::UpdateIcon() {
+	if (!m_settings->getStato()) {
+		if (!m_taskBarIcon->SetIcon(wxIcon(share_icon),
+			"Sharing service\n"
+			"Clicca per iniziare a condividere file!"))
+		{
+			wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
+		}
+	}
+	else {
+		if (!m_taskBarIcon->SetIcon(wxIcon(share_icon_offline),
+			"Sharing service\n"
+			"Clicca per iniziare a condividere file!"))
+		{
+			wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
+		}
+	}
+}
 
 bool MainFrame::StartServer() 
 {
@@ -405,12 +417,7 @@ enum
 {
 	PU_RESTORE = 10001,
 	PU_EXIT,
-	PU_CHECKMARK,
-	PU_CHECKMARK_ONLINE,
-	PU_CHECKMARK_OFFLINE,
-	PU_SUB1,
-	PU_SUB2,
-	PU_SUBMAIN
+	PU_STATO,
 };
 
 
@@ -418,10 +425,12 @@ wxBEGIN_EVENT_TABLE(TaskBarIcon, wxTaskBarIcon)
 EVT_MENU(PU_RESTORE, TaskBarIcon::OnMenuRestore)
 EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
-EVT_MENU(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuCheckmarkOnline)
-EVT_UPDATE_UI(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuUICheckmarkOnline)
-EVT_MENU(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuCheckmarkOffline)
-EVT_UPDATE_UI(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuUICheckmarkOffline)
+EVT_MENU(PU_STATO, TaskBarIcon::OnMenuStato)
+EVT_UPDATE_UI(PU_STATO, TaskBarIcon::OnMenuUIStato)
+//EVT_MENU(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuCheckmarkOnline)
+//EVT_UPDATE_UI(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuUICheckmarkOnline)
+//EVT_MENU(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuCheckmarkOffline)
+//EVT_UPDATE_UI(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuUICheckmarkOffline)
 wxEND_EVENT_TABLE()
 
 
@@ -443,23 +452,35 @@ void TaskBarIcon::OnMenuExit(wxCommandEvent&)
 	gs_dialog->Close(true);
 }
 
-void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
-	m_settings->setStatoOn();
-	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
+//void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
+//	m_settings->setStatoOn();
+//	wxQueueEvent(gs_dialog, new wxCommandEvent(UPDATE_EVENT, RADIO_ID1));
+//}
+//
+//void TaskBarIcon::OnMenuUICheckmarkOnline(wxUpdateUIEvent &event)
+//{
+//	event.Check(!m_settings->getStato());
+//}
+//
+//void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
+//	m_settings->setStatoOff();
+//	wxQueueEvent(gs_dialog, new wxCommandEvent(UPDATE_EVENT, RADIO_ID1));
+//}
+//void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
+//{
+//	event.Check(m_settings->getStato());
+//}
+
+void TaskBarIcon::OnMenuStato(wxCommandEvent&) {
+	m_settings->getStato() ? m_settings->setStatoOn() : m_settings->setStatoOff();
+	wxQueueEvent(gs_dialog, new wxCommandEvent(UPDATE_EVENT, RADIO_ID1));
 }
 
-void TaskBarIcon::OnMenuUICheckmarkOnline(wxUpdateUIEvent &event)
+void TaskBarIcon::OnMenuUIStato(wxUpdateUIEvent &event)
 {
-	event.Check(!m_settings->getStato());
-}
-
-void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
-	m_settings->setStatoOff();
-	wxQueueEvent(gs_dialog, new wxUpdateUIEvent);
-}
-void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
-{
-	event.Check(m_settings->getStato());
+	std::string stato;
+	m_settings->getStato() ? stato = "Vai online" : stato = "Vai offline";
+	event.SetText(stato);
 }
 
 wxMenu *TaskBarIcon::CreatePopupMenu()
@@ -468,9 +489,12 @@ wxMenu *TaskBarIcon::CreatePopupMenu()
 	menu->Append(PU_RESTORE, wxT("Apri Sharing Service"));
 	menu->AppendSeparator();
 	wxMenu *submenu = new wxMenu;
-	submenu->AppendCheckItem(PU_CHECKMARK_ONLINE, wxT("Online"));
-	submenu->AppendCheckItem(PU_CHECKMARK_OFFLINE, wxT("Offline"));
-	menu->Append(PU_SUBMAIN, wxT("Stato"), submenu);
+	std::string stato;
+	m_settings->getStato() ? stato = "Vai online" : stato = "Vai offline";
+	menu->Append(PU_STATO, stato);
+	//submenu->AppendCheckItem(PU_CHECKMARK_ONLINE, wxT("Online"));
+	//submenu->AppendCheckItem(PU_CHECKMARK_OFFLINE, wxT("Offline"));
+	/*menu->Append(PU_SUBMAIN, wxT("Stato"), submenu);*/
 	/* OSX has built-in quit menu for the dock menu, but not for the status item */
 #ifdef __WXOSX__ 
 	if (OSXIsStatusItem())

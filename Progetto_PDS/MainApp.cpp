@@ -9,6 +9,7 @@
 #include "wx/wx.h"
 #endif
 
+#include "share_icon.xpm"
 
 #include "reciver.h"
 #include "server.h"
@@ -83,10 +84,11 @@ bool MainApp::OnInit()
 				
 			}
 				
-
-		setFrame( new MainFrame("LAN Sharing Service", GetSettings()));
-		SetTopWindow(GetFrame());
-		GetFrame()->Show();
+		MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
+		setFrame(frame);
+		frame->SetIcon(wxIcon(share_icon));
+		SetTopWindow(frame);
+		frame->Show();
 		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
 		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
 		//m_settings->setImagePath(path);
