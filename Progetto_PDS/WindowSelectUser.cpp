@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include "share_icon.xpm"
 #include <list>
 #include <memory>
 
@@ -22,6 +23,7 @@ wxEND_EVENT_TABLE()
 WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
 	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
+	this->SetIcon(wxIcon(share_icon));
 	m_settings = settings;
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_ListaUtenti = std::list<UserSizer *>();  //utenti attualmente presenti nella finestra
