@@ -113,21 +113,13 @@
     <ClInclude Include="resource.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Progetto_PDS.rc">
+    <ResourceCompile Include="resource.rc">
       <Filter>File di risorse</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\icon1.ico">
-      <Filter>File di risorse</Filter>
-    </Image>
   </ItemGroup>
 </Project>
