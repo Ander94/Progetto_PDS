@@ -141,6 +141,7 @@ public:
 
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
+		CreateRegFiles();
 
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
@@ -412,7 +413,7 @@ public:
 	}
 
 	void CreateRegFiles() {
-		std::string path = m_GeneralPath + "RegKey";
+		std::string path = m_GeneralPath + "\\RegKey";
 		if (!boost::filesystem::is_directory(path)) {
 			if (!boost::filesystem::create_directories(path)) {
 				wxMessageBox("Impossibile creare directory: " + path, wxT("INFO"), wxOK | wxICON_INFORMATION);
@@ -422,21 +423,42 @@ public:
 		std::fstream add_key, rem_key;
 		add_key.open(path + "\\Add.reg", std::fstream::out);
 		std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "\icon1.ico\"";
-		std::string str2 = "@=" + m_GeneralPath + "\Progetto_PDS.exe %1\"";
+		std::string str2 = "@=\"" + m_GeneralPath + "\Progetto_PDS.exe %1\"";
 		boost::replace_all(str1, "\\", "\\\\");
 		boost::replace_all(str2, "\\", "\\\\");
+		add_key << "Windows Registry Editor Version 5.00";
+		add_key << "\n\n";
 		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share]\n";
 		add_key << str1;
 		add_key << "\n\n";
 		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share\\command]\n";
 		add_key << str2;
+		add_key << "\n\n";
+		add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share]\n";
+		add_key << str1;
+		add_key << "\n\n";
+		add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share\\command]\n";
+		add_key << str2;
 		add_key.close();
 
 		rem_key.open(path + "\\Rem.reg", std::fstream::out);
-		add_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
-		add_key << "\n\n";
-		add_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
+		rem_key << "Windows Registry Editor Version 5.00";
+		rem_key << "\n\n";
+		rem_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
+		rem_key << "\n\n";
+		rem_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
 		rem_key.close();
+	}
 
+	void AddRegKey() {
+		std::string str = "\"" + m_GeneralPath + "\\RegKey\\Add.reg\"";
+		//boost::replace_all(str, "\\", "\\\\");
+		system(str.c_str());
+	}
+
+	void RemRegKey() {
+		std::string str = "\"" + m_GeneralPath + "\\RegKey\\Rem.reg\"";
+		//boost::replace_all(str, "\\", "\\\\");
+		system(str.c_str());
 	}
 };

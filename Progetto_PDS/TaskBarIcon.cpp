@@ -20,6 +20,7 @@ enum {
 	IMG_ID,
 	RADIO_ID1,
 	RADIO_ID2,
+	RADIO_ID3,
 	SAVE_ID
 };
 
@@ -48,6 +49,7 @@ EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
 EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
+EVT_RADIOBOX(RADIO_ID3, MainFrame::OnRadioBoxContextMenu)
 wxEND_EVENT_TABLE()
 
 
@@ -68,6 +70,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxSize(300, 80),
 		wxTE_MULTILINE | wxTE_READONLY
 	);
+
 	wxString* items = new wxString[2];
 	items[0] = wxT("Online");
 	items[1] = wxT("Offline");
@@ -101,6 +104,22 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	);
 	m_saved->SetSelection(m_settings->getAutoSaved());
 
+	items[0] = wxT("Aggiungi scorciatoia");
+	items[1] = wxT("Rimuovi scorciatoia");
+	m_contextMenu = new wxRadioBox
+	(
+		this,
+		RADIO_ID3,
+		wxT("Context menù: "),
+		wxDefaultPosition,
+		wxDefaultSize,
+		2,
+		items,
+		0,
+		wxRA_SPECIFY_ROWS
+	);
+	//m_context->SetSelection(m_settings->getContextMenu());
+
 	m_changeImage = new wxButton
 	(
 		this,
@@ -109,6 +128,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
+
 	m_changeSavePath = new wxButton
 	(
 		this,
@@ -179,6 +199,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerTop->Add(sizer1, flags);
 
 	sizerTop->Add(sizerBox, flags);
+
+	sizerTop->Add(m_contextMenu, 0, wxALIGN_CENTER);
 
 	sizerTop->Add(sizer3, flags);
 
@@ -337,6 +359,19 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 	}
 	else {
 		m_settings->setAutoSavedOn();
+	}
+
+}
+
+void MainFrame::OnRadioBoxContextMenu(wxCommandEvent& event)
+{
+	int sel = m_contextMenu->GetSelection();
+
+	if (sel == 0) {
+		m_settings->AddRegKey();
+	}
+	else {
+		m_settings->RemRegKey();
 	}
 
 }

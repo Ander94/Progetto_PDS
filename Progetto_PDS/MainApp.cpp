@@ -68,9 +68,7 @@ bool MainApp::OnInit()
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
 		m_settings->Init(path, wxGetUserName().ToStdString());
-		//m_settings->setGeneralPath(path);
-		//m_settings->NewUtenteProprietario(wxGetUserName().ToStdString(), m_settings->getOwnIP());
-		//m_settings->CreateRegFiles();
+	
 		//Capire qui, ora funziona
 		std::string sendpath;
 		if (argc > 1)

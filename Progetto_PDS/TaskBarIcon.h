@@ -62,6 +62,7 @@ private:
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
 	wxRadioBox* m_saved;
+	wxRadioBox* m_contextMenu;
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
 	TaskBarIcon *m_taskBarIcon;
@@ -76,6 +77,7 @@ private:
 	void OnChangeSavePath(wxCommandEvent&);
 	void OnRadioBoxStato(wxCommandEvent&);
 	void OnRadioBoxSalvataggio(wxCommandEvent&);
+	void OnRadioBoxContextMenu(wxCommandEvent&);
 	void OnMenuUICheckmark(wxCommandEvent&);
 	void UpdateIcon();
 
