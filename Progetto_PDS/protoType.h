@@ -8,3 +8,4 @@
 #define UPDATE_WINDOW 1000 //ms
 #define PROTOCOL_PACKET 128
 #define EVALUATE_TIME 50
+#define TIMEOUT 5

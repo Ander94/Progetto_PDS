@@ -1,5 +1,5 @@
 #include "client.h"
-
+#include "timeout.h"
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
 
@@ -11,7 +11,7 @@ Riceve come parametri:
 -Il path relativo del file da inviare
 -Il riferimento alla barra di progresso per la grafica.
 **********************************************************************************/
-void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
+void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::string filePath, std::string sendPath, UserProgressBar* progBar);
 
 
@@ -23,7 +23,7 @@ Riceve come parametri:
 -Il nome della directory da inviare
 -Il riferimento alla barra di progresso per la grafica.
 **********************************************************************************/
-void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
+void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::string initialAbsolutePath, std::string folder, UserProgressBar* progBar);
 
 
@@ -130,7 +130,9 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			if (response != "+OK") {
 				return; 
 			}
-
+			boost::asio::deadline_timer d(io_service);
+			d.expires_at(boost::posix_time::pos_infin);
+			check_deadline(io_service, s, d);
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
 			dim_to_send = size;
 			while (dim_to_send > 0) {
@@ -138,6 +140,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
+				//write_line(io_service, s, d, buf_to_send, boost::posix_time::seconds(TIMEOUT));
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
@@ -210,7 +213,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	//Se sto inviando un file, chiamo send_file
 	if (boost::filesystem::is_regular_file(path_absolutePath)) {
 		try {
-			send_file(s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
+			send_file(io_service, s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
 		}
 		catch (std::exception& e) {
 			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
@@ -220,7 +223,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::st
 	//Senno chiamo send_directory
 	else if (boost::filesystem::is_directory(path_absolutePath)) {
 		try {
-			send_directory(s, initialAbsolutePath, basename, progBar);
+			send_directory(io_service, s, initialAbsolutePath, basename, progBar);
 		}
 		catch (std::exception& e) {
 			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
@@ -251,7 +254,7 @@ attendendo poi la risposta +OK per indicarmi che il salvataggio della nuova dire
 -Invio la strina -END per notificare al server la fine dell'invio.
 ********************/
 
-void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
+void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::string initialAbsolutePath, std::string folder, UserProgressBar* progBar) {
 
 	std::string directorySize;   //Dimensione della directory sotto forma di stringa
@@ -309,7 +312,7 @@ void send_directory(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 			event.SetString(p.filename().string());
 			wxQueueEvent(progBar, event.Clone());
 			try {
-				send_file(s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), progBar);
+				send_file(io_service, s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), progBar);
 				//Se è stato chiamato testAbort, vuol dire che l'invio è stato interroto a seguito del click su "CANCEL" nella GUI
 				if (progBar->testAbort())
 					return;
@@ -369,7 +372,7 @@ Funzionamento del protocollo dell'invio dell'immagine del profilo
 -Ricezione della stringa "+OK" in caso di successo, "-ERR" in caso di errore.
 -Invio del file sotto forma di pacchetti di dimensione BUFLEN
 ********************/
-void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
+void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	std::string filePath, std::string sendPath, UserProgressBar* progBar) {
 
 	std::ifstream file_in(filePath, std::ios::in | std::ios::binary);  //Fiel da inviare
@@ -435,15 +438,24 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 
 			dim_to_send = size;
 			start = boost::posix_time::second_clock::local_time();
+
+			
+
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
 			while (dim_send < size && !progBar->testAbort()) {
+				//Inizalizzo il deadline per gestire la caduta di connessione
+				boost::asio::deadline_timer d(io_service);
+				d.expires_at(boost::posix_time::pos_infin);
+				check_deadline(io_service, s, d);
+
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
-
+				
+				//write_line(io_service, s, d, buf_to_send, boost::posix_time::seconds(TIMEOUT));
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
 				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
@@ -474,7 +486,7 @@ void send_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s,
 	catch (std::exception&)
 	{
 		file_in.close();
-		return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
+		return throw std::invalid_argument("Attenzione: e' stato interrotto il trasferimento con l'utente.");
 	}
 }
 

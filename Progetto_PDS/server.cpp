@@ -1,5 +1,5 @@
 #include "server.h"
-
+#include "timeout.h"
 
 using boost::asio::ip::tcp;
 
@@ -11,7 +11,7 @@ Riceve come parametri:
 -generalPath: path dove salvare il file ricevuto
 -mainframe: riferimento utile per la grafica
 **********************************************************************************/
-void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
 /********************************************************************************
 Funzione che salva un file scambiato sul socket s.
@@ -19,7 +19,7 @@ Riceve come parametri:
 -s: socket su cui vieme scambiato il file
 -fileName: nome del file da salvare
 **********************************************************************************/
-void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
 /********************************************************************************
 StartAccept inizializza il socket e lancia l'accettazione asincrona di richieste da parte del client.
@@ -29,7 +29,7 @@ Riceve come parametri:
 -generalPath: path dove salvare il file ricevuto
 -mainframe: riferimento utile per la grafica
 **********************************************************************************/
-void StartAccept(boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
 /********************************************************************************
 HandleAccept gestisce l'accettazione di nuove richieste, gestendo eventuali errori
@@ -41,19 +41,19 @@ Riceve come parametri:
 -generalPath: path dove salvare il file ricevuto
 -mainframe: riferimento utile per la grafica
 **********************************************************************************/
-void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
+void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service,boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
 	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
 
 
-void StartAccept(boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	//Inizializzo il socket
 	boost::shared_ptr< tcp::socket > socket(new tcp::socket(acceptor.get_io_service()));
 	//Lancio l'accettazione asincrona di richieste
-	acceptor.async_accept(*socket, boost::bind(HandleAccept, boost::asio::placeholders::error, socket, boost::ref(acceptor), boost::ref(utenteProprietario), generalPath, mainframe));
+	acceptor.async_accept(*socket, boost::bind(HandleAccept, boost::asio::placeholders::error, boost::ref(io_service), socket, boost::ref(acceptor), boost::ref(utenteProprietario), generalPath, mainframe));
 
 }
 
-void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
+void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
 	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe)
 {
 	//Controllo di eventuali errori durante l'accettazione.
@@ -64,17 +64,17 @@ void HandleAccept(const boost::system::error_code& error, boost::shared_ptr< boo
 	}
 
 	//Se tutto è andato bene, si può lanciare un thread per accettare ciò che invia il client.
-	std::thread(reciveAfterAccept, std::move(*socket), utenteProprietario, generalPath, mainframe).detach();
+	std::thread(reciveAfterAccept, std::ref(io_service), std::move(*socket), utenteProprietario, generalPath, mainframe).detach();
 
 	//Chiamo nuovamente StartAccept per esser capace di accettare una nuova connessione
-	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
+	StartAccept(io_service, acceptor, utenteProprietario, generalPath, mainframe);
 };
 
 void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe, boost::asio::io_service& io_service) {
 	//Inizializzio l'acceptor
 	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), PORT_TCP));
 	//Chiamo StartAccept per esser capace di accettare una nuova connessione
-	StartAccept(acceptor, utenteProprietario, generalPath, mainframe);
+	StartAccept(io_service, acceptor, utenteProprietario, generalPath, mainframe);
 
 	//Faccio partire la procedura boost, da interrompere quando cade la linea.
 	io_service.run();
@@ -104,7 +104,7 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFram
 
 
 */
-void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
 	size_t directory_size_to_send, directorySize, directory_size_send = 0, length;
 	bool firstTime = true, firstDirectory = true;  //Indica se è la stringa contenente una directory che si sta ricevendo, cosi da inizializzare il tutto.
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
@@ -172,7 +172,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
 					mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					recive_file(s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					recive_file(io_service, s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -184,7 +184,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
 				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-				recive_file(s, savePath);
+				recive_file(io_service, s, savePath);
 			}
 		}
 
@@ -198,7 +198,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
-				recive_file(s, generalPath + "local_image\\" + ipAddrRemote + ".png");
+				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
 				boost::asio::write(s, boost::asio::buffer(response));
 			}
@@ -300,7 +300,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 					fileName = buf;
 
 					fileName = mainframe->GetSettings()->getSavePath() + "\\" + fileName;
-					recive_file(s, fileName);
+					recive_file(io_service, s, fileName);
 
 					//Vedo la dim del file che ho ricevuto, e aggiorno la quantità di byte ricevuta fin ora.
 					//Ciò è utile per l'avanzamento della barra di progresso.
@@ -324,7 +324,7 @@ void reciveAfterAccept(tcp::socket s, utente utenteProprietario, std::string gen
 	s.close();
 }
 
-void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
 
 	std::ofstream file_out(fileName, std::ios::out | std::ios::binary);  //File da salvare
 	std::string response; //Risposta da invare al client
@@ -346,11 +346,19 @@ void recive_file(boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std:
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 
+			boost::asio::deadline_timer d(io_service);
+			d.expires_at(boost::posix_time::pos_infin);
+			check_deadline(io_service, s, d);
+
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
 				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
 				file_out.write(buf_recive, dim_read);
+				/*std::string line = read_line(io_service, s, d, boost::posix_time::seconds(TIMEOUT));
+
+				file_out.write(line.c_str(), line.size());
+				dim_read = line.size();*/
 				dim_recived += dim_read;
 			}
 			file_out.close();
