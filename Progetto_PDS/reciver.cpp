@@ -60,7 +60,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 				state = status::STAT_OFFLINE;
 			}
 			//Iscrivo l'utente.
-			std::thread(iscriviUtente, username, ipAddr, state, std::ref(utenteProprietario), generalPath).detach();
+			iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath);
 			//Lancio il thread cosi son pronto a ricevere altri pacchetti UDP.
 		}
 	}
