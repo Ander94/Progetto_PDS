@@ -422,8 +422,8 @@ public:
 		}
 		std::fstream add_key, rem_key;
 		add_key.open(path + "\\Add.reg", std::fstream::out);
-		std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "\icon1.ico\"";
-		std::string str2 = "@=\"" + m_GeneralPath + "\Progetto_PDS.exe %1\"";
+		std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "icon1.ico\"";
+		std::string str2 = "@=\"" + m_GeneralPath + "Progetto_PDS.exe %1\"";
 		boost::replace_all(str1, "\\", "\\\\");
 		boost::replace_all(str2, "\\", "\\\\");
 		add_key << "Windows Registry Editor Version 5.00";
