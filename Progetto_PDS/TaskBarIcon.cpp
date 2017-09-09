@@ -118,7 +118,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		0,
 		wxRA_SPECIFY_ROWS
 	);
-	//m_context->SetSelection(m_settings->getContextMenu());
+	m_contextMenu->SetSelection(m_settings->getScorciatoia());
 
 	m_changeImage = new wxButton
 	(
@@ -369,9 +369,11 @@ void MainFrame::OnRadioBoxContextMenu(wxCommandEvent& event)
 
 	if (sel == 0) {
 		m_settings->AddRegKey();
+		m_settings->setAddScorciatoia();
 	}
 	else {
 		m_settings->RemRegKey();
+		m_settings->setRemoveScorciatoia();
 	}
 
 }

@@ -25,6 +25,11 @@ enum save_request {
 	SAVE_REQUEST_YES = 1
 };
 
+enum scorciatoia {
+	ADD_SCORCIATOIA = 0,
+	REMOVE_SCORCIATOIA = 1
+};
+
 class Settings
 {
 private:
@@ -41,6 +46,7 @@ private:
 	std::recursive_mutex rm_exit_send_udp;//11
 	std::recursive_mutex rm_exit_recive_udp;//12
 	std::recursive_mutex rm_io_service_tcp;//13
+	std::recursive_mutex rm_scorciatoia;//14
 
 
 
@@ -54,6 +60,7 @@ private:
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
 	save_request m_save_request;  //Richiesta quando si riceve un file
+	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;
 	boost::asio::io_service io_service_tcp;
 public:
@@ -100,6 +107,7 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
+		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 
 		save_path_file.open(this->getGeneralPath() + "stato.txt", std::fstream::out);
 		save_path_file << this->getSavePath() << std::endl;
@@ -114,6 +122,12 @@ public:
 		}
 		else {
 			save_path_file << "autoSavedOff\n";
+		}
+		if (this->getScorciatoia() == scorciatoia::ADD_SCORCIATOIA) {
+			save_path_file << "addScorciatoia\n";
+		}
+		else {
+			save_path_file << "removeScorciatoia\n";
 		}
 		save_path_file.close();
 	}
@@ -136,6 +150,7 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
 		std::lock_guard<std::recursive_mutex> lk_exit_recive_udp(rm_exit_recive_udp);
 		std::lock_guard<std::recursive_mutex> lk_io_service_tcp(rm_io_service_tcp);
+		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 
 		wxInitAllImageHandlers();
 
@@ -147,16 +162,19 @@ public:
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
 			m_save_request = save_request::SAVE_REQUEST_NO;
+			m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
 		}
 		else {
 			//Leggo il path dal file
 			std::fstream save_path_file;
 			std::string stato; //online o offline
 			std::string save;
+			std::string scorc;
 			save_path_file.open(m_GeneralPath + "stato.txt", std::fstream::in);
 			std::getline(save_path_file, m_SavePath);
 			std::getline(save_path_file, stato);
 			std::getline(save_path_file, save);
+			std::getline(save_path_file, scorc);
 			if (stato == "online") {
 				m_stato = status::STAT_ONLINE;
 			}
@@ -169,7 +187,12 @@ public:
 			else {
 				m_save_request = save_request::SAVE_REQUEST_NO;
 			}
-
+			if (scorc == "addScorciatoia") {
+				m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
+			}
+			else {
+				m_scorciatoia = scorciatoia::REMOVE_SCORCIATOIA;
+			}
 			save_path_file.close();
 		}
 		m_DefaultImagePath = path + "user_default.png";
@@ -296,6 +319,23 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		return m_stato;
 	}
+
+
+	void setAddScorciatoia() {
+		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
+		m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
+		this->updateState();
+	}
+	void setRemoveScorciatoia() {
+		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
+		m_scorciatoia = scorciatoia::REMOVE_SCORCIATOIA;
+		this->updateState();
+	}
+	scorciatoia & getScorciatoia() {
+		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
+		return m_scorciatoia;
+	}
+
 
 	void setAutoSavedOn() {
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
