@@ -14,14 +14,15 @@
 #include <fstream>
 #include <filesystem> //per la funzione "copy"
 
+#define	SIZE 100 //dimensione immagine in pixel
 
 enum {
 	TIMER_ID = 15000,
 	IMG_ID,
+	SAVE_ID,
+	CONTEXT_ID,
 	RADIO_ID1,
-	RADIO_ID2,
-	RADIO_ID3,
-	SAVE_ID
+	RADIO_ID2
 };
 
 // ----------------------------------------------------------------------------
@@ -44,12 +45,12 @@ EVT_BUTTON(wxID_OK, MainFrame::OnOK)
 EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_BUTTON(SAVE_ID, MainFrame::OnChangeSavePath)
+EVT_BUTTON(CONTEXT_ID, MainFrame::OnContextMenu)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
 EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
-EVT_RADIOBOX(RADIO_ID3, MainFrame::OnRadioBoxContextMenu)
 wxEND_EVENT_TABLE()
 
 
@@ -103,23 +104,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxRA_SPECIFY_ROWS
 	);
 	m_saved->SetSelection(m_settings->getAutoSaved());
-
-	items[0] = wxT("Aggiungi scorciatoia");
-	items[1] = wxT("Rimuovi scorciatoia");
-	m_contextMenu = new wxRadioBox
-	(
-		this,
-		RADIO_ID3,
-		wxT("Context menù: "),
-		wxDefaultPosition,
-		wxDefaultSize,
-		2,
-		items,
-		0,
-		wxRA_SPECIFY_ROWS
-	);
-	m_contextMenu->SetSelection(m_settings->getScorciatoia());
-
+	
 	m_changeImage = new wxButton
 	(
 		this,
@@ -138,43 +123,72 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
+	m_contextMenu = new wxButton
+	(
+		this,
+		CONTEXT_ID,
+		"",
+		wxDefaultPosition,
+		wxDefaultSize
+	);
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
+		m_contextMenu->SetLabel("AGGIUNGI");
+	else
+		m_contextMenu->SetLabel("RIMUOVI");
+
 	wxImage *img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage = new wxStaticBitmap
 	(
 		this,
 		wxID_ANY,
-		wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)),
+		wxBitmap(img->Scale(SIZE, SIZE, wxIMAGE_QUALITY_HIGH)),
 		wxDefaultPosition,
 		wxDefaultSize
 	);
 
-	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
-
 	wxSizerFlags flags;
 	flags.Border(wxALL, 10);
 
-	wxSizer* sizer1 = new wxBoxSizer(wxHORIZONTAL);
-	sizer1->Add(m_userImage, flags);
+	wxSizer* sizerImage = new wxBoxSizer(wxHORIZONTAL);
+	sizerImage->Add(m_userImage, flags);
 
-	wxSizer* sizer2 = new wxBoxSizer(wxVERTICAL);
-	sizer2->Add(new wxStaticText
+	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
+	wxStaticText* nome = new wxStaticText
 	(
 		this,
 		wxID_ANY,
 		wxT("" + m_settings->getUserName())
-	), flags);
+	);
+	nome->SetFont(nome->GetFont().Bold().Scaled(1.4));
+	sizerUserName->Add(nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
-	std::string stato;
-	m_settings->getStato() ? stato = "offline" : stato = "online";	
-	m_textStato = new wxStaticText(this, wxID_ANY, stato);
-	sizer2->Add(m_textStato, flags);
-	sizer2->Add(m_changeImage, flags);
+	m_textStato = new wxStaticText(this, wxID_ANY, "");
+	if (m_settings->getStato()) {
+		m_textStato->SetLabel("offline");
+		m_textStato->SetForegroundColour(wxT("red"));
+	}
+	else {
+		m_textStato->SetLabel("online");
+		m_textStato->SetForegroundColour(wxT("blue"));
+	}
+		
+	sizerUserName->Add(m_textStato, flags);
+	sizerUserName->Add(m_changeImage, flags);
 
-	sizer1->Add(sizer2, flags);
+	sizerImage->Add(sizerUserName, flags);
 
-	wxSizer* sizer3 = new wxBoxSizer(wxHORIZONTAL);
-	sizer3->Add(new wxStaticText
+	wxSizer* sizerGrid = new wxFlexGridSizer(2, 20,20);
+	sizerGrid->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		wxT("Scorciatoia nel context menù")
+	), 0, wxALIGN_CENTRE_VERTICAL);
+	sizerGrid->Add(m_contextMenu);
+
+	wxSizer* sizerText = new wxBoxSizer(wxHORIZONTAL);
+	sizerText->Add(new wxStaticText
 	(
 		this,
 		wxID_ANY,
@@ -189,20 +203,21 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize,
 		wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START
 	);
-	sizer3->Add(m_textSavePath, 0, wxALIGN_CENTER_VERTICAL);
-	sizer3->Add(m_changeSavePath, flags);
+	sizerText->Add(m_textSavePath);
+	sizerGrid->Add(sizerText, 0, wxALIGN_CENTER_VERTICAL);
+	sizerGrid->Add(m_changeSavePath);
 
 	wxSizer* sizerBox = new wxBoxSizer(wxHORIZONTAL);
 	sizerBox->Add(m_status, flags);
 	sizerBox->Add(m_saved, flags);
 
-	sizerTop->Add(sizer1, flags);
+	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
+
+	sizerTop->Add(sizerImage, flags);
 
 	sizerTop->Add(sizerBox, flags);
 
-	sizerTop->Add(m_contextMenu, 0, wxALIGN_CENTER);
-
-	sizerTop->Add(sizer3, flags);
+	sizerTop->Add(sizerGrid, flags);
 
 	sizerTop->Add(new wxStaticText
 	(
@@ -317,7 +332,7 @@ void MainFrame::OnImage(wxCommandEvent& event)
 	//wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
-	m_userImage->SetBitmap(wxBitmap(img->Scale(70, 70, wxIMAGE_QUALITY_HIGH)));
+	m_userImage->SetBitmap(wxBitmap(img->Scale(SIZE, SIZE, wxIMAGE_QUALITY_HIGH)));
 	Update();
 }
 
@@ -340,11 +355,12 @@ void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 	if (sel == 0) {
 		m_settings->setStatoOn();
 		m_textStato->SetLabel("online");
+		m_textStato->SetForegroundColour(wxT("blue"));
 	}
 	else {
 		m_settings->setStatoOff();
 		m_textStato->SetLabel("offline");
-		
+		m_textStato->SetForegroundColour(wxT("red"));
 	}
 	UpdateIcon();
 	Update();
@@ -363,27 +379,32 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 
 }
 
-void MainFrame::OnRadioBoxContextMenu(wxCommandEvent& event)
+void MainFrame::OnContextMenu(wxCommandEvent& event)
 {
-	int sel = m_contextMenu->GetSelection();
-
-	if (sel == 0) {
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
 		m_settings->AddRegKey();
-		m_settings->setAddScorciatoia();
+		m_settings->setScorciatoiaPresente();
+		m_contextMenu->SetLabel("AGGIUNGI");
 	}
 	else {
 		m_settings->RemRegKey();
-		m_settings->setRemoveScorciatoia();
+		m_settings->setScorciatoiaAssente();
+		m_contextMenu->SetLabel("RIMUOVI");
 	}
-
+	Update();
 }
 
 void MainFrame::OnMenuUICheckmark(wxCommandEvent& event)
 {
-	std::string stato;
-	m_status->SetSelection(m_settings->getStato());
-	m_settings->getStato() ? stato = "offline" : stato = "online";
-	m_textStato->SetLabel(stato);
+	if (m_settings->getStato()) {
+		m_textStato->SetLabel("offline");
+		m_textStato->SetForegroundColour(wxT("red"));
+	}
+	else {
+		m_textStato->SetLabel("online");
+		m_textStato->SetForegroundColour(wxT("blue"));
+	}
+
 	UpdateIcon();
 	Update();
 }
