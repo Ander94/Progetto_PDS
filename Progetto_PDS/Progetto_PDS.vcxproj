@@ -158,6 +158,7 @@
     <ClCompile Include="sender.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="TaskBarIcon.cpp" />
+    <ClCompile Include="timeout.cpp" />
     <ClCompile Include="UserProgressBar.cpp" />
     <ClCompile Include="WindowProgressBar.cpp" />
     <ClCompile Include="WindowSaveFile.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="sender.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="TaskBarIcon.h" />
+    <ClInclude Include="timeout.h" />
     <ClInclude Include="UserProgressBar.h" />
     <ClInclude Include="WindowProgressBar.h" />
     <ClInclude Include="WindowSaveFile.h" />

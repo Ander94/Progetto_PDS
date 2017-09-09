@@ -26,8 +26,8 @@ enum save_request {
 };
 
 enum scorciatoia {
-	ADD_SCORCIATOIA = 0,
-	REMOVE_SCORCIATOIA = 1
+	SCORCIATOIA_PRESENTE = 0,
+	SCORCIATOIA_ASSENTE = 1
 };
 
 class Settings
@@ -123,11 +123,11 @@ public:
 		else {
 			save_path_file << "autoSavedOff\n";
 		}
-		if (this->getScorciatoia() == scorciatoia::ADD_SCORCIATOIA) {
-			save_path_file << "addScorciatoia\n";
+		if (this->getScorciatoia() == scorciatoia::SCORCIATOIA_PRESENTE) {
+			save_path_file << "scorciatoiaPresente\n";
 		}
 		else {
-			save_path_file << "removeScorciatoia\n";
+			save_path_file << "scorciatoiaAssente\n";
 		}
 		save_path_file.close();
 	}
@@ -162,7 +162,7 @@ public:
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
 			m_save_request = save_request::SAVE_REQUEST_NO;
-			m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
+			m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
 		}
 		else {
 			//Leggo il path dal file
@@ -187,11 +187,11 @@ public:
 			else {
 				m_save_request = save_request::SAVE_REQUEST_NO;
 			}
-			if (scorc == "addScorciatoia") {
-				m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
+			if (scorc == "scorciatoiaPresente") {
+				m_scorciatoia = scorciatoia::SCORCIATOIA_PRESENTE;
 			}
 			else {
-				m_scorciatoia = scorciatoia::REMOVE_SCORCIATOIA;
+				m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
 			}
 			save_path_file.close();
 		}
@@ -321,14 +321,14 @@ public:
 	}
 
 
-	void setAddScorciatoia() {
+	void setScorciatoiaPresente() {
 		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
-		m_scorciatoia = scorciatoia::ADD_SCORCIATOIA;
+		m_scorciatoia = scorciatoia::SCORCIATOIA_PRESENTE;
 		this->updateState();
 	}
-	void setRemoveScorciatoia() {
+	void setScorciatoiaAssente() {
 		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
-		m_scorciatoia = scorciatoia::REMOVE_SCORCIATOIA;
+		m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
 		this->updateState();
 	}
 	scorciatoia & getScorciatoia() {
