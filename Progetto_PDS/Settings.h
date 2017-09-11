@@ -502,7 +502,7 @@ public:
 		RegCloseKey(hkey);
 		
 		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share\\command"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
 		
 		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
 
@@ -512,14 +512,14 @@ public:
 
 		//SECONDA CHIAVE------------------------------------------------------
 		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
 		
 		RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR));
 		
 		RegCloseKey(hkey);
 		
 		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share\\command"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
 		
 		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
 		
@@ -535,9 +535,9 @@ public:
 		if (system(str.c_str()) == 0)
 			setScorciatoiaAssente();*/
 
-		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share")) == ERROR_SUCCESS);
+		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"));
 
-		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share")) == ERROR_SUCCESS);
+		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"));
 
 		setScorciatoiaAssente();
 	}
