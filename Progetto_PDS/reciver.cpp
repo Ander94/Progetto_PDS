@@ -76,7 +76,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
 	//Evita di registrare se stessi.
-	if (false) {
+	if (true) {
 		if (utenteProprietario.getIpAddr() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}

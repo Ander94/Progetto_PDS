@@ -346,19 +346,12 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 
-			boost::asio::deadline_timer d(io_service);
-			d.expires_at(boost::posix_time::pos_infin);
-			check_deadline(io_service, s, d);
-
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
-				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+				//dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+				dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
-				/*std::string line = read_line(io_service, s, d, boost::posix_time::seconds(TIMEOUT));
-
-				file_out.write(line.c_str(), line.size());
-				dim_read = line.size();*/
 				dim_recived += dim_read;
 			}
 			file_out.close();

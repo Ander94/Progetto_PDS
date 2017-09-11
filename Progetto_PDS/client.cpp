@@ -130,9 +130,6 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			if (response != "+OK") {
 				return; 
 			}
-			boost::asio::deadline_timer d(io_service);
-			d.expires_at(boost::posix_time::pos_infin);
-			check_deadline(io_service, s, d);
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
 			dim_to_send = size;
 			while (dim_to_send > 0) {
@@ -140,7 +137,6 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
-				//write_line(io_service, s, d, buf_to_send, boost::posix_time::seconds(TIMEOUT));
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
@@ -444,18 +440,12 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
 			while (dim_send < size && !progBar->testAbort()) {
-				//Inizalizzo il deadline per gestire la caduta di connessione
-				boost::asio::deadline_timer d(io_service);
-				d.expires_at(boost::posix_time::pos_infin);
-				check_deadline(io_service, s, d);
-
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
 				
-				//write_line(io_service, s, d, buf_to_send, boost::posix_time::seconds(TIMEOUT));
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
 				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
