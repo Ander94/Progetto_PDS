@@ -136,7 +136,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));
+				write_some(s, buf_to_send, dim_write);
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
@@ -313,8 +313,8 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 				if (progBar->testAbort())
 					return;
 			}
-			catch (std::exception&) {
-				return throw std::invalid_argument("Attenzione: l'utente ha interrotto il trasferimento");
+			catch (std::exception& e) {
+				return throw std::invalid_argument(e.what());
 			}
 			//Aggiorno la dimensione inviata fin ora
 			directory_size_send += (size_t)bf::file_size(*it);
@@ -444,7 +444,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
-				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				//boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				write_some(s, buf_to_send, dim_write);
 				
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
@@ -473,10 +474,10 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			return throw std::invalid_argument("File non aperto correttamente.");
 		}
 	}
-	catch (std::exception&)
+	catch (std::exception& e)
 	{
 		file_in.close();
-		return throw std::invalid_argument("Attenzione: e' stato interrotto il trasferimento con l'utente.");
+		return throw std::invalid_argument(e.what());
 	}
 }
 
