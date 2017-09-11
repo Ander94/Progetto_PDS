@@ -4,34 +4,37 @@
 #include <algorithm>
 #include <numeric>
 #include <future>
+#include "wx\wx.h"
 
 
-size_t read_some(tcp::socket &s, char* buf, size_t dim_buf) {
-	size_t dim_read = 0;
-	auto tp = std::chrono::system_clock::now() + std::chrono::seconds(2);
+int read_some(tcp::socket &s, char* buf, size_t dim_buf) {
+
 	// inizia entrambi i procedimenti
-	try {
-		auto f = std::async(std::launch::async, [&]() {
+
+		std::future<int> f = std::async(std::launch::async, [&]() {
 			char *buffer = (char*)malloc((dim_buf + 1) * sizeof(char));
+			int dim_read;
 			try {
 				dim_read = s.read_some(boost::asio::buffer(buffer, dim_buf));
 				memcpy(buf, buffer, dim_read);
 				free(buffer);
+				return dim_read;
 			}
-			catch (std::exception& e) {
-				throw std::invalid_argument(e.what());
+			catch (...) {
 				free(buffer);
+				return -1;
 			}
 		});
-		std::future_status state = f.wait_until(tp);
+		int dim_read = -1;
+		std::future_status state = f.wait_for(std::chrono::seconds(5));
 		if (state != std::future_status::ready) {
 			throw std::invalid_argument("Attenzione: connessione internet assente.\nControllare la connessione del proprio pc.");
 		}
 		else {
-			return dim_read;
+			dim_read = f.get();
+			if (dim_read < 0) {
+				throw std::invalid_argument("Attenzione: l'utente ha interrotto l'invio del file.");
+			}
 		}
-	}
-	catch (std::exception& e) {
-		throw std::invalid_argument(e.what());
-	}
+		return dim_read;
 }

@@ -18,4 +18,4 @@
 #include <chrono>
 using boost::asio::ip::tcp;
 
-size_t read_some(tcp::socket &s, char* buf, size_t dim_buf); 
+int read_some(tcp::socket &s, char* buf, size_t dim_buf); 

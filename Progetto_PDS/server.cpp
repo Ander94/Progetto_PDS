@@ -330,7 +330,7 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 	std::string response; //Risposta da invare al client
 	char buf[PROTOCOL_PACKET];  //Buffer che contiene i pacchetti utili alla sincronizzazione con il client.
 	char buf_recive[BUFLEN];  //Buffer che conterrà i pacchetti contenenti il file
-	size_t dim_recived = 0, dim_read, size, length;
+	int dim_recived = 0, dim_read, size, length;
 
 	try
 	{
@@ -364,11 +364,11 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}
-	catch (std::exception&)
+	catch (std::exception& e)
 	{
 		//In tal caso vuol dire che ho riscontrato qualche problema 
 		file_out.close();
 		boost::filesystem::remove(fileName);
-		return throw std::invalid_argument("L'utente ha interrotto l'invio del file.");
+		return throw std::invalid_argument(e.what());
 	}
 }
