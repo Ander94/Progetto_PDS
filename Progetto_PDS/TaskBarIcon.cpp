@@ -3,8 +3,6 @@
 
 #include "share_icon.xpm"
 #include "share_icon_offline.xpm"
-//#include "share_icon_online.xpm"
-//#include "share_icon_offline.xpm"
 
 #include "TaskBarIcon.h"
 #include "IPCserver.h"
@@ -381,16 +379,16 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 
 void MainFrame::OnContextMenu(wxCommandEvent& event)
 {
-	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
 		m_settings->AddRegKey();
-		m_settings->setScorciatoiaPresente();
-		m_contextMenu->SetLabel("AGGIUNGI");
-	}
-	else {
+	else
 		m_settings->RemRegKey();
-		m_settings->setScorciatoiaAssente();
+
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
+		m_contextMenu->SetLabel("AGGIUNGI");
+	else
 		m_contextMenu->SetLabel("RIMUOVI");
-	}
+
 	Update();
 }
 

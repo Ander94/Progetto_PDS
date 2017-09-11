@@ -21,41 +21,12 @@
 #include "TaskBarIcon.h"
 #include "boost\asio.hpp"
 
+
 IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
-	//std::string cwd = wxGetCwd().ToStdString();
 	//wxMessageBox(cwd, wxT("INFO"), wxOK | wxICON_INFORMATION);
-	
-	//utente u1("Mario", ""), u2("Francescxo", "");
-	//std::vector<utente> lista_utenti;
-	//lista_utenti.push_back(u1);
-	//lista_utenti.push_back(u2);
-	//lista_utenti.push_back(utente("Gianluca", ""));
-	//lista_utenti.push_back(utente("Leonardo", ""));
-
-	//std::unique_ptr<std::vector<utente>> lista(new std::vector<utente>());
-	//for (auto it : lista_utenti)
-	//	lista->push_back(it);
-
-	//WindowProgressBar* progress = new WindowProgressBar(NULL, NULL, std::move(lista));
-	//progress->Show();
-
-	/*WindowSelectUser *finestra = new WindowSelectUser(lista_utenti);
-
-	finestra->addUtente(utente("Gianluca", ""));
-	finestra->addUtente(utente("Leonardo", ""));
-	finestra->addUtente(utente("Sergio", ""));
-	finestra->addUtente(utente("Ugo", ""));
-	finestra->removeUtente(u1);
-	finestra->Show();*/
-
-
-	/*WindowSaveFile *salvataggio = new WindowSaveFile();
-	salvataggio->ShowModal();*/
-
-
 
 	//-------------------------------------------------------------------------------------------------
 	//           MAIN
@@ -64,12 +35,11 @@ bool MainApp::OnInit()
 	try
 	{
 		setSettings(new Settings());
+		std::wstring program = argv[0];
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
-		m_settings->Init(path, wxGetUserName().ToStdString());
 	
-		//Capire qui, ora funziona
 		std::string sendpath;
 		if (argc > 1)
 			for (int i = 1; i < argc; i++) {
@@ -81,44 +51,8 @@ bool MainApp::OnInit()
 				}
 				
 			}
-				
-		MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
-		setFrame(frame);
-		frame->SetIcon(wxIcon(share_icon));
-		SetTopWindow(frame);
-		frame->Show();
-		//path.replace(path.end() - str.length(), path.end(), "user_default.png");
-		//wxMessageBox(path, wxT("INFO"), wxOK | wxICON_INFORMATION);
-		//m_settings->setImagePath(path);
-		//wxMessageBox(sendpath, wxT("INFO"), wxOK | wxICON_INFORMATION);
 
-
-		//wxString filepath = wxT("C:\\Users\\ander\\Desktop\\Progetto_PDS\\user_default.png");
-		//wxPNGHandler *handler = new wxPNGHandler();
-		////wxJPEGHandler *handler = new wxJPEGHandler();
-		//wxImage::AddHandler(handler);
-		//wxImage *img = new wxImage();
-		//wxImage img2;
-		//img->LoadFile(filepath, wxBITMAP_TYPE_PNG, -1);
-		//img2 = img->Scale(70, 70, wxIMAGE_QUALITY_HIGH);
-		//img2.SaveFile("Prova.png", wxBITMAP_TYPE_PNG);
-
-		//tramite file controllo se c'è già un processo in esecuzione
-		/*std::fstream status_file;
-		status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::in);
-		int n;
-		status_file >> n;
-		status_file.close();*/
-
-		//if (n >= 1) {
-			/*status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::out);
-			status_file << n + 1;
-			status_file.close();*/
-
-			//l'applicazione è già in esecuzione in background
-			//wxMessageBox("Esiste processo già in esecuzione", wxT("INFO"), wxOK | wxICON_INFORMATION);
 		if (m_settings->StartClient()) {
-			//GetFrame()->StartClient();
 			if (argc == 1) {
 				//è stata aperta una nuova istanza, ma non è stato passato nessun argomento
 				//si apre la finestra principare dell'istanza già in esecuzione
@@ -130,15 +64,17 @@ bool MainApp::OnInit()
 			}
 			m_settings->GetClient()->Disconnect();
 			m_settings->DeleteClient();
-			GetFrame()->Destroy();
 		}
 		else {
-			/*status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::out);
-			status_file << n + 1;
-			status_file.close();*/
-			//wxMessageBox("Stampato running", wxT("INFO"), wxOK | wxICON_INFORMATION);
-
 			//avvio l'applicazione per la prima volta
+			m_settings->Init(path, wxGetUserName().ToStdString());
+			
+			MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
+			setFrame(frame);
+			frame->SetIcon(wxIcon(share_icon));
+			SetTopWindow(frame);
+			frame->Show();
+
 			m_settings->setExitRecive(false);
 			m_settings->setExitSend(false);
 			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), GetFrame(), boost::ref(m_settings->getIoService()));
@@ -147,10 +83,10 @@ bool MainApp::OnInit()
 			
 			
 			
-			GetFrame()->StartServer();
+			frame->StartServer();
 			
 			if (argc > 1) {
-				GetFrame()->SendFile(sendpath);
+				frame->SendFile(sendpath);
 			}
 		}
 	}
@@ -159,50 +95,6 @@ bool MainApp::OnInit()
 		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 	}
 	
-	//-------------------------------------------------------------------------------------------------
-
-
-
-	//if (!wxTaskBarIcon::IsAvailable())
-	//{
-	//	wxMessageBox (
-	//		"There appears to be no system tray support in your current environment. This sample may not behave as expected.",
-	//		"Warning", wxOK | wxICON_EXCLAMATION);
-	//}
-
-	//// Create the main window
-	//MyDialog *gs_dialog = new MyDialog(wxT("wxTaskBarIcon Test Dialog"));
-	//gs_dialog->Show(true);
-
-
-
-	
-	//wxMessageBox(argv[0], wxT("INFO"), wxOK | wxICON_INFORMATION);
-	//if (argc > 1)
-	//	wxMessageBox(argv[1], wxT("INFO"), wxOK | wxICON_INFORMATION);
-
-	
-	
-	
-	
-	
-	/*
-	wxFrame *frame = new wxFrame(NULL, -1, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize);
-	wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-	UserSizer *u = new UserSizer(frame, wxID_ANY);
-	sizer->Add(u);
-	frame->SetSizerAndFit(sizer);
-	frame->Show();
-	*/
-
-
-	//WindowProgressBar *finestra2 = new WindowProgressBar();
-	//finestra2->Show();
-
-	//per modifiche di registro
-	//system("\"C:\\Users\\ander\\Desktop\\Open with Notepad Hacks\\Add.reg\"");
-	//system("\"C:\\Users\\ander\\Desktop\\Open with Notepad Hacks\\Remove.reg\"");
-
 	return true;
 }
 
@@ -218,15 +110,7 @@ void MainApp::OnInitCmdLine(wxCmdLineParser& parser)
 
 int MainApp::OnExit()
 {
-	/*std::fstream status_file;
-	status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::in);
-	int n;
-	status_file >> n;
-	status_file.close();
-	status_file.open("C:\\Users\\ander\\Desktop\\Progetto_PDS\\Progetto_PDS\\stato.txt", std::fstream::out);
-	status_file << n - 1;
-	status_file.close();*/
-		//wxMessageBox("Tutto ok!", wxT("INFO"), wxOK | wxICON_INFORMATION);
+	//la chiusura dei thread si può inserire qua
 
 	return 0;
 }

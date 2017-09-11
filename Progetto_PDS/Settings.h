@@ -5,6 +5,7 @@
 #include <memory>
 #include <ctime>
 #include <atomic>
+#include <Shlwapi.h>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -65,11 +66,6 @@ private:
 	boost::asio::io_service io_service_tcp;
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
-
-
-
-
-
 
 	Settings() {}
 	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
@@ -156,7 +152,6 @@ public:
 
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
-		CreateRegFiles();
 
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
@@ -222,8 +217,6 @@ public:
 	}
 
 	void resizeImage(std::string path) {
-		//wxPNGHandler *handler = new wxPNGHandler();
-		//wxImage::AddHandler(handler);
 		wxImage *img = new wxImage();
 
 		if (!boost::filesystem::is_regular_file(path)) {
@@ -452,53 +445,101 @@ public:
 		wxDELETE(m_client);
 	}
 
-	void CreateRegFiles() {
-		std::string path = m_GeneralPath + "\\RegKey";
-		if (!boost::filesystem::is_directory(path)) {
-			if (!boost::filesystem::create_directories(path)) {
-				wxMessageBox("Impossibile creare directory: " + path, wxT("INFO"), wxOK | wxICON_INFORMATION);
-				return;
-			}
-		}
-		std::fstream add_key, rem_key;
-		add_key.open(path + "\\Add.reg", std::fstream::out);
-		std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "icon1.ico\"";
-		std::string str2 = "@=\"" + m_GeneralPath + "Progetto_PDS.exe %1\"";
-		boost::replace_all(str1, "\\", "\\\\");
-		boost::replace_all(str2, "\\", "\\\\");
-		add_key << "Windows Registry Editor Version 5.00";
-		add_key << "\n\n";
-		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share]\n";
-		add_key << str1;
-		add_key << "\n\n";
-		add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share\\command]\n";
-		add_key << str2;
-		add_key << "\n\n";
-		add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share]\n";
-		add_key << str1;
-		add_key << "\n\n";
-		add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share\\command]\n";
-		add_key << str2;
-		add_key.close();
+	//void CreateRegFiles() {
+	//	std::string path = m_GeneralPath + "\\RegKey";
+	//	if (!boost::filesystem::is_directory(path)) {
+	//		if (!boost::filesystem::create_directories(path)) {
+	//			wxMessageBox("Impossibile creare directory: " + path, wxT("INFO"), wxOK | wxICON_INFORMATION);
+	//			return;
+	//		}
+	//	}
+	//	std::fstream add_key, rem_key;
+	//	add_key.open(path + "\\Add.reg", std::fstream::out);
+	//	std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "icon1.ico\"";
+	//	std::string str2 = "@=\"" + m_GeneralPath + "Progetto_PDS.exe %1\"";
+	//	boost::replace_all(str1, "\\", "\\\\");
+	//	boost::replace_all(str2, "\\", "\\\\");
+	//	add_key << "Windows Registry Editor Version 5.00";
+	//	add_key << "\n\n";
+	//	add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share]\n";
+	//	add_key << str1;
+	//	add_key << "\n\n";
+	//	add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share\\command]\n";
+	//	add_key << str2;
+	//	add_key << "\n\n";
+	//	add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share]\n";
+	//	add_key << str1;
+	//	add_key << "\n\n";
+	//	add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share\\command]\n";
+	//	add_key << str2;
+	//	add_key.close();
 
-		rem_key.open(path + "\\Rem.reg", std::fstream::out);
-		rem_key << "Windows Registry Editor Version 5.00";
-		rem_key << "\n\n";
-		rem_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
-		rem_key << "\n\n";
-		rem_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
-		rem_key.close();
-	}
+	//	rem_key.open(path + "\\Rem.reg", std::fstream::out);
+	//	rem_key << "Windows Registry Editor Version 5.00";
+	//	rem_key << "\n\n";
+	//	rem_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
+	//	rem_key << "\n\n";
+	//	rem_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
+	//	rem_key.close();
+	//}
 
 	void AddRegKey() {
-		std::string str = "\"" + m_GeneralPath + "\\RegKey\\Add.reg\"";
-		//boost::replace_all(str, "\\", "\\\\");
-		system(str.c_str());
+		std::string str = m_GeneralPath + "icon1.ico";
+		std::wstring stemp = std::wstring(str.begin(), str.end());
+		LPCTSTR data = stemp.c_str();
+		std::string str2 = m_GeneralPath + "Progetto_PDS.exe %1";
+		std::wstring stemp2 = std::wstring(str2.begin(), str2.end());
+		LPCTSTR data2 = stemp2.c_str();
+		HKEY hkey;
+		DWORD dwDisposition;
+
+		//PRIMA CHIAVE------------------------------------------------------
+		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
+
+		RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR));
+		
+		RegCloseKey(hkey);
+		
+		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share\\command"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+		
+		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
+
+		RegCloseKey(hkey);
+
+		//--------------------------------------------------------------------
+
+		//SECONDA CHIAVE------------------------------------------------------
+		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+		
+		RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR));
+		
+		RegCloseKey(hkey);
+		
+		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share\\command"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) == ERROR_SUCCESS);
+		
+		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
+		
+		RegCloseKey(hkey);
+		
+		//--------------------------------------------------------------------
+
+		setScorciatoiaPresente();
 	}
 
 	void RemRegKey() {
-		std::string str = "\"" + m_GeneralPath + "\\RegKey\\Rem.reg\"";
-		//boost::replace_all(str, "\\", "\\\\");
-		system(str.c_str());
+		/*std::string str = "\"" + m_GeneralPath + "\\RegKey\\Rem.reg\"";
+		if (system(str.c_str()) == 0)
+			setScorciatoiaAssente();*/
+
+		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share")) == ERROR_SUCCESS);
+
+		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share")) == ERROR_SUCCESS);
+
+		setScorciatoiaAssente();
 	}
+
 };
