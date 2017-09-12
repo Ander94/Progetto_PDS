@@ -9,3 +9,4 @@
 #define PROTOCOL_PACKET 128
 #define EVALUATE_TIME 50
 #define TIMEOUT 5
+#define PORT_ALIVE 1300

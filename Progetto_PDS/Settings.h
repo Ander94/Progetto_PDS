@@ -15,11 +15,9 @@
 #include "sender.h"
 #include "ipcsetup.h"
 #include "IPCclient.h"
-
+#include "timeout.h"
 #include "MainApp.h"
 
-using boost::asio::ip::udp;
-using boost::asio::ip::tcp;
 
 enum save_request {
 	SAVE_REQUEST_NO = 0,
@@ -65,10 +63,9 @@ private:
 	std::atomic<bool> exit_send_udp, exit_recive_udp;
 	boost::asio::io_service io_service_tcp;
 public:
-	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
+	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread, reciveAliveThread, sendAliveThread;
 
 	Settings() {}
-	//Settings(std::string nomeUtente) { m_utenteProprietario = new utente(nomeUtente); }
 	~Settings() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		delete(m_utenteProprietario);
@@ -422,6 +419,78 @@ public:
 		}
 
 		socket.close();
+		return;
+	}
+	
+	static void SendAlive(utente& utenteProprietario, std::atomic<bool>& exit_app) {
+		boost::asio::io_service io_service;   //Procedura di servizio boost
+		boost::asio::ip::udp::socket socket(io_service);  //Socket su cui verranno inviati i pacchetti UDP
+		boost::asio::ip::udp::endpoint sender_endpoint;   //Destinazione dei pacchetti UDP
+		socket.open(boost::asio::ip::udp::v4()); //Inizializzo il socket per l'utilizzo di pacchetti IPv4
+		socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+		//Dico che il "sender_endpoint", ovvero colui che riceverà i pacchetti UDP, è il mio indirizzo.
+		
+		while (!exit_app.load()) {
+			//Invio al mio indirizzo la stringa "ipAddr_ALIVE", cosi da notificare che sono ancora sveglio.
+			udp::resolver resolver(io_service);
+			udp::resolver::query query(udp::v4(), utenteProprietario.getIpAddr(), std::to_string(PORT_ALIVE));
+			udp::resolver::iterator iterator = resolver.resolve(query);
+			sender_endpoint = boost::asio::ip::udp::endpoint(*iterator);
+			std::string message(utenteProprietario.getIpAddr() + "_ALIVE");
+			try {
+				send_to(socket, message, sender_endpoint);
+			}
+			catch (...) {
+				utenteProprietario.setIpAddr(getOwnIP());
+			}
+			//I pacchetti vengonoo inviati ongi TIME_SEND_MESSAGE_UDP ms
+			Sleep(TIME_SEND_MESSAGE_UDP);
+		}
+		socket.close();
+		io_service.stop();
+		return;
+	}
+	
+	static void ReciveAlive(utente& utenteProprietario, std::atomic<bool>& exit_app) {
+		boost::asio::io_service io_service; //Procedura di servizio boost
+		udp::socket s(io_service);  //Socket su cui ricevere i pacchetti UDP
+		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
+		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
+		char buf[PROTOCOL_PACKET];
+		int length;
+		std::string ipAddr, reciveMessage;
+
+		//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
+		s.open(boost::asio::ip::udp::v4());
+		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_ALIVE);
+		s.bind(local_endpoint);
+
+		while (!exit_app.load()) {
+			//Ricevo un messaggio
+			try {
+				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+				//Estraggo l'ip di chi mi ha inviato il mesasggio
+				ipAddr = reciver_endpoint.address().to_string();
+				buf[length] = '\0';
+				reciveMessage = buf;
+				if (reciveMessage != getOwnIP() + "_ALIVE" && getOwnIP()!=utenteProprietario.getIpAddr()) {
+					utenteProprietario.setIpAddr(getOwnIP());
+					std::thread([&]() {
+							Sleep(TIMEOUT*1000);
+							if (utenteProprietario.getIpAddr() == "127.0.0.1" || utenteProprietario.getIpAddr() == "0.0.0.0") {
+								wxMessageBox("Attenzione: la connessione è stata persa.\nControllare lo stato della propria connessione per continuare ad utilizzare\nl'applicazione di lan sharing.", "Info", wxOK | wxICON_INFORMATION);
+							}
+					}).detach();
+				}
+			}
+			catch (...) {
+				utenteProprietario.setIpAddr(getOwnIP());
+			}
+		}
+		//Chiudo il socket e il servizio boost.
+		s.close();
+		io_service.stop();
 		return;
 	}
 

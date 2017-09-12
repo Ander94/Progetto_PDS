@@ -1,6 +1,6 @@
 #pragma once
 #include "reciver.h"
-
+#include "Settings.h"
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
@@ -41,7 +41,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	while (!exit_app.load()) {
 
 		//Ricevo un messaggio
-		length = s.receive_from(boost::asio::buffer(buf, 1024), reciver_endpoint);
+		length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 		//Estraggo l'ip di chi mi ha inviato il mesasggio
 		ipAddr = reciver_endpoint.address().to_string();
 		buf[length] = '\0';
@@ -77,7 +77,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 
 	//Evita di registrare se stessi.
 	if (true) {
-		if (utenteProprietario.getIpAddr() == ipAddr || ipAddr == "127.0.0.1") {
+		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}
 	}
