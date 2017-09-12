@@ -479,7 +479,7 @@ public:
 					std::thread([&]() {
 							Sleep(TIMEOUT*1000);
 							if (utenteProprietario.getIpAddr() == "127.0.0.1" || utenteProprietario.getIpAddr() == "0.0.0.0") {
-								wxMessageBox("Attenzione: la connessione è stata persa.\nControllare lo stato della propria connessione per continuare ad utilizzare\nl'applicazione di lan sharing.", "Info", wxOK | wxICON_INFORMATION);
+								wxMessageBox("Attenzione: la connessione è stata persa.\nControllare lo stato della propria connessione per continuare ad utilizzare\nl'applicazione di Lan Sharing.", "Info", wxOK | wxICON_INFORMATION);
 							}
 					}).detach();
 				}
