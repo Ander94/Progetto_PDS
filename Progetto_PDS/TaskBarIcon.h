@@ -84,6 +84,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 public:
 	MainFrame(const wxString& title, class Settings* settings);
+	MainFrame();
 	virtual ~MainFrame();
 	bool StartServer();
 	//bool StartClient();
