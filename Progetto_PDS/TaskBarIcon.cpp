@@ -62,7 +62,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window")
 	m_server = NULL;
 };
 
-MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title)
+MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
 	m_selectUser = NULL;
 	m_client = NULL;
@@ -121,15 +121,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
-	m_changeSavePath = new wxButton
-	(
-		this,
-		SAVE_ID,
-		"CAMBIA",
-		wxDefaultPosition,
-		wxDefaultSize
-	);
-
 	m_contextMenu = new wxButton
 	(
 		this,
@@ -142,6 +133,18 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		m_contextMenu->SetLabel("AGGIUNGI");
 	else
 		m_contextMenu->SetLabel("RIMUOVI");
+	wxImage *uac = new wxImage();
+	uac->LoadFile(m_settings->getGeneralPath() + "uac_icon.png", wxBITMAP_TYPE_ANY, -1);
+	m_contextMenu->SetBitmap(wxBitmap(uac->Scale(16, 16, wxIMAGE_QUALITY_HIGH)));
+
+	m_changeSavePath = new wxButton
+	(
+		this,
+		SAVE_ID,
+		"CAMBIA",
+		wxDefaultPosition,
+		wxDefaultSize
+	);
 
 	wxImage *img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
