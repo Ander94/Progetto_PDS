@@ -52,6 +52,13 @@ EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
 wxEND_EVENT_TABLE()
 
 
+MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window") 
+{
+	m_taskBarIcon = NULL;
+	m_selectUser = NULL;
+	m_client = NULL;
+	m_server = NULL;
+};
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title)
 {
@@ -158,7 +165,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxID_ANY,
 		wxT("" + m_settings->getUserName())
 	);
-	nome->SetFont(nome->GetFont().Bold().Scaled(1.4));
+	nome->SetFont(nome->GetFont().Bold().Scaled(1.4f));
 	sizerUserName->Add(nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	m_textStato = new wxStaticText(this, wxID_ANY, "");
@@ -250,7 +257,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 
 MainFrame::~MainFrame()
 {
-	delete m_taskBarIcon;
+	if (m_taskBarIcon != NULL)
+		delete m_taskBarIcon;
 	wxDELETE(m_server);
 	//wxDELETE(m_client);
 }

@@ -14,6 +14,8 @@
 #include "reciver.h"
 #include "server.h"
 
+#include <shellapi.h>
+
 #include <wx/cmdline.h>
 #include <wx/taskbar.h>
 
@@ -26,6 +28,14 @@ IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
+	//ShellExecute(NULL,
+	//	TEXT("runas"),
+	//	TEXT("c:\\windows\\notepad.exe"),
+	//	TEXT(" c:\\temp\\report.txt"),
+	//	NULL,                        
+	//	SW_SHOWNORMAL
+	//);
+	//
 	//wxMessageBox(cwd, wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 	//-------------------------------------------------------------------------------------------------
@@ -39,7 +49,7 @@ bool MainApp::OnInit()
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
-	
+		
 		std::string sendpath;
 		if (argc > 1)
 			for (int i = 1; i < argc; i++) {
@@ -53,6 +63,11 @@ bool MainApp::OnInit()
 			}
 
 		if (m_settings->StartClient()) {
+			//creo una finestra principale vuota, così può essere distrutta per ternimare l'applicazione
+			MainFrame* frame = new MainFrame();	
+			setFrame(frame);
+			SetTopWindow(frame);
+			
 			if (argc == 1) {
 				//è stata aperta una nuova istanza, ma non è stato passato nessun argomento
 				//si apre la finestra principare dell'istanza già in esecuzione
@@ -64,6 +79,7 @@ bool MainApp::OnInit()
 			}
 			m_settings->GetClient()->Disconnect();
 			m_settings->DeleteClient();
+			frame->Destroy();  //necessario, altrimenti l'applicazione non termina correttamente
 		}
 		else {
 			//avvio l'applicazione per la prima volta
@@ -73,6 +89,7 @@ bool MainApp::OnInit()
 			setFrame(frame);
 			frame->SetIcon(wxIcon(share_icon));
 			SetTopWindow(frame);
+
 			frame->Show();
 
 			m_settings->setExitRecive(false);
