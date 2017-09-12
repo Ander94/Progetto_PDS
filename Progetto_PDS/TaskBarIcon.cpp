@@ -301,10 +301,13 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
 	m_settings->getIoService().stop();
 	m_settings->reciveTCPfileThread.join();
+	
 	m_settings->setExitRecive(true);
 	m_settings->reciveUdpMessageThread.join();
+	m_settings->reciveAliveThread.join();
 	m_settings->setExitSend(true);
 	m_settings->sendUdpMessageThread.join();
+	m_settings->sendAliveThread.join();
 
 	m_timer->Stop();
 	Destroy();

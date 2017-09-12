@@ -25,13 +25,8 @@ void sendUDPMessage(std::string& username, status& current_status, std::atomic<b
 
 		//Invio sulla LAN un pacchetto contentente la stringa nella forma username\r\nstato\r\n, così che tutti gli altri
 		//utenti che utilizzano l'applicazione possano registrare gli altri utenti.
-		try {
-			socket.send_to(boost::asio::buffer(username + "\r\n" + stato + "\r\n"), sender_endpoint);
-		}
-		catch (std::exception& e) {
-			wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
-		}
-
+		socket.send_to(boost::asio::buffer(username + "\r\n" + stato + "\r\n"), sender_endpoint);
+		
 		//I pacchetti vengonoo inviati ongi TIME_SEND_MESSAGE_UDP ms
 		Sleep(TIME_SEND_MESSAGE_UDP);
 
