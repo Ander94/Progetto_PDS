@@ -1,6 +1,8 @@
 #include <wx/wx.h>
 #include <wx/taskbar.h>
 
+#include <shellapi.h>
+
 #include "share_icon.xpm"
 #include "share_icon_offline.xpm"
 
@@ -387,6 +389,25 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 
 void MainFrame::OnContextMenu(wxCommandEvent& event)
 {
+	if (m_settings->getMod() == modalità::MOD_USER) {
+		std::string str = m_settings->getGeneralPath() + "Progetto_PDS.exe";
+		std::wstring stemp = std::wstring(str.begin(), str.end());
+		LPCTSTR path = stemp.c_str();
+
+		wxDELETE(m_server);
+
+		ShellExecute(NULL,
+			TEXT("runas"),
+			path,
+			TEXT("_ADMIN_PRIVILEGES"),
+			NULL,
+			SW_SHOWNORMAL
+		);
+
+		Close(true);
+		return;
+	}
+
 	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
 		m_settings->AddRegKey();
 	else

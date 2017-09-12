@@ -31,6 +31,11 @@ enum scorciatoia {
 	SCORCIATOIA_ASSENTE = 1
 };
 
+enum modalità {
+	MOD_USER = 0,
+	MOD_ADMIN = 1
+};
+
 class Settings
 {
 private:
@@ -50,7 +55,6 @@ private:
 	std::recursive_mutex rm_scorciatoia;//14
 
 
-
 	utente* m_utenteProprietario;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
@@ -60,6 +64,7 @@ private:
 	MyClient* m_client;
 	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
+	modalità m_mod; //se si hanno i privilegi amministratore o no
 	save_request m_save_request;  //Richiesta quando si riceve un file
 	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;
@@ -152,6 +157,7 @@ public:
 
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
+		m_mod = MOD_USER;
 
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
@@ -313,7 +319,6 @@ public:
 		return m_stato;
 	}
 
-
 	void setScorciatoiaPresente() {
 		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 		m_scorciatoia = scorciatoia::SCORCIATOIA_PRESENTE;
@@ -324,7 +329,7 @@ public:
 		m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
 		this->updateState();
 	}
-	scorciatoia & getScorciatoia() {
+	scorciatoia& getScorciatoia() {
 		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 		return m_scorciatoia;
 	}
@@ -343,6 +348,13 @@ public:
 	save_request & getAutoSaved() {
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		return m_save_request;
+	}
+
+	void setAdmin() {
+		m_mod = MOD_ADMIN;
+	}
+	modalità& getMod() {
+		return m_mod;
 	}
 
 	static void string_rand(std::string& unique_str) {

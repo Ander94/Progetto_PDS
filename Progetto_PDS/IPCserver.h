@@ -1,7 +1,6 @@
 #pragma once
 
 #include <wx/wx.h>
-#include <wx/ipc.h>
 
 #include "TaskBarIcon.h"
 #include "ipcsetup.h"

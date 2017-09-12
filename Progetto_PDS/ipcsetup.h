@@ -1,5 +1,7 @@
 #pragma once
 
+#define wxUSE_DDE_FOR_IPC 0
+
 #include "wx/ipc.h"
 
 // the default service name

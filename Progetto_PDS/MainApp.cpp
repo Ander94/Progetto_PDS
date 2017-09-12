@@ -14,8 +14,6 @@
 #include "reciver.h"
 #include "server.h"
 
-#include <shellapi.h>
-
 #include <wx/cmdline.h>
 #include <wx/taskbar.h>
 
@@ -28,14 +26,18 @@ IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
+	//std::wstring str = argv[0];
+	//LPCTSTR data = str.c_str();
+
 	//ShellExecute(NULL,
 	//	TEXT("runas"),
-	//	TEXT("c:\\windows\\notepad.exe"),
-	//	TEXT(" c:\\temp\\report.txt"),
-	//	NULL,                        
+	//	data,
+	//	TEXT("prova"),
+	//	NULL,
 	//	SW_SHOWNORMAL
 	//);
-	//
+	
+	
 	//wxMessageBox(cwd, wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 	//-------------------------------------------------------------------------------------------------
@@ -45,19 +47,19 @@ bool MainApp::OnInit()
 	try
 	{
 		setSettings(new Settings());
-		std::wstring program = argv[0];
+		//std::wstring program = argv[0];
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
 		
-		std::string sendpath;
+		std::string argument;
 		if (argc > 1)
 			for (int i = 1; i < argc; i++) {
 				if (i==1) {
-					sendpath.append(argv[i]);
+					argument.append(argv[i]);
 				}
 				else {
-					sendpath.append(" " + argv[i]);
+					argument.append(" " + argv[i]);
 				}
 				
 			}
@@ -75,7 +77,7 @@ bool MainApp::OnInit()
 			}
 			else {
 				//è stato ricevuto un path, si notifica l'istanza in esecuzione
-				m_settings->GetClient()->GetConnection()->Poke(sendpath, "path", 5);
+				m_settings->GetClient()->GetConnection()->Poke(argument, "path", 5);
 			}
 			m_settings->GetClient()->Disconnect();
 			m_settings->DeleteClient();
@@ -85,6 +87,16 @@ bool MainApp::OnInit()
 			//avvio l'applicazione per la prima volta
 			m_settings->Init(path, wxGetUserName().ToStdString());
 			
+			if (argument == "_ADMIN_PRIVILEGES") {
+				m_settings->setAdmin();
+				if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
+					m_settings->AddRegKey();
+				else
+					m_settings->RemRegKey();
+				argument = "_NO_ARGUMENT";
+			}
+				
+
 			MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
 			setFrame(frame);
 			frame->SetIcon(wxIcon(share_icon));
@@ -102,8 +114,8 @@ bool MainApp::OnInit()
 			
 			frame->StartServer();
 			
-			if (argc > 1) {
-				frame->SendFile(sendpath);
+			if (argc > 1 && argument != "_NO_ARGUMENT") {
+				frame->SendFile(argument);
 			}
 		}
 	}
