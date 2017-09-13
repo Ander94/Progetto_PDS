@@ -28,6 +28,7 @@ enum status {
 class utente
 {
 	std::string username;
+	std::string usernamePc;
 	std::string ipAddr;
 	status state;
 	std::vector<utente> utentiConnessi;
@@ -39,6 +40,7 @@ class utente
 	std::recursive_mutex m_state; //(3)
 	std::recursive_mutex m_currentTime; //(4)
 	std::recursive_mutex m_utentiConnessi; //(5)
+	std::recursive_mutex m_usernamePc; //(6)
 	
 	
 public:
@@ -46,15 +48,17 @@ public:
 	utente(std::string username, std::string ipAddr);  //Costruttore 
 	utente(std::string username, std::string ipAddr, status state); //Costruttore
 	~utente();   //Distruttore
-	std::string utente::getUsername(); //Torna l'username dell'utente
+	std::string& utente::getUsername(); //Torna l'username dell'utente
+	std::string& utente::getUsernamePc();
 	void utente::setIpAddr(std::string ipAddr); //
 	void utente::setUsername(std::string username);
+	void utente::setUsernamePc(std::string usernamePc);
 	std::vector<utente>& utente::getUtentiConnessi(); //Torna il riferimento a tutti gli utenti in LAN, sia Online che Offline
 	std::vector<utente> utente::getUtentiOnline(); //Torna il riferimento ai soli utenti online
 	void utente::addUtente(std::string username, std::string ipAddr, status state,boost::posix_time::ptime currentTime);  //Aggiunge un nuovo utente alla lista degli utenti connessi
-	bool utente::contieneUtente(std::string username); //Verifica se un utente invia pacchetti in LAN o meno.
+	bool utente::contieneUtente(std::string ipAddr); //Verifica se un utente invia pacchetti in LAN o meno.
 	void utente::setCurrentTime(boost::posix_time::ptime currentTime);   //Aggiorna il tempo dell'ultima ricezione di un pacchetto UDP da parte di un utente
-	utente& utente::getUtente(std::string username); //Torna il riferimento all'utente username, lancia un eccezione se l'utente non è contenuto.
+	utente& utente::getUtente(std::string ipAddr); //Torna il riferimento all'utente username, lancia un eccezione se l'utente non è contenuto.
 	std::string utente::getIpAddr();   //Torna l'indirizzo ip dell'utente 
 	boost::posix_time::ptime utente::getTime(); // Torna il tempo dell'ultima ricezione di un pacchetto IP da parte di un utente
 	int utente::removeUtente(std::string username);   //Rimuove un utenta dal vettore degli utenti connessi 

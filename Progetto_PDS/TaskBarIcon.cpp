@@ -22,7 +22,8 @@ enum {
 	SAVE_ID,
 	CONTEXT_ID,
 	RADIO_ID1,
-	RADIO_ID2
+	RADIO_ID2,
+	USERNAME
 };
 
 // ----------------------------------------------------------------------------
@@ -51,6 +52,7 @@ EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
 EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
+EVT_TEXT_ENTER(USERNAME, MainFrame::OnChangeUsername)
 wxEND_EVENT_TABLE()
 
 
@@ -64,6 +66,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window")
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
+	
 	m_selectUser = NULL;
 	m_client = NULL;
 	m_server = NULL;
@@ -164,18 +167,18 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerImage->Add(m_userImage, flags);
 
 	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
-	wxTextCtrl* nome = new wxTextCtrl
+	m_nome = new wxTextCtrl
 	(
 		this,
-		wxID_ANY,
+		USERNAME,
 		wxT("" + m_settings->getUserName()),
 		wxDefaultPosition,
 		wxDefaultSize,
 		wxNO_BORDER
 	);
-	nome->SetBackgroundColour(wxColour(*wxLIGHT_GREY));
-	nome->SetFont(nome->GetFont().Bold().Scaled(1.4f));
-	sizerUserName->Add(nome, 0, wxALIGN_LEFT | wxLEFT, 10);
+	m_nome->SetBackgroundColour(this->GetBackgroundColour());
+	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.4f));
+	sizerUserName->Add(m_nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	m_textStato = new wxStaticText(this, wxID_ANY, "");
 	if (m_settings->getStato()) {
@@ -331,9 +334,18 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 		(*m_elencoUser) << "Nessun utente connesso.";
 }
 
+void MainFrame::OnChangeUsername(wxCommandEvent& event)
+{
+	
+	std::string username(m_nome->GetValue());
+	m_settings->getUtenteProprietario().setUsername(username);
+	Update();
+
+}
+
 void MainFrame::OnImage(wxCommandEvent& event)
 {
-	wxFileDialog openFileDialog(this, _("Scegli un'immagine"), wxT("C:\\Users\\" + m_settings->getUserName() + "\\Desktop\\"), "",
+	wxFileDialog openFileDialog(this, _("Scegli un'immagine"), wxT("C:\\Users\\" + m_settings->getUserNamePc() + "\\Desktop\\"), "",
 			"All files (*.*)|*.*|JPG files (*jpg)|*jpg|JPEG files (*jpeg)|*jpeg|PNG files (*png)|*png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return;     // the user changed idea...

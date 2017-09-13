@@ -139,12 +139,12 @@ void WindowSelectUser::UpdateUI() {
 		for (auto it : tmp2) {
 			bool found = false;
 			for (auto it2 = lista.begin(); it2 != lista.end(); it2++) {
-				if (it->getUsername() == it2->getUsername()) { //TODO convertire a ip
+				if (it->getIpAddr() == it2->getIpAddr()) { //TODO convertire a ip
 					found = true;
 					m_ListaUtenti.push_back(it);
 					//"rieseguo" il click sugli utenti selezionati prima dell'aggiornamento
 					for (auto it3 : *tmp) {
-						if (it3.getUsername() == it->getUsername()) {
+						if (it3.getIpAddr() == it->getIpAddr()) {
 							insertUtenteLista(it->getUser());
 							break;
 						}
@@ -185,13 +185,13 @@ void WindowSelectUser::UpdateUI() {
 
 //aggiunge un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::insertUtenteLista(utente user) {
-	m_MappaInvio.insert(std::pair<std::string, utente>(user.getUsername(), user));
+	m_MappaInvio.insert(std::pair<std::string, utente>(user.getIpAddr(), user));
 	m_ok->Enable();
 }
 
 //rimuove un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::deleteUtenteLista(utente user) {
-	m_MappaInvio.erase(user.getUsername());
+	m_MappaInvio.erase(user.getIpAddr());
 	if (m_MappaInvio.size() == 0)
 		m_ok->Disable();
 }
@@ -211,12 +211,12 @@ void WindowSelectUser::addUtente(utente user) {
 //rimuove un utente dalla finsetra
 void WindowSelectUser::removeUtente(utente user) {
 	int i = 0;
-	//std::string ip = user.getIpAddr();
-	std::string name = user.getUsername();
+	std::string ip = user.getIpAddr();
+	//std::string name = user.getUsername();
 
 	for (auto it=m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++ ) {
-		//if ((*it)->getIpAddr() == ip) {
-		if ((*it)->getUsername() == name) {
+		if ((*it)->getIpAddr() == ip) {
+		//if ((*it)->getUsername() == name) {
 			this->m_ListaUtenti.erase(it);
 			m_sizerUsers->Remove(i);
 			break;

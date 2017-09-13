@@ -37,7 +37,7 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 		if (m_CountUtenti!=0)
 			m_sizer->Add(new wxStaticLine(this));
 
-		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), m_settings->getIsDir());
+		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), it.getIpAddr(),m_settings->getIsDir());
 		m_ListaUtenti.push_back(u);
 		m_sizer->Add(u, 1, wxEXPAND);
 		this->m_CountUtenti++;
@@ -58,7 +58,7 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 
 void WindowProgressBar::StartSending() {
 	for (auto it : m_ListaUtenti) {
-		sendTCPfile(m_settings->getUtenteProprietario(), it->GetUsername(), m_settings->getSendPath(), it);
+		sendTCPfile(m_settings->getUtenteProprietario(), it->GetIpAddr(), m_settings->getSendPath(), it);
 	}
 		
 }

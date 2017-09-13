@@ -34,7 +34,7 @@ private:
 	wxGauge *m_progFile;
 
 	std::string m_utente;
-
+	std::string m_ipAddr;
 	std::mutex mut;
 
 	bool m_isDir;
@@ -59,9 +59,10 @@ private:
 
 	wxDECLARE_EVENT_TABLE();
 public:
-	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, bool isDir);
+	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir);
 
 	std::string GetUsername() { return m_utente; }
+	std::string GetIpAddr() { return m_ipAddr; }
 	WindowProgressBar* GetParent() { return m_parentWindow; }
 
 	//void UpdateUI();

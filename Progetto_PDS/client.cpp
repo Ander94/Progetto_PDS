@@ -52,11 +52,11 @@ double long folder_size(std::string absolutePath);
 Sgancia un thread che permette l'invio deò file specificato in initalAbsolutePath.
 Riceve come parametri:
 -utenteProprietario, ovvero il riferimento all'utente che ha aperto l'applicazione con tutti gli utenti ad esso connessi
--L'username dell'utente a cui inviare il file
+-L'ip dell'utente a cui inviare il file
 -Il path assoluto del file da inviare
 -Il riferimento alla barra di progresso
 **********************************************************************************/
-void sendThreadTCPfile(utente& utenteProprietario, std::string username,
+void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr,
 	std::string initialAbsolutePath, UserProgressBar* progBar);
 
 
@@ -64,9 +64,9 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string username,
 /*IMPLEMENTAZIONE*/
 
 
-void sendTCPfile(utente& utenteProprietario, std::string username, std::string initialAbsolutePath, UserProgressBar* progBar) {
+void sendTCPfile(utente& utenteProprietario, std::string ipAddr, std::string initialAbsolutePath, UserProgressBar* progBar) {
 	//Sgancia il thread che permette l'invio del file
-	boost::thread(sendThreadTCPfile, boost::ref(utenteProprietario), username, initialAbsolutePath, progBar).detach();
+	boost::thread(sendThreadTCPfile, boost::ref(utenteProprietario), ipAddr, initialAbsolutePath, progBar).detach();
 }
 
 
@@ -160,22 +160,12 @@ void sendImage(std::string filePath, std::string ipAddr) {
 	io_service.stop();
 }
 
-void sendThreadTCPfile(utente& utenteProprietario, std::string username, std::string initialAbsolutePath, UserProgressBar* progBar) {
+void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::string initialAbsolutePath, UserProgressBar* progBar) {
 
-	std::string ipAddr;       //Indirizzo ip dell'utente a cui inviare il file
+
 	std::string basename;     //Nome del file/cartella da inviare.
 
 	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
-
-	//Controllo se l'utente esiste.
-	try {
-		ipAddr = utenteProprietario.getUtente(username).getIpAddr(); //Se l'username non esiste, lancio un eccezione e torno, altrimenti ottengo il suo ip
-	}
-	catch (std::exception e) {
-		wxQueueEvent(progBar, event.Clone());
-		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
-		return;
-	}
 
 	//Se la directory/file specificata/o non è valida/o, ritorno al main
 	if (!boost::filesystem::is_directory(initialAbsolutePath) && !boost::filesystem::is_regular_file(initialAbsolutePath)) {
