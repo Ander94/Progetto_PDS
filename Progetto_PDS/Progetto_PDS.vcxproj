@@ -77,8 +77,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\wxWidgets-3.1\include;D:\wxWidgets-3.1\include\msvc;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\wxWidgets-3.1\lib\vc_lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -96,7 +94,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>D:\boost_1_64_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\ander\Desktop\Progetto_PDS\packages\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -113,11 +112,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WIN32;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>D:\boost_1_64_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -164,7 +162,6 @@
     <ClCompile Include="timeout.cpp" />
     <ClCompile Include="UserProgressBar.cpp" />
     <ClCompile Include="WindowProgressBar.cpp" />
-    <ClCompile Include="WindowSaveFile.cpp" />
     <ClCompile Include="WindowSelectUser.cpp" />
     <ClCompile Include="UserSizer.cpp" />
     <ClCompile Include="utente.cpp" />
@@ -185,7 +182,6 @@
     <ClInclude Include="timeout.h" />
     <ClInclude Include="UserProgressBar.h" />
     <ClInclude Include="WindowProgressBar.h" />
-    <ClInclude Include="WindowSaveFile.h" />
     <ClInclude Include="WindowSelectUser.h" />
     <ClInclude Include="UserSizer.h" />
     <ClInclude Include="utente.h" />
