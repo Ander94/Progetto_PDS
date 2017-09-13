@@ -127,7 +127,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		CONTEXT_ID,
 		"",
 		wxDefaultPosition,
-		wxDefaultSize
+		wxSize(90, 30)
 	);
 	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
 		m_contextMenu->SetLabel("AGGIUNGI");
@@ -141,9 +141,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	(
 		this,
 		SAVE_ID,
-		"CAMBIA",
+		"     CAMBIA    ",
 		wxDefaultPosition,
-		wxDefaultSize
+		wxSize(90,30)
 	);
 
 	wxImage *img = new wxImage();
@@ -164,12 +164,16 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerImage->Add(m_userImage, flags);
 
 	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
-	wxStaticText* nome = new wxStaticText
+	wxTextCtrl* nome = new wxTextCtrl
 	(
 		this,
 		wxID_ANY,
-		wxT("" + m_settings->getUserName())
+		wxT("" + m_settings->getUserName()),
+		wxDefaultPosition,
+		wxDefaultSize,
+		wxNO_BORDER
 	);
+	nome->SetBackgroundColour(wxColour(*wxLIGHT_GREY));
 	nome->SetFont(nome->GetFont().Bold().Scaled(1.4f));
 	sizerUserName->Add(nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
