@@ -353,6 +353,7 @@ void MainFrame::OnChangeUsername(wxCommandEvent& event)
 		return;     // the user changed idea...
 	std::string username = changeNameDialog.GetValue().ToStdString();
 	m_settings->getUtenteProprietario().setUsername(username);
+	m_settings->updateState();
 	m_nome->SetLabel(username);
 	Update();
 }

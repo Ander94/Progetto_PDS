@@ -41,7 +41,7 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 		m_utente.getUsername(), 
 		wxDefaultPosition, 
 		wxDefaultSize, 
-		wxALIGN_CENTER_HORIZONTAL | wxELLIPSIZE_END
+		wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END
 	);
 	m_text->SetFont((m_text->GetFont()).Larger());
 	sizerTop->Add(m_text, 1, wxALIGN_CENTER | wxALL, 5);
