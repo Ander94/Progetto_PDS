@@ -31,10 +31,6 @@ public:
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
 	void OnMenuRestore(wxCommandEvent&);
 	void OnMenuExit(wxCommandEvent&);
-	//void OnMenuCheckmarkOnline(wxCommandEvent&);
-	//void OnMenuUICheckmarkOnline(wxUpdateUIEvent&);
-	//void OnMenuCheckmarkOffline(wxCommandEvent&);
-	//void OnMenuUICheckmarkOffline(wxUpdateUIEvent&);
 	void OnMenuStato(wxCommandEvent&);
 	void OnMenuUIStato(wxUpdateUIEvent&);
 
@@ -59,14 +55,16 @@ private:
 	wxTextCtrl* m_elencoUser;
 	wxButton* m_changeImage;
 	wxButton* m_changeSavePath;
+	wxButton* m_changeName;
 	wxButton* m_contextMenu;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
 	wxRadioBox* m_saved;
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
+	wxStaticText* m_nome;
 	TaskBarIcon *m_taskBarIcon;
-	wxTextCtrl* m_nome;
+	
 
 	void OnInviaFile(wxCommandEvent&);
 	void OnInviaDir(wxCommandEvent&);

@@ -20,10 +20,10 @@ enum {
 	TIMER_ID = 15000,
 	IMG_ID,
 	SAVE_ID,
+	USER_ID,
 	CONTEXT_ID,
 	RADIO_ID1,
-	RADIO_ID2,
-	USERNAME
+	RADIO_ID2
 };
 
 // ----------------------------------------------------------------------------
@@ -47,12 +47,12 @@ EVT_BUTTON(wxID_EXIT, MainFrame::OnExit)
 EVT_BUTTON(IMG_ID, MainFrame::OnImage)
 EVT_BUTTON(SAVE_ID, MainFrame::OnChangeSavePath)
 EVT_BUTTON(CONTEXT_ID, MainFrame::OnContextMenu)
+EVT_BUTTON(USER_ID, MainFrame::OnChangeUsername)
 EVT_CLOSE(MainFrame::OnCloseWindow)
 EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
 EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
-EVT_TEXT_ENTER(USERNAME, MainFrame::OnChangeUsername)
 wxEND_EVENT_TABLE()
 
 
@@ -124,6 +124,15 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
+	m_changeName = new wxButton
+	(
+		this,
+		USER_ID,
+		"CAMBIA USERNAME",
+		wxDefaultPosition,
+		wxDefaultSize
+	);
+
 	m_contextMenu = new wxButton
 	(
 		this,
@@ -146,7 +155,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		SAVE_ID,
 		"     CAMBIA    ",
 		wxDefaultPosition,
-		wxSize(90,30)
+		wxDefaultSize
 	);
 
 	wxImage *img = new wxImage();
@@ -160,6 +169,16 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
+	//m_textStato = new wxStaticText(this, wxID_ANY, "");
+	//if (m_settings->getStato()) {
+	//	m_textStato->SetLabel("offline");
+	//	m_textStato->SetForegroundColour(wxT("red"));
+	//}
+	//else {
+	//	m_textStato->SetLabel("online");
+	//	m_textStato->SetForegroundColour(wxT("blue"));
+	//}
+
 	wxSizerFlags flags;
 	flags.Border(wxALL, 10);
 
@@ -167,42 +186,24 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerImage->Add(m_userImage, flags);
 
 	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
-	m_nome = new wxTextCtrl
+	m_nome = new wxStaticText
 	(
 		this,
-		USERNAME,
+		wxID_ANY,
 		wxT("" + m_settings->getUserName()),
-		wxDefaultPosition,
-		wxSize(200, 30) ,
-		wxNO_BORDER
+		wxDefaultPosition, wxDefaultSize,
+		wxST_ELLIPSIZE_END
 	);
-	m_nome->SetMaxLength(24);
-	m_nome->SetBackgroundColour(this->GetBackgroundColour());
-	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
+	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.4f));
+	m_nome->SetMinSize(wxSize(150, 30));
+	m_nome->SetMaxSize(wxSize(180, 50));
 	sizerUserName->Add(m_nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
-	wxStaticText *m_nomeLen = new wxStaticText
-	(
-		this,
-		USERNAME,
-		wxT(" Massimo 24 caratteri")
-	);
-	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f) );
-	sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
-	m_textStato = new wxStaticText(this, wxID_ANY, "");
-	if (m_settings->getStato()) {
-		m_textStato->SetLabel("offline");
-		m_textStato->SetForegroundColour(wxT("red"));
-	}
-	else {
-		m_textStato->SetLabel("online");
-		m_textStato->SetForegroundColour(wxT("blue"));
-	}
+	sizerUserName->Add(m_changeName, flags);
 		
-	sizerUserName->Add(m_textStato, flags);
 	sizerUserName->Add(m_changeImage, flags);
 
-	sizerImage->Add(sizerUserName, flags);
+	sizerImage->Add(sizerUserName, 0, wxALIGN_LEFT | wxLEFT, 10);
 
 	wxSizer* sizerGrid = new wxFlexGridSizer(2, 20,20);
 	sizerGrid->Add(new wxStaticText
@@ -240,6 +241,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
 
 	sizerTop->Add(sizerImage, flags);
+
+	//sizerTop->Add(m_textStato, wxLEFT, 10);
 
 	sizerTop->Add(sizerBox, flags);
 
@@ -336,28 +339,22 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 {
 	utente user = m_settings->getUtenteProprietario();
 	m_elencoUser->Clear();
-	bool first_time = true;
 	for (auto it : user.getUtentiOnline()) {
-		if (first_time) {
-			(*m_elencoUser) << it.getUsername();
-			first_time = false;
-		}
-		else {
-			(*m_elencoUser) << ", " +it.getUsername();
-		}
-		
+		(*m_elencoUser) << it.getUsername() + " ";
 	}
 	if (m_elencoUser->IsEmpty())
 		(*m_elencoUser) << "Nessun utente connesso.";
 }
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
-{	
-	std::string username(m_nome->GetValue());
+{
+	wxTextEntryDialog changeNameDialog(this, "", _("Inserisci il nuovo username"), m_settings->getUserName());
+	if (changeNameDialog.ShowModal() == wxID_CANCEL)
+		return;     // the user changed idea...
+	std::string username = changeNameDialog.GetValue().ToStdString();
 	m_settings->getUtenteProprietario().setUsername(username);
-	m_settings->updateState();
+	m_nome->SetLabel(username);
 	Update();
-
 }
 
 void MainFrame::OnImage(wxCommandEvent& event)
@@ -506,16 +503,6 @@ bool MainFrame::StartServer()
 	return true;
 }
 
-//bool MainFrame::StartClient() 
-//{
-//	m_client = new MyClient();
-//	if (!m_client->Connect(IPC_HOST, IPC_SERVICE, IPC_TOPIC)) {
-//		wxDELETE(m_client);
-//		return false;
-//	}
-//	return true;
-//}
-
 void MainFrame::SendFile(std::string path)
 {
 	m_settings->setSendPath(path);
@@ -551,10 +538,6 @@ EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
 EVT_MENU(PU_STATO, TaskBarIcon::OnMenuStato)
 EVT_UPDATE_UI(PU_STATO, TaskBarIcon::OnMenuUIStato)
-//EVT_MENU(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuCheckmarkOnline)
-//EVT_UPDATE_UI(PU_CHECKMARK_ONLINE, TaskBarIcon::OnMenuUICheckmarkOnline)
-//EVT_MENU(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuCheckmarkOffline)
-//EVT_UPDATE_UI(PU_CHECKMARK_OFFLINE, TaskBarIcon::OnMenuUICheckmarkOffline)
 wxEND_EVENT_TABLE()
 
 
