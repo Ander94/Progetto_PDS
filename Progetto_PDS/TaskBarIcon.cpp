@@ -23,7 +23,7 @@ enum {
 	USER_ID,
 	CONTEXT_ID,
 	RADIO_ID1,
-	RADIO_ID2
+	RADIO_ID2,
 };
 
 // ----------------------------------------------------------------------------
@@ -53,6 +53,7 @@ EVT_TIMER(TIMER_ID, MainFrame::OnTimer)
 EVT_RADIOBOX(RADIO_ID1, MainFrame::OnRadioBoxStato)
 EVT_COMMAND(RADIO_ID1, UPDATE_EVENT, MainFrame::OnMenuUICheckmark)
 EVT_RADIOBOX(RADIO_ID2, MainFrame::OnRadioBoxSalvataggio)
+EVT_TEXT_ENTER(USER_ID, MainFrame::OnChangeUsername)
 wxEND_EVENT_TABLE()
 
 
@@ -124,15 +125,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
-	m_changeName = new wxButton
-	(
-		this,
-		USER_ID,
-		"CAMBIA USERNAME",
-		wxDefaultPosition,
-		wxDefaultSize
-	);
-
+	
 	m_contextMenu = new wxButton
 	(
 		this,
@@ -186,21 +179,29 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerImage->Add(m_userImage, flags);
 
 	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
-	m_nome = new wxStaticText
+	m_nome = new wxTextCtrl
 	(
 		this,
-		wxID_ANY,
+		USER_ID,
 		wxT("" + m_settings->getUserName()),
-		wxDefaultPosition, wxDefaultSize,
-		wxST_ELLIPSIZE_END
+		wxDefaultPosition,
+		wxSize(200, 30),
+		wxNO_BORDER
 	);
-	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.4f));
-	m_nome->SetMinSize(wxSize(150, 30));
-	m_nome->SetMaxSize(wxSize(180, 50));
+	m_nome->SetMaxLength(24);
+	m_nome->SetBackgroundColour(this->GetBackgroundColour());
+	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
 	sizerUserName->Add(m_nome, 0, wxALIGN_LEFT | wxLEFT, 10);
+
+	wxStaticText *m_nomeLen = new wxStaticText
+	(
+		this,
+		USER_ID,
+		wxT(" Massimo 24 caratteri")
+	);
+	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f));
+	sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
-	sizerUserName->Add(m_changeName, flags);
-		
 	sizerUserName->Add(m_changeImage, flags);
 
 	sizerImage->Add(sizerUserName, 0, wxALIGN_LEFT | wxLEFT, 10);
@@ -348,13 +349,9 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
 {
-	wxTextEntryDialog changeNameDialog(this, "", _("Inserisci il nuovo username"), m_settings->getUserName());
-	if (changeNameDialog.ShowModal() == wxID_CANCEL)
-		return;     // the user changed idea...
-	std::string username = changeNameDialog.GetValue().ToStdString();
+	std::string username(m_nome->GetValue());
 	m_settings->getUtenteProprietario().setUsername(username);
 	m_settings->updateState();
-	m_nome->SetLabel(username);
 	Update();
 }
 

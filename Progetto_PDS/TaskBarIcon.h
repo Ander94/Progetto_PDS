@@ -55,14 +55,13 @@ private:
 	wxTextCtrl* m_elencoUser;
 	wxButton* m_changeImage;
 	wxButton* m_changeSavePath;
-	wxButton* m_changeName;
 	wxButton* m_contextMenu;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
 	wxRadioBox* m_saved;
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
-	wxStaticText* m_nome;
+	wxTextCtrl* m_nome;
 	TaskBarIcon *m_taskBarIcon;
 	
 
