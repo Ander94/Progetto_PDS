@@ -27,7 +27,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	size_t length, found;
 	std::string ipAddr, reciveMessage, username, s_state;
 	status state;
-
+	int n;
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
 	s.open(boost::asio::ip::udp::v4());
 	s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
@@ -49,9 +49,20 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
 		found = reciveMessage.find("+GETADDR");
 		if (found == std::string::npos) {
-			sscanf(buf, "%s\r\n%s\r\n", buf_username, buf_state);
 			//Estraggo username e stato del messaggio.
+			n = 0;
+			do {
+				buf_username[n] = buf[n];
+				n++;
+			} while (buf[n]!='\r' && buf[n+1]!='\n');
+			buf_username[n] = '\0';
 			username = buf_username;
+			n+=2;
+			do {
+				buf_state[n-username.length()-2] = buf[n];
+				n++;
+			} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
+			buf_state[n-username.length()-2] = '\0';
 			s_state = buf_state;
 			if (s_state == "ONLINE") {
 				state = status::STAT_ONLINE;

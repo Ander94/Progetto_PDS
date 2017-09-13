@@ -101,6 +101,7 @@ public:
 
 	void updateState() {
 		std::fstream save_path_file;
+		std::lock_guard<std::recursive_mutex> lk_Username(rm_utenteProprietario);
 		std::lock_guard<std::recursive_mutex> lk_GeneralPath(rm_GeneralPath);
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
@@ -108,6 +109,7 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 
 		save_path_file.open(this->getGeneralPath() + "stato.txt", std::fstream::out);
+		save_path_file << this->getUtenteProprietario().getUsername() << std::endl;
 		save_path_file << this->getSavePath() << std::endl;
 		if (this->getStato() == status::STAT_ONLINE) {
 			save_path_file << "online\n";
@@ -158,7 +160,6 @@ public:
 		m_utenteProprietario->setUsernamePc(nomeUtente);
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
-			
 			m_stato = status::STAT_ONLINE;
 			m_save_request = save_request::SAVE_REQUEST_NO;
 			m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
@@ -169,11 +170,14 @@ public:
 			std::string stato; //online o offline
 			std::string save;
 			std::string scorc;
+			std::string username;
 			save_path_file.open(m_GeneralPath + "stato.txt", std::fstream::in);
+			std::getline(save_path_file, username);
 			std::getline(save_path_file, m_SavePath);
 			std::getline(save_path_file, stato);
 			std::getline(save_path_file, save);
 			std::getline(save_path_file, scorc);
+			this->getUtenteProprietario().setUsername(username);
 			if (stato == "online") {
 				m_stato = status::STAT_ONLINE;
 			}

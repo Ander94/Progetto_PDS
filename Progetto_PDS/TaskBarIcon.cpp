@@ -173,13 +173,22 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		USERNAME,
 		wxT("" + m_settings->getUserName()),
 		wxDefaultPosition,
-		wxDefaultSize,
+		wxSize(200, 30) ,
 		wxNO_BORDER
 	);
+	m_nome->SetMaxLength(24);
 	m_nome->SetBackgroundColour(this->GetBackgroundColour());
-	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.4f));
+	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
 	sizerUserName->Add(m_nome, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
+	wxStaticText *m_nomeLen = new wxStaticText
+	(
+		this,
+		USERNAME,
+		wxT(" Massimo 24 caratteri")
+	);
+	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f) );
+	sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
 	m_textStato = new wxStaticText(this, wxID_ANY, "");
 	if (m_settings->getStato()) {
 		m_textStato->SetLabel("offline");
@@ -327,18 +336,26 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 {
 	utente user = m_settings->getUtenteProprietario();
 	m_elencoUser->Clear();
+	bool first_time = true;
 	for (auto it : user.getUtentiOnline()) {
-		(*m_elencoUser) << it.getUsername() + " ";
+		if (first_time) {
+			(*m_elencoUser) << it.getUsername();
+			first_time = false;
+		}
+		else {
+			(*m_elencoUser) << ", " +it.getUsername();
+		}
+		
 	}
 	if (m_elencoUser->IsEmpty())
 		(*m_elencoUser) << "Nessun utente connesso.";
 }
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
-{
-	
+{	
 	std::string username(m_nome->GetValue());
 	m_settings->getUtenteProprietario().setUsername(username);
+	m_settings->updateState();
 	Update();
 
 }

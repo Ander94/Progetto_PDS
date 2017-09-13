@@ -97,6 +97,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>D:\boost_1_64_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
     <PreBuildEvent>
       <Command>
