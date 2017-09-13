@@ -12,11 +12,12 @@ EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
 EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
 wxEND_EVENT_TABLE()
 
-UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, bool isDir) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
+UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr,bool isDir) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
 {
 	flagAbort.store(false);
 	m_parentWindow = dynamic_cast<WindowProgressBar*>(parent);
 	m_utente = user;
+	m_ipAddr = ipAddr;
 	m_isDir = isDir;
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	

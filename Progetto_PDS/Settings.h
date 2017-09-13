@@ -155,9 +155,10 @@ public:
 		NewUtenteProprietario(nomeUtente, getOwnIP());
 		m_GeneralPath = path;
 		m_mod = MOD_USER;
-
+		m_utenteProprietario->setUsernamePc(nomeUtente);
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
+			
 			m_stato = status::STAT_ONLINE;
 			m_save_request = save_request::SAVE_REQUEST_NO;
 			m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
@@ -267,9 +268,14 @@ public:
 		return  m_GeneralPath;
 	};
 
-	std::string getUserName() {
+	std::string &getUserName() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		return m_utenteProprietario->getUsername();
+	}
+
+	std::string &getUserNamePc() {
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		return m_utenteProprietario->getUsernamePc();
 	}
 
 	std::vector<utente>& getUtentiConnessi() {

@@ -35,16 +35,28 @@ utente::~utente()
 
 }
 
-std::string utente::getUsername()
+std::string& utente::getUsername()
 {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	return this->username;
+}
+
+std::string& utente::getUsernamePc()
+{
+	std::lock_guard<std::recursive_mutex> lk_usernamePc(m_usernamePc);
+	return this->usernamePc;
 }
 
 void utente::setUsername(std::string username)
 {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	this->username = username;
+}
+
+void utente::setUsernamePc(std::string usernamePc)
+{
+	std::lock_guard<std::recursive_mutex> lk_usernamePc(m_usernamePc);
+	this->usernamePc = usernamePc;
 }
 
 std::vector<utente>& utente::getUtentiConnessi()
@@ -65,21 +77,21 @@ std::vector<utente> utente::getUtentiOnline() {
 	return utentiOnline;
 }
 
-bool utente::contieneUtente(std::string username) {
-	std::lock_guard<std::recursive_mutex> lk_username(m_username);
+bool utente::contieneUtente(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_username(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 	for (auto it : this->getUtentiConnessi()) {
-		if (it.getUsername() == username)
+		if (it.getIpAddr() == ipAddr)
 			return true;
 	}
 	return false;
 }
 
-utente& utente::getUtente(std::string username) {
-	std::lock_guard<std::recursive_mutex> lk_username(m_username);
+utente& utente::getUtente(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_username(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 	for (auto& it : this->getUtentiConnessi()) {
-		if (it.getUsername() == username) {
+		if (it.getIpAddr() == ipAddr) {
 			return it;
 		}
 	}

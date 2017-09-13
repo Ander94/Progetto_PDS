@@ -66,6 +66,7 @@ private:
 	wxStaticText* m_textStato;
 	wxStaticText* m_textSavePath;
 	TaskBarIcon *m_taskBarIcon;
+	wxTextCtrl* m_nome;
 
 	void OnInviaFile(wxCommandEvent&);
 	void OnInviaDir(wxCommandEvent&);
@@ -79,6 +80,7 @@ private:
 	void OnRadioBoxStato(wxCommandEvent&);
 	void OnRadioBoxSalvataggio(wxCommandEvent&);	
 	void OnMenuUICheckmark(wxCommandEvent&);
+	void OnChangeUsername(wxCommandEvent&);
 	void UpdateIcon();
 
 	wxDECLARE_EVENT_TABLE();

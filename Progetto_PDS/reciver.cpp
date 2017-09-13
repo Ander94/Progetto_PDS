@@ -76,7 +76,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
 	//Evita di registrare se stessi.
-	if (true) {
+	if (false) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}
@@ -85,11 +85,13 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
 
 	//Controllo se l'utente è già iscritto
-	if (utenteProprietario.contieneUtente(username) == true) {
+	if (utenteProprietario.contieneUtente(ipAddr) == true) {
 		//Se l'utente è già iscritto, setto un nuovo tempo (cioè vuol dire che l'utente è ancora online)
-		utenteProprietario.getUtente(username).setCurrentTime(currentTime);
-		//E il nuovo stato
-		utenteProprietario.getUtente(username).setState(state);
+		utenteProprietario.getUtente(ipAddr).setCurrentTime(currentTime);
+		//il nuovo stato
+		utenteProprietario.getUtente(ipAddr).setState(state);
+		//e l'username
+		utenteProprietario.getUtente(ipAddr).setUsername(username);
 		return;
 	}
 
