@@ -18,7 +18,6 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	m_parentWindow = dynamic_cast<WindowProgressBar*>(parent);
 	m_utente = user;
 	m_isDir = isDir;
-	m_File = "File: ";
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	
 	wxStaticText *username = new wxStaticText(this, wxID_ANY, m_utente, wxDefaultPosition, wxDefaultSize);
@@ -29,33 +28,43 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	if (isDir) {
 		//parte della cartella
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
-		wxGridSizer* hDirSizer = new wxGridSizer(2);
-		m_percDir = new wxStaticText(this, wxID_ANY, "0 %", wxDefaultPosition, wxDefaultSize);
+		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(3);
+		m_percDir = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
 		wxStaticText* m_Dir = new wxStaticText(this, wxID_ANY, "Avanzamento complessivo: ", wxDefaultPosition, wxDefaultSize);
 		m_percDir->SetFont((m_percDir->GetFont()));
-		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT);
+		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT | wxRIGHT, 35);
 		hDirSizer->Add(m_percDir, 1, wxALIGN_RIGHT);
+		hDirSizer->Add(
+			new wxStaticText(this, wxID_ANY, " %", wxDefaultPosition, wxDefaultSize),
+			0,
+			wxALIGN_RIGHT | wxLEFT,
+			5);
+
 		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
 		m_progDir = new wxGauge(this, wxID_ANY, 1000, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
-		//m_progDir->Pulse();
 
 		vDirSizer->Add(m_progDir, 1, wxALIGN_LEFT);
 
 		//parte del file
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
-		wxGridSizer* hFileSizer = new wxGridSizer(2);
-		m_percFile = new wxStaticText(this, wxID_ANY, "0 %", wxDefaultPosition, wxDefaultSize);
-		//m_percFile->SetFont((m_percFile->GetFont()));
+		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
+		m_percFile = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
-		//m_nameFile->SetFont((m_percFile->GetFont()));
-		m_timeFile = new wxStaticText(this, wxID_ANY, "Calcolo del tempo rimanente", wxDefaultPosition, wxDefaultSize);
-		//m_timeFile->SetFont((m_timeFile->GetFont()));
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
-		//m_progFile->Pulse();
 		vFileSizer->Add(m_nameFile, 1, wxALIGN_LEFT);
 		vFileSizer->Add(m_progFile, 1, wxALIGN_LEFT);
+		hFileSizer->Add(
+			new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
+			0,
+			wxALIGN_LEFT);
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
 		hFileSizer->Add(m_percFile, 1, wxALIGN_RIGHT);
+		hFileSizer->Add(
+			new wxStaticText(this, wxID_ANY, " %", wxDefaultPosition, wxDefaultSize),
+			0,
+			wxALIGN_RIGHT | wxLEFT,
+			5);
 		vFileSizer->Add(hFileSizer, 1, wxEXPAND);
 
 		wxBoxSizer* vSizer = new wxBoxSizer(wxVERTICAL);
@@ -73,9 +82,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
-		//m_percFile->SetFont((m_percFile->GetFont()));
 		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
-		//m_timeFile->SetFont((m_percFile->GetFont()));
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(
 				new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
@@ -109,28 +116,12 @@ void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
 	flagAbort.store(true);
 }
 
-//void UserProgressBar::UpdateUI() {
-//	std::string time("Tempo rimanente: " + std::to_string(m_min) + ":" + std::to_string(m_sec));
-//	m_timeFile->SetLabelText(time);
-//
-//	m_progFile->SetValue((int)(m_parzialeFile*1000/m_totFile));
-//	m_percFile->SetLabelText("Progresso: " + std::to_string(m_parzialeFile/m_totFile*100) + "%");
-//	if (m_isDir) {
-//		m_progDir->SetValue((int)(m_parzialeDir*1000/m_totDir));
-//		m_percDir->SetLabelText("Progresso: " + std::to_string(m_parzialeDir/m_totDir*100) + "%");
-//		if (m_nameFile->GetLabelText().ToStdString() !=  "File: " + m_File)
-//			m_nameFile->SetLabelText("File: " + m_File);
-//	}
-//}
-
 //per la fine del trasferimento
 void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
 	//wxMessageBox(wxT("Trasferimento terminato!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
 	m_abort->Disable();
 	this->m_parentWindow->decreseCountUtenti();
 }
-
-
 
 //setta il tempo mancante alla fine del trasferimento
 void UserProgressBar::SetTimeFile(long sec) {
@@ -159,11 +150,10 @@ void UserProgressBar::SetMaxDir(double long dim) {
 	m_totDir = dim;
 	m_parzialeDir = 0;
 	m_progDir->SetValue(0);
-	m_percDir->SetLabelText("0 %");
+	m_percDir->SetLabelText("0");
 }
 
 void UserProgressBar::SetNewFile(std::string path) {
-	m_File = path;
 	m_nameFile->SetLabelText("File: " + path);
 	m_progFile->SetValue(0);
 	this->Update();
@@ -182,17 +172,17 @@ void UserProgressBar::IncFile(double long dim) {
 	double long value = m_parzialeFile * 100 / m_totFile;
 	int intval = (int)floor(value + 0.5);
 	m_progFile->SetValue(intval);
-	std::string precVal = m_percFile->GetLabelText();
-	if (precVal != std::to_string(intval))
+	if (m_percFile->GetLabelText() != std::to_string(intval))
 		m_percFile->SetLabelText(std::to_string(intval));
 
-	//if (m_isDir && m_totDir > 0) {
 	if (m_isDir) {
 		m_parzialeDir += diff;
 		value = m_parzialeDir * 100 / m_totDir;
 		intval = (int)floor(value + 0.5);
 		m_progDir->SetValue(intval);
-		m_percDir->SetLabelText(std::to_string(intval));
+		if (m_percDir->GetLabelText() != std::to_string(intval))
+			m_percDir->SetLabelText(std::to_string(intval));
 	}
+
 	this->Update();
 }

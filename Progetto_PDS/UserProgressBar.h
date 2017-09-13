@@ -38,7 +38,6 @@ private:
 	std::mutex mut;
 
 	bool m_isDir;
-	std::string m_File;
 	double long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
