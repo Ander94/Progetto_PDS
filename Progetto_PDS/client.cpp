@@ -46,7 +46,7 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 Ritorna la dimensione della cartella specificata in absolutePath
 Riceve come parametro il path assoluto.
 **********************************************************************************/
-size_t folder_size(std::string absolutePath);
+double long folder_size(std::string absolutePath);
 
 /********************************************************************************
 Sgancia un thread che permette l'invio deò file specificato in initalAbsolutePath.
@@ -254,7 +254,8 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 	std::string initialAbsolutePath, std::string folder, UserProgressBar* progBar) {
 
 	std::string directorySize;   //Dimensione della directory sotto forma di stringa
-	size_t directory_size_to_send, directory_size_send = 0, length; //Dimensione della directory, dimensione inviata e lunghezza di un pacchetto di risposta da parte del server
+	double long directory_size_to_send;
+	size_t directory_size_send = 0, length; //Dimensione della directory, dimensione inviata e lunghezza di un pacchetto di risposta da parte del server
 	std::string send, response;  //Pacchetto inviato/ricevuto da parte del server sotto forma di stringa.
 	char buf_recive[PROTOCOL_PACKET];  //Buf che contine le risposte provenienti dal server
 
@@ -274,7 +275,7 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 	directory_size_to_send = folder_size(initialAbsolutePath);
 
 	wxThreadEvent event(wxEVT_THREAD, SetMaxDir_EVENT);
-	event.SetExtraLong(directory_size_to_send);
+	event.SetPayload(directory_size_to_send);
 	wxQueueEvent(progBar, event.Clone());
 
 	//Converto in string la dimensione cosi da poterla inviare al server.
@@ -388,7 +389,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 		size = bf::file_size(filePath);
 
 		wxThreadEvent event(wxEVT_THREAD, SetMaxFile_EVENT);
-		event.SetExtraLong(size);
+		event.SetPayload(size);
 		wxQueueEvent(progBar, event.Clone());
 
 		//Converto la dimensione in una stringa cosi da poterla inviare al server
@@ -463,9 +464,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				}
 				calcola_tempo++;
 
-				event1.SetExtraLong(dim_send);
+				event1.SetPayload(dim_send);
 				wxQueueEvent(progBar, event1.Clone());
-				event2.SetExtraLong(sec);
+				event2.SetPayload(sec);
 				wxQueueEvent(progBar, event2.Clone());
 			}
 			file_in.close();
@@ -501,13 +502,13 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 }
 
 
-size_t folder_size(std::string absolutePath) {
+double long folder_size(std::string absolutePath) {
 
-	size_t size = 0;
+	double long size = 0;
 	for (bf::recursive_directory_iterator it(absolutePath); it != bf::recursive_directory_iterator(); ++it)
 	{
 		if (!bf::is_directory(*it)) {
-			size += (size_t)bf::file_size(*it);
+			size += (double long)bf::file_size(*it);
 		}
 	}
 

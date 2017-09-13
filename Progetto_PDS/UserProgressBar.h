@@ -39,24 +39,24 @@ private:
 
 	bool m_isDir;
 	std::string m_File;
-	long m_totDir=0, m_parzialeDir=0;
-	long m_totFile=0, m_parzialeFile=0;
+	double long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
 
 	void OnAbortClick(wxCommandEvent& event);
 
-	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetExtraLong()); };
+	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
 	
-	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetExtraLong()); };
+	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetPayload<double long>()); };
 	
 	void OnSetNewFile(wxThreadEvent& event) { SetNewFile(event.GetString().ToStdString()); };
 	
-	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetExtraLong()); };
+	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetPayload<double long>()); };
 	
-	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetExtraLong()); };
+	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<double long>()); };
 	
 	void OnClientEvent(wxThreadEvent& event);
+
 	wxDECLARE_EVENT_TABLE();
 public:
 	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, bool isDir);
@@ -70,16 +70,16 @@ public:
 	void SetTimeFile(long sec);
 
 	//passare la dimensione del direttorio
-	void SetMaxDir(long dim);
+	void SetMaxDir(double long dim);
 
 	//passare il file attualmente in trasferimento (da usare solo in modalità direttorio!)
 	void SetNewFile(std::string path);
 
 	//passare la dimensione del file
-	void SetMaxFile(long dim);
+	void SetMaxFile(double long dim);
 
 	//passare la quantità di byte inviati
-	void IncFile(long dim);
+	void IncFile(double long dim);
 
 	//per testare se bisogna interrompere l'invio
 	bool testAbort() { return flagAbort.load(); }
