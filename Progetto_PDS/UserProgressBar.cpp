@@ -42,7 +42,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			5);
 
 		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
-		m_progDir = new wxGauge(this, wxID_ANY, 1000, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
+		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 
 		vDirSizer->Add(m_progDir, 1, wxALIGN_LEFT);
 
