@@ -349,11 +349,21 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 {
 	utente user = m_settings->getUtenteProprietario();
 	m_elencoUser->Clear();
+	bool first = true;
 	for (auto it : user.getUtentiOnline()) {
-		(*m_elencoUser) << it.getUsername() + " ";
+		if (first) {
+			(*m_elencoUser) << it.getUsername();
+			first = false;
+		}
+		else {
+			(*m_elencoUser) << ", " +  it.getUsername();
+		}
+		
 	}
-	if (m_elencoUser->IsEmpty())
+	if (m_elencoUser->IsEmpty()) {
 		(*m_elencoUser) << "Nessun utente connesso.";
+		first = true;
+	}
 }
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
@@ -411,13 +421,9 @@ void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 	int sel = m_status->GetSelection();
 	if (sel == 0) {
 		m_settings->setStatoOn();
-		m_textStato->SetLabel("online");
-		m_textStato->SetForegroundColour(wxT("blue"));
 	}
 	else {
 		m_settings->setStatoOff();
-		m_textStato->SetLabel("offline");
-		m_textStato->SetForegroundColour(wxT("red"));
 	}
 	UpdateIcon();
 	Update();
@@ -474,11 +480,9 @@ void MainFrame::OnMenuUICheckmark(wxCommandEvent& event)
 {
 	if (m_settings->getStato()) {
 		m_textStato->SetLabel("offline");
-		m_textStato->SetForegroundColour(wxT("red"));
 	}
 	else {
 		m_textStato->SetLabel("online");
-		m_textStato->SetForegroundColour(wxT("blue"));
 	}
 
 	UpdateIcon();
