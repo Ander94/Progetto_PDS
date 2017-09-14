@@ -1,5 +1,6 @@
 #include <wx/wx.h>
 #include <wx/taskbar.h>
+#include <wx/artprov.h>
 
 #include <shellapi.h>
 
@@ -125,7 +126,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
-	
 	m_contextMenu = new wxButton
 	(
 		this,
@@ -151,7 +151,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultSize
 	);
 
-	wxImage *img = new wxImage();
+	wxImage* img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage = new wxStaticBitmap
 	(
@@ -179,28 +179,37 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerImage->Add(m_userImage, flags);
 
 	wxSizer* sizerUserName = new wxBoxSizer(wxVERTICAL);
+	
+	wxSizer* sizerName = new wxBoxSizer(wxHORIZONTAL);
+
+	wxStaticBitmap* editIcon = new wxStaticBitmap(this, wxID_ANY, wxBITMAP_PNG(edit_icon));
 	m_nome = new wxTextCtrl
 	(
 		this,
 		USER_ID,
 		wxT("" + m_settings->getUserName()),
 		wxDefaultPosition,
-		wxSize(200, 30),
+		wxSize(170, 30),
 		wxNO_BORDER
 	);
-	m_nome->SetMaxLength(24);
+	m_nome->SetMaxLength(20);
 	m_nome->SetBackgroundColour(this->GetBackgroundColour());
 	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
-	sizerUserName->Add(m_nome, 0, wxALIGN_LEFT | wxLEFT, 10);
+	m_nome->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnLoseFocus, this);
 
-	wxStaticText *m_nomeLen = new wxStaticText
+	sizerName->Add(editIcon, 0, wxRIGHT, 3);
+	sizerName->Add(m_nome);
+
+	sizerUserName->Add(sizerName, 0, wxALL, 10);
+
+	/*wxStaticText *m_nomeLen = new wxStaticText
 	(
 		this,
 		USER_ID,
 		wxT(" Massimo 24 caratteri")
 	);
-	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f));
-	sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
+	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f));*/
+	//sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	sizerUserName->Add(m_changeImage, flags);
 
@@ -355,6 +364,13 @@ void MainFrame::OnChangeUsername(wxCommandEvent& event)
 	Update();
 }
 
+void MainFrame::OnLoseFocus(wxFocusEvent& event)
+{
+	m_nome->SetLabel(m_settings->getUserName());
+	event.Skip();
+	Update();
+}
+
 void MainFrame::OnImage(wxCommandEvent& event)
 {
 	wxFileDialog openFileDialog(this, _("Scegli un'immagine"), wxT("C:\\Users\\" + m_settings->getUserNamePc() + "\\Desktop\\"), "",
@@ -389,7 +405,6 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 	Update();
 	
 }
-
 
 void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
 {

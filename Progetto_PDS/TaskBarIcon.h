@@ -78,6 +78,7 @@ private:
 	void OnRadioBoxSalvataggio(wxCommandEvent&);	
 	void OnMenuUICheckmark(wxCommandEvent&);
 	void OnChangeUsername(wxCommandEvent&);
+	void OnLoseFocus(wxFocusEvent&);
 	void UpdateIcon();
 
 	wxDECLARE_EVENT_TABLE();
