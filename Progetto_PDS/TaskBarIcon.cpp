@@ -68,7 +68,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window")
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
-	
+	this->SetBackgroundColour(wxColor(*wxWHITE));
 	m_selectUser = NULL;
 	m_client = NULL;
 	m_server = NULL;
@@ -125,6 +125,21 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		wxDefaultPosition,
 		wxDefaultSize
 	);
+
+	wxImage* imgBut = new wxImage();
+	imgBut->LoadFile(m_settings->getGeneralPath() + "prova_bottone.png", wxBITMAP_TYPE_ANY, -1);
+	wxBitmapButton* m_prova = new wxBitmapButton
+	(
+		this,
+		SAVE_ID,
+		wxBitmap(imgBut->Scale(60, 20, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
+	);
+	m_prova->SetWindowStyle(wxNO_BORDER);
+	wxImage* imgButHov = new wxImage();
+	imgButHov->LoadFile(m_settings->getGeneralPath() + "prova_bottone_hover.png", wxBITMAP_TYPE_ANY, -1);
+	m_prova->SetBitmapHover(wxBitmap(imgButHov->Scale(60, 20, wxIMAGE_QUALITY_HIGH)));
+	m_prova->SetBackgroundColour(this->GetBackgroundColour());
 
 	m_contextMenu = new wxButton
 	(
@@ -212,9 +227,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	//sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	sizerUserName->Add(m_changeImage, flags);
-
+	sizerUserName->Add(m_prova, flags);
 	sizerImage->Add(sizerUserName, 0, wxALIGN_LEFT | wxLEFT, 10);
-
+	
 	wxSizer* sizerGrid = new wxFlexGridSizer(2, 20,20);
 	sizerGrid->Add(new wxStaticText
 	(

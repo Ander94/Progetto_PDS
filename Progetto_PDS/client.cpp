@@ -1,5 +1,4 @@
 #include "client.h"
-#include "timeout.h"
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
 
@@ -136,7 +135,8 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				write_some(s, buf_to_send, dim_write);
+				//write_some(s, buf_to_send, dim_write);
+				boost::asio::write(s, boost::asio::buffer(buf_to_send, dim_write));
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
@@ -192,7 +192,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	}
 	catch (std::exception e) {
 		wxQueueEvent(progBar, event.Clone());
-		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente " + utenteProprietario.getUsernameFromIp(ipAddr)+" sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 
@@ -435,8 +435,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
-				//boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
-				write_some(s, buf_to_send, dim_write);
+				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				//write_some(s, buf_to_send, dim_write);
 				
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 

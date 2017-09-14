@@ -6,7 +6,7 @@
 #include <ctime>
 #include <atomic>
 #include <Shlwapi.h>
-
+#include "timeout.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -15,7 +15,6 @@
 #include "sender.h"
 #include "ipcsetup.h"
 #include "IPCclient.h"
-#include "timeout.h"
 #include "MainApp.h"
 
 
