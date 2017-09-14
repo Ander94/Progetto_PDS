@@ -26,18 +26,6 @@ IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
-	//std::wstring str = argv[0];
-	//LPCTSTR data = str.c_str();
-
-	//ShellExecute(NULL,
-	//	TEXT("runas"),
-	//	data,
-	//	TEXT("prova"),
-	//	NULL,
-	//	SW_SHOWNORMAL
-	//);
-	
-	
 	//wxMessageBox(cwd, wxT("INFO"), wxOK | wxICON_INFORMATION);
 
 	//-------------------------------------------------------------------------------------------------
@@ -47,11 +35,12 @@ bool MainApp::OnInit()
 	try
 	{
 		setSettings(new Settings());
-		//std::wstring program = argv[0];
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
 		
+		//Concateno gli argomenti in una sola stringa
+		//Necessario per gestire eventuali spazi nei nomi di file o cartelle
 		std::string argument;
 		if (argc > 1)
 			for (int i = 1; i < argc; i++) {
@@ -65,7 +54,7 @@ bool MainApp::OnInit()
 			}
 
 		if (m_settings->StartClient()) {
-			//creo una finestra principale vuota, così può essere distrutta per ternimare l'applicazione
+			//creo una finestra principale vuota, così può essere distrutta per terminare l'applicazione correttamente
 			MainFrame* frame = new MainFrame();	
 			setFrame(frame);
 			SetTopWindow(frame);
