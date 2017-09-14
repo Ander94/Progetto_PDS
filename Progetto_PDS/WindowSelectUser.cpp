@@ -26,8 +26,8 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	this->SetIcon(wxIcon(share_icon));
 	m_settings = settings;
 	m_frame = dynamic_cast<MainFrame*>(parent);
-	m_ListaUtenti = std::list<UserSizer *>();  //utenti attualmente presenti nella finestra
-	m_MappaInvio = std::map<std::string, utente>();  //utenti attualmente selezionati
+	m_ListaUtenti = std::list<UserSizer *>();  
+	m_MappaInvio = std::map<std::string, utente>();  
 	m_ok = new wxButton(this, wxID_OK, "OK");
 	m_ok->SetDefault();
 	m_ok->Disable();
@@ -130,7 +130,7 @@ void WindowSelectUser::UpdateUI() {
 	else {
 		if (m_ListaUtenti.size() == 0)
 			m_sizerUsers->Remove(0); //tolgo lo spacer se presente
-		std::unique_ptr<std::vector<utente>> tmp = this->getListaInvio();
+		std::vector<utente> tmp = this->getListaInvio();
 		m_MappaInvio.clear();
 		std::vector<UserSizer *> tmp2(m_ListaUtenti.begin(), m_ListaUtenti.end());
 		m_ListaUtenti.clear();
@@ -143,7 +143,7 @@ void WindowSelectUser::UpdateUI() {
 					found = true;
 					m_ListaUtenti.push_back(it);
 					//"rieseguo" il click sugli utenti selezionati prima dell'aggiornamento
-					for (auto it3 : *tmp) {
+					for (auto it3 : tmp) {
 						if (it3.getIpAddr() == it->getIpAddr()) {
 							insertUtenteLista(it->getUser());
 							break;
@@ -162,15 +162,8 @@ void WindowSelectUser::UpdateUI() {
 			UserSizer *u = new UserSizer(this, m_settings, it);
 			m_ListaUtenti.push_back(u);
 			m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
-			////rieseguo il click sugli utenti selezionati prima dell'aggiornamento
-			//for (auto it2 : *tmp) {
-			//	if (it2.getUsername() == it.getUsername()) {
-			//		u->PerformClick();
-			//		break;
-			//	}
-			//}
 		}
-		tmp.reset();
+
 		n = m_ListaUtenti.size();
 	}
 
@@ -202,21 +195,16 @@ void WindowSelectUser::addUtente(utente user) {
 	m_ListaUtenti.push_back(u);
 	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
 	
-	//da rimuovere
-	this->Layout();
-	this->Fit();
-	this->Show();
+	this->Update();
 }
 
 //rimuove un utente dalla finsetra
 void WindowSelectUser::removeUtente(utente user) {
 	int i = 0;
 	std::string ip = user.getIpAddr();
-	//std::string name = user.getUsername();
 
 	for (auto it=m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++ ) {
 		if ((*it)->getIpAddr() == ip) {
-		//if ((*it)->getUsername() == name) {
 			this->m_ListaUtenti.erase(it);
 			m_sizerUsers->Remove(i);
 			break;
@@ -224,21 +212,17 @@ void WindowSelectUser::removeUtente(utente user) {
 		i++;
 	}
 	
-	//da rimuovere
-	this->Layout();
-	this->Fit();
-	this->Show();
+	this->Update();
 }
 
-//da usare con il metodo WindowSelectUser::OnOk per passare la lista di utenti 
-//selezionati per l'invio
-std::unique_ptr<std::vector<utente>> WindowSelectUser::getListaInvio()
+//da usare con il metodo WindowSelectUser::OnOk per passare la lista di utenti selezionati per l'invio
+std::vector<utente> WindowSelectUser::getListaInvio()
 {
-	std::unique_ptr<std::vector<utente>> lista(new std::vector<utente>());
+	std::vector<utente> lista;
 	for (auto it : m_MappaInvio)
-		lista->push_back(it.second);
+		lista.push_back(it.second);
 
-	return std::move(lista);
+	return lista;
 }
 
 

@@ -6,10 +6,15 @@
 
 class MyConnectionClient : public wxConnection
 {
-public:
-	virtual bool DoExecute(const void *data, size_t size, wxIPCFormat format) wxOVERRIDE;
-	virtual bool DoPoke(const wxString& item, const void* data, size_t size, wxIPCFormat format) wxOVERRIDE;
-	virtual bool OnDisconnect() wxOVERRIDE;
+//public:
+//	//Comunica al processo principale di mostrare la finestra principale
+//	virtual bool DoExecute(const void *data, size_t size, wxIPCFormat format) wxOVERRIDE;
+//
+//	//Passa al processo principale il path del file o del direttorio da inviare
+//	virtual bool DoPoke(const wxString& item, const void* data, size_t size, wxIPCFormat format) wxOVERRIDE;
+//
+//	//Termina la connessione
+//	virtual bool OnDisconnect() wxOVERRIDE;
 };
 
 class MyClient : public wxClient

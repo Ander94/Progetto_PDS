@@ -479,12 +479,11 @@ void MainFrame::OnContextMenu(wxCommandEvent& event)
 void MainFrame::OnMenuUICheckmark(wxCommandEvent& event)
 {
 	if (m_settings->getStato()) {
-		m_textStato->SetLabel("offline");
+		m_status->SetSelection(1);
 	}
 	else {
-		m_textStato->SetLabel("online");
+		m_status->SetSelection(0);
 	}
-
 	UpdateIcon();
 	Update();
 }
@@ -495,7 +494,7 @@ void MainFrame::UpdateIcon() {
 			"Sharing service\n"
 			"Clicca per iniziare a condividere file!"))
 		{
-			wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
+			wxLogError(wxT("Could not set icon."));
 		}
 	}
 	else {
@@ -503,7 +502,7 @@ void MainFrame::UpdateIcon() {
 			"Sharing service\n"
 			"Clicca per iniziare a condividere file!"))
 		{
-			wxLogError(wxT("Could not set icon."));	//TODO gestire l'errore
+			wxLogError(wxT("Could not set icon."));
 		}
 	}
 }
@@ -575,25 +574,6 @@ void TaskBarIcon::OnMenuExit(wxCommandEvent&)
 {
 	gs_dialog->Close(true);
 }
-
-//void TaskBarIcon::OnMenuCheckmarkOnline(wxCommandEvent&) {
-//	m_settings->setStatoOn();
-//	wxQueueEvent(gs_dialog, new wxCommandEvent(UPDATE_EVENT, RADIO_ID1));
-//}
-//
-//void TaskBarIcon::OnMenuUICheckmarkOnline(wxUpdateUIEvent &event)
-//{
-//	event.Check(!m_settings->getStato());
-//}
-//
-//void TaskBarIcon::OnMenuCheckmarkOffline(wxCommandEvent&) {
-//	m_settings->setStatoOff();
-//	wxQueueEvent(gs_dialog, new wxCommandEvent(UPDATE_EVENT, RADIO_ID1));
-//}
-//void TaskBarIcon::OnMenuUICheckmarkOffline(wxUpdateUIEvent &event)
-//{
-//	event.Check(m_settings->getStato());
-//}
 
 void TaskBarIcon::OnMenuStato(wxCommandEvent&) {
 	m_settings->getStato() ? m_settings->setStatoOn() : m_settings->setStatoOff();

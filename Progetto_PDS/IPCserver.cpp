@@ -48,7 +48,8 @@ MyConnectionServer::OnExecute(const wxString& topic,
 	size_t size,
 	wxIPCFormat format)
 {
-	m_frame->Show();
+	m_frame->Show(true);
+	m_frame->Iconize(false);
 	return true;
 }
 

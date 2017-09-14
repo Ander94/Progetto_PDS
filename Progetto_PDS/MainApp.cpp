@@ -54,28 +54,28 @@ bool MainApp::OnInit()
 			}
 
 		if (m_settings->StartClient()) {
+			//Se entro qua, significa che c'è già un processo aperto. 
+			//Se ho ricevuto un path, lo invio al processo in esecuzione e termino senza fare altro.
+
 			//creo una finestra principale vuota, così può essere distrutta per terminare l'applicazione correttamente
 			MainFrame* frame = new MainFrame();	
-			setFrame(frame);
 			SetTopWindow(frame);
 			
 			if (argc == 1) {
-				//è stata aperta una nuova istanza, ma non è stato passato nessun argomento
-				//si apre la finestra principare dell'istanza già in esecuzione
 				m_settings->GetClient()->GetConnection()->Execute("");
 			}
 			else {
-				//è stato ricevuto un path, si notifica l'istanza in esecuzione
 				m_settings->GetClient()->GetConnection()->Poke(argument, "path", 5);
 			}
 			m_settings->GetClient()->Disconnect();
 			m_settings->DeleteClient();
-			frame->Destroy();  //necessario, altrimenti l'applicazione non termina correttamente
+			frame->Destroy();
 		}
 		else {
-			//avvio l'applicazione per la prima volta
+			//se entro qua, significa che non ci sono altri processi aperti
 			m_settings->Init(path, wxGetUserName().ToStdString());
 			
+			//i privilegi di amministratore servono per modificare le chiavi di registro
 			if (argument == "_ADMIN_PRIVILEGES") {
 				m_settings->setAdmin();
 				if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
@@ -87,15 +87,15 @@ bool MainApp::OnInit()
 				
 
 			MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
-			setFrame(frame);
 			frame->SetIcon(wxIcon(share_icon));
 			SetTopWindow(frame);
 
 			frame->Show();
 
+			//Inizializzazione dei vari threads
 			m_settings->setExitRecive(false);
 			m_settings->setExitSend(false);
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), GetFrame(), boost::ref(m_settings->getIoService()));
+			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), frame, boost::ref(m_settings->getIoService()));
 			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->getExitRecive()));
 			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, boost::ref(m_settings->getUserName()), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
 			m_settings->sendAliveThread = boost::thread(m_settings->SendAlive, boost::ref(m_settings->getUtenteProprietario()), boost::ref(m_settings->getExitSend()));
@@ -109,7 +109,7 @@ bool MainApp::OnInit()
 	}
 	catch (const std::exception& e)
 	{
-		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);	//TODO gestione errori
 	}
 	
 	return true;
