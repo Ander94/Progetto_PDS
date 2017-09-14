@@ -68,7 +68,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window")
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
-	this->SetBackgroundColour(wxColor(*wxWHITE));
+	this->SetBackgroundColour(wxColour(242,244,247));
+	this->SetFont(this->GetFont().Scaled(1.1f));
 	m_selectUser = NULL;
 	m_client = NULL;
 	m_server = NULL;
@@ -113,58 +114,79 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 		2,
 		items,
 		0,
-		wxRA_SPECIFY_ROWS
+		wxRA_SPECIFY_ROWS 
 	);
 	m_saved->SetSelection(m_settings->getAutoSaved());
 	
-	m_changeImage = new wxButton
+	wxImage* cambia_immagine = new wxImage();
+	cambia_immagine->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia_immagine.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* cambia_immagine_hover = new wxImage();
+	cambia_immagine_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia_immagine_hover.png", wxBITMAP_TYPE_ANY, -1);
+	int lung = 128, alt = 31;
+	m_changeImage = new wxBitmapButton
 	(
 		this,
 		IMG_ID,
-		"CAMBIA IMMAGINE",
-		wxDefaultPosition,
-		wxDefaultSize
-	);
-
-	wxImage* imgBut = new wxImage();
-	imgBut->LoadFile(m_settings->getGeneralPath() + "prova_bottone.png", wxBITMAP_TYPE_ANY, -1);
-	wxBitmapButton* m_prova = new wxBitmapButton
-	(
-		this,
-		SAVE_ID,
-		wxBitmap(imgBut->Scale(60, 20, wxIMAGE_QUALITY_HIGH)),
+		wxBitmap(cambia_immagine->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
 		wxDefaultPosition
 	);
-	m_prova->SetWindowStyle(wxNO_BORDER);
-	wxImage* imgButHov = new wxImage();
-	imgButHov->LoadFile(m_settings->getGeneralPath() + "prova_bottone_hover.png", wxBITMAP_TYPE_ANY, -1);
-	m_prova->SetBitmapHover(wxBitmap(imgButHov->Scale(60, 20, wxIMAGE_QUALITY_HIGH)));
-	m_prova->SetBackgroundColour(this->GetBackgroundColour());
-
-	m_contextMenu = new wxButton
+	m_changeImage->SetWindowStyle(wxNO_BORDER);
+	
+	m_changeImage->SetBitmapHover(wxBitmap(cambia_immagine_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_changeImage->SetBackgroundColour(this->GetBackgroundColour());
+	lung = 91, alt = 26;
+	wxImage* aggiungi = new wxImage();
+	aggiungi->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* aggiungi_hover = new wxImage();
+	m_contextMenu = new wxBitmapButton
 	(
 		this,
 		CONTEXT_ID,
-		"",
+		wxBitmap(wxBitmap(aggiungi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH))),
 		wxDefaultPosition,
 		wxSize(90, 30)
 	);
-	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
-		m_contextMenu->SetLabel("AGGIUNGI");
-	else
-		m_contextMenu->SetLabel("RIMUOVI");
-	wxImage *uac = new wxImage();
-	uac->LoadFile(m_settings->getGeneralPath() + "uac_icon.png", wxBITMAP_TYPE_ANY, -1);
-	m_contextMenu->SetBitmap(wxBitmap(uac->Scale(16, 16, wxIMAGE_QUALITY_HIGH)));
+	
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
+		wxImage* aggiungi = new wxImage();
+		aggiungi->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi.png", wxBITMAP_TYPE_ANY, -1);
+		wxImage* aggiungi_hover = new wxImage();
+		aggiungi_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi_hover.png", wxBITMAP_TYPE_ANY, -1);
+		m_contextMenu->SetWindowStyle(wxNO_BORDER);
+		m_contextMenu->SetBitmap(wxBitmap(aggiungi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBitmapHover(wxBitmap(aggiungi_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBackgroundColour(this->GetBackgroundColour());
+	}
+	else {
+		wxImage* rimuovi = new wxImage();
+		rimuovi->LoadFile(m_settings->getGeneralPath() + "bottoni\\rimuovi.png", wxBITMAP_TYPE_ANY, -1);
+		wxImage* rimuovi_hover = new wxImage();
+		rimuovi_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\rimuovi_hover.png", wxBITMAP_TYPE_ANY, -1);
+		m_contextMenu->SetWindowStyle(wxNO_BORDER);
+		m_contextMenu->SetBitmap(wxBitmap(rimuovi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBitmapHover(wxBitmap(rimuovi_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBackgroundColour(this->GetBackgroundColour());
+	}
+	
 
-	m_changeSavePath = new wxButton
+
+	wxImage* cambia = new wxImage();
+	cambia->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* cambia_hover = new wxImage();
+	cambia_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia_hover.png", wxBITMAP_TYPE_ANY, -1);
+	lung = 80, alt = 25;
+	m_changeSavePath = new wxBitmapButton
 	(
 		this,
 		SAVE_ID,
-		"     CAMBIA    ",
-		wxDefaultPosition,
-		wxDefaultSize
+		wxBitmap(cambia->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
 	);
+	m_changeSavePath->SetWindowStyle(wxNO_BORDER);
+	m_changeSavePath->SetBitmapHover(wxBitmap(cambia_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_changeSavePath->SetBackgroundColour(this->GetBackgroundColour());
+
+
 
 	wxImage* img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
@@ -227,7 +249,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	//sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	sizerUserName->Add(m_changeImage, flags);
-	sizerUserName->Add(m_prova, flags);
 	sizerImage->Add(sizerUserName, 0, wxALIGN_LEFT | wxLEFT, 10);
 	
 	wxSizer* sizerGrid = new wxFlexGridSizer(2, 20,20);
@@ -283,12 +304,80 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) : wxFrame(
 	sizerTop->Add(m_elencoUser, flags);
 
 	wxSizer * const sizerBtns1 = new wxBoxSizer(wxHORIZONTAL);
-	sizerBtns1->Add(new wxButton(this, wxID_FILE, wxT("Invia file")), flags);
-	sizerBtns1->Add(new wxButton(this, wxID_FILE1, wxT("Invia cartella")), flags);
+
+	wxImage* inviaFile = new wxImage();
+	inviaFile->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_file.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* inviaFile_hover = new wxImage();
+	inviaFile_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_file_hover.png", wxBITMAP_TYPE_ANY, -1);
+	lung = 80, alt = 25;
+	wxBitmapButton * m_inviaFile = new wxBitmapButton
+	(
+		this,
+		wxID_FILE,
+		wxBitmap(inviaFile->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
+	);
+	m_inviaFile->SetWindowStyle(wxNO_BORDER);
+	m_inviaFile->SetBitmapHover(wxBitmap(inviaFile_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_inviaFile->SetBackgroundColour(this->GetBackgroundColour());
+
+	lung = 90, alt = 25;
+	wxImage* inviaCartella = new wxImage();
+	inviaCartella->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_cartella.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* inviaCartella_hover = new wxImage();
+	inviaCartella_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_cartella_hover.png", wxBITMAP_TYPE_ANY, -1);
+	lung = 80, alt = 25;
+	wxBitmapButton * m_inviaCartella = new wxBitmapButton
+	(
+		this,
+		wxID_FILE1,
+		wxBitmap(inviaCartella->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
+	);
+	m_inviaCartella->SetWindowStyle(wxNO_BORDER);
+	m_inviaCartella->SetBitmapHover(wxBitmap(inviaCartella_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_inviaCartella->SetBackgroundColour(this->GetBackgroundColour());
+
+
+	sizerBtns1->Add(m_inviaFile, flags);
+	sizerBtns1->Add(m_inviaCartella, flags);
 
 	wxSizer * const sizerBtns2 = new wxBoxSizer(wxHORIZONTAL);
-	sizerBtns2->Add(new wxButton(this, wxID_OK, wxT("Nascondi")), flags);
-	sizerBtns2->Add(new wxButton(this, wxID_EXIT, wxT("Esci")), flags);
+
+	wxImage* nascondi = new wxImage();
+	nascondi->LoadFile(m_settings->getGeneralPath() + "bottoni\\nascondi.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* nascondi_hover = new wxImage();
+	nascondi_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\nascondi_hover.png", wxBITMAP_TYPE_ANY, -1);
+	lung = 80, alt = 25;
+	wxBitmapButton * m_nascondi = new wxBitmapButton
+	(
+		this,
+		wxID_OK,
+		wxBitmap(nascondi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
+	);
+	m_nascondi->SetWindowStyle(wxNO_BORDER);
+	m_nascondi->SetBitmapHover(wxBitmap(nascondi_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_nascondi->SetBackgroundColour(this->GetBackgroundColour());
+
+
+	wxImage* esci = new wxImage();
+	esci->LoadFile(m_settings->getGeneralPath() + "bottoni\\esci.png", wxBITMAP_TYPE_ANY, -1);
+	wxImage* esci_hover = new wxImage();
+	esci_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\esci_hover.png", wxBITMAP_TYPE_ANY, -1);
+	lung = 65, alt = 26;
+	wxBitmapButton * m_esci = new wxBitmapButton
+	(
+		this,
+		wxID_EXIT,
+		wxBitmap(esci->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)),
+		wxDefaultPosition
+	);
+	m_esci->SetWindowStyle(wxNO_BORDER);
+	m_esci->SetBitmapHover(wxBitmap(esci_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+	m_esci->SetBackgroundColour(this->GetBackgroundColour());
+	sizerBtns2->Add(m_nascondi, flags);
+	sizerBtns2->Add(m_esci, flags);
 
 	sizerTop->Add(sizerBtns1, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 	sizerTop->AddStretchSpacer()->SetMinSize(200, 50);
@@ -482,11 +571,27 @@ void MainFrame::OnContextMenu(wxCommandEvent& event)
 		m_settings->AddRegKey();
 	else
 		m_settings->RemRegKey();
-
-	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
-		m_contextMenu->SetLabel("AGGIUNGI");
-	else
-		m_contextMenu->SetLabel("RIMUOVI");
+	int lung = 91, alt = 26;
+	if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
+		wxImage* aggiungi = new wxImage();
+		aggiungi->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi.png", wxBITMAP_TYPE_ANY, -1);
+		wxImage* aggiungi_hover = new wxImage();
+		aggiungi_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi_hover.png", wxBITMAP_TYPE_ANY, -1);
+		m_contextMenu->SetWindowStyle(wxNO_BORDER);
+		m_contextMenu->SetBitmap(wxBitmap(aggiungi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBitmapHover(wxBitmap(aggiungi_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBackgroundColour(this->GetBackgroundColour());
+	}
+	else {
+		wxImage* rimuovi = new wxImage();
+		rimuovi->LoadFile(m_settings->getGeneralPath() + "bottoni\\rimuovi.png", wxBITMAP_TYPE_ANY, -1);
+		wxImage* rimuovi_hover = new wxImage();
+		rimuovi_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\rimuovi_hover.png", wxBITMAP_TYPE_ANY, -1);
+		m_contextMenu->SetWindowStyle(wxNO_BORDER);
+		m_contextMenu->SetBitmap(wxBitmap(rimuovi->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBitmapHover(wxBitmap(rimuovi_hover->Scale(lung, alt, wxIMAGE_QUALITY_HIGH)));
+		m_contextMenu->SetBackgroundColour(this->GetBackgroundColour());
+	}
 
 	Update();
 }

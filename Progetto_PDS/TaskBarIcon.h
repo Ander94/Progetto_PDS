@@ -53,9 +53,9 @@ private:
 	class MyServer* m_server;
 	wxTimer* m_timer;
 	wxTextCtrl* m_elencoUser;
-	wxButton* m_changeImage;
-	wxButton* m_changeSavePath;
-	wxButton* m_contextMenu;
+	wxBitmapButton* m_changeImage;
+	wxBitmapButton* m_changeSavePath;
+	wxBitmapButton* m_contextMenu;
 	wxStaticBitmap* m_userImage;
 	wxRadioBox* m_status;
 	wxRadioBox* m_saved;
