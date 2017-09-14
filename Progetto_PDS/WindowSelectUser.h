@@ -15,8 +15,8 @@ class WindowSelectUser : public wxFrame
 private:
 	Settings* m_settings;
 	class MainFrame* m_frame;
-	std::map <std::string, utente> m_MappaInvio;
-	std::list <class UserSizer *> m_ListaUtenti;
+	std::map <std::string, utente> m_MappaInvio;	//utenti attualmente selezionati
+	std::list <class UserSizer *> m_ListaUtenti;	//utenti attualmente presenti nella finestra
 	wxButton* m_ok;
 	wxButton* m_cancel;
 	wxGridSizer* m_sizerUsers;
@@ -37,7 +37,7 @@ public:
 	void addUtente(utente user);
 	void removeUtente(utente user);
 	
-	std::unique_ptr<std::vector<utente>> getListaInvio();
+	std::vector<utente> getListaInvio();
 
 	//per m_MappaInvio, da usare in UserSizer
 	void insertUtenteLista(utente user);

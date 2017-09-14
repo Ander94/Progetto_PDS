@@ -46,18 +46,18 @@ MyClient::~MyClient()
 // ----------------------------------------------------------------------------
 
 
-bool MyConnectionClient::OnDisconnect()
-{
-	return true;
-}
-
-bool MyConnectionClient::DoExecute(const void *data, size_t size, wxIPCFormat format)
-{
-	bool retval = wxConnection::DoExecute(data, size, format);
-	return retval;
-}
-
-bool MyConnectionClient::DoPoke(const wxString& item, const void *data, size_t size, wxIPCFormat format)
-{
-	return wxConnection::DoPoke(item, data, size, format);
-}
+//bool MyConnectionClient::OnDisconnect()
+//{
+//	return true;
+//}
+//
+//bool MyConnectionClient::DoExecute(const void *data, size_t size, wxIPCFormat format)
+//{
+//	bool retval = wxConnection::DoExecute(data, size, format);
+//	return retval;
+//}
+//
+//bool MyConnectionClient::DoPoke(const wxString& item, const void *data, size_t size, wxIPCFormat format)
+//{
+//	return wxConnection::DoPoke(item, data, size, format);
+//}

@@ -16,7 +16,7 @@ wxEND_EVENT_TABLE()
 
 
 
-WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::unique_ptr<std::vector<utente>> listaUtenti, bool isSending)
+WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::vector<utente> listaUtenti, bool isSending)
 	: wxFrame(parent, wxID_ANY, wxT("Trasferimenti in corso"), wxDefaultPosition, wxDefaultSize)
 {
 	m_frame = dynamic_cast<MainFrame*>(parent);
@@ -26,7 +26,7 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 	m_isSending = isSending;
 	
 	//creo le barre di avanzamento
-	for (auto it : *listaUtenti) {
+	for (auto it : listaUtenti) {
 		if (m_CountUtenti!=0)
 			m_sizer->Add(new wxStaticLine(this));
 

@@ -21,7 +21,7 @@ private:
 	void OnCloseWindow(wxCloseEvent& event);
 	wxDECLARE_EVENT_TABLE();
 public:
-	WindowProgressBar(wxWindow* parent, Settings* settings, std::unique_ptr<std::vector<utente>> listaUtenti, bool isSending);
+	WindowProgressBar(wxWindow* parent, Settings* settings, std::vector<utente> listaUtenti, bool isSending);
 	void StartSending(); //da usare dopo la creazione della finestra per chiamare i thread di invio
 	//da usare quando termina (o viene abortito) un trasferimento
 	void decreseCountUtenti();
