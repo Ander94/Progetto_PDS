@@ -37,7 +37,10 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 		wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END
 	);
 	m_text->SetFont((m_text->GetFont()).Larger());
-	
+	if (m_text->IsEllipsized())
+		m_text->SetToolTip(m_utente.getUsername());
+
+
 	wxBoxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
 
 	sizerTop->Add(m_button, 0, wxALIGN_CENTER);
