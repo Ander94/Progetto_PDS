@@ -42,7 +42,9 @@ private:
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
 
-	void OnAbortClick(wxCommandEvent& event);
+	void OnAbortClick(wxCommandEvent& event);	//l'utente ha interrotto il trasferimento
+
+	void OnClientEvent(wxThreadEvent& event);	//il thread ha segnalato la fine del trasferimento
 
 	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
 	
@@ -53,8 +55,6 @@ private:
 	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetPayload<double long>()); };
 	
 	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<double long>()); };
-	
-	void OnClientEvent(wxThreadEvent& event);
 
 	wxDECLARE_EVENT_TABLE();
 public:

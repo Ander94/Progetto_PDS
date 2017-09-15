@@ -13,30 +13,30 @@ wxBEGIN_EVENT_TABLE(WindowProgressBar, wxFrame)
 EVT_CLOSE(WindowProgressBar::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
-
-
-
 WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::vector<utente> listaUtenti, bool isSending)
 	: wxFrame(parent, wxID_ANY, wxT("Trasferimenti in corso"), wxDefaultPosition, wxDefaultSize)
 {
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_settings = settings;
-	wxBoxSizer *m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_CountUtenti = 0;
 	m_isSending = isSending;
 	
-	//creo le barre di avanzamento
+	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+	
+	/*
+		Creazione barre di avanzamento e inserimento nel sizer
+	*/
 	for (auto it : listaUtenti) {
 		if (m_CountUtenti!=0)
-			m_sizer->Add(new wxStaticLine(this));
+			topSizer->Add(new wxStaticLine(this));
 
-		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), it.getIpAddr(),m_settings->getIsDir());
+		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), it.getIpAddr(), m_settings->getIsDir());
 		m_ListaUtenti.push_back(u);
-		m_sizer->Add(u, 1, wxEXPAND);
+		topSizer->Add(u, 1, wxEXPAND);
 		this->m_CountUtenti++;
 	}
 
-	this->SetSizerAndFit(m_sizer);
+	this->SetSizerAndFit(topSizer);
 	this->Centre();
 	this->Show();
 }

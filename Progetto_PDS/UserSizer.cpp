@@ -7,7 +7,6 @@
 
 UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWindow(parent, wxID_ANY)
 {
-	//inizializzo alcuni parametri
 	this->SetMaxSize(wxSize(90, 120));
 	m_parentWindow = dynamic_cast<WindowSelectUser*>(parent);
 	m_utente = user;
@@ -18,8 +17,7 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 
 	wxImage *img = new wxImage();
 	img->LoadFile(filepath, wxBITMAP_TYPE_ANY, -1);
-	//img->LoadFile(filepath, wxBITMAP_TYPE_JPEG, -1);
-	//creo il pulsante con l'immagine dell'utente
+
 	m_button = new wxBitmapToggleButton
 	(
 		this, 
@@ -29,11 +27,6 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 		wxDefaultSize
 	);
 	
-	wxBoxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
-	
-	sizerTop->Add(m_button, 0, wxALIGN_CENTER);
-
-	//aggiungo il nome utente al sizer
 	m_text = new wxStaticText
 	(
 		this,
@@ -44,25 +37,22 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 		wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END
 	);
 	m_text->SetFont((m_text->GetFont()).Larger());
+	
+	wxBoxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
+
+	sizerTop->Add(m_button, 0, wxALIGN_CENTER);
 	sizerTop->Add(m_text, 1, wxALIGN_CENTER | wxALL, 5);
+
 	this->SetSizerAndFit(sizerTop);
 	
 	//collego l'evento click alla funzione OnUserClick
 	m_button->Bind(wxEVT_TOGGLEBUTTON, &UserSizer::OnUserClick, this);
 }
 
-UserSizer::~UserSizer() {
-}
-
-//seleziona o deseleziona utente
-void UserSizer::PerformClick() {
+//esegue il click dell'utente
+void UserSizer::OnUserClick(wxCommandEvent& event) {
 	if (m_button->GetValue())
 		m_parentWindow->insertUtenteLista(m_utente);
 	else
 		m_parentWindow->deleteUtenteLista(m_utente);
-}
-
-//esegue il click dell'utente
-void UserSizer::OnUserClick(wxCommandEvent& event) {
-	this->PerformClick();
 }

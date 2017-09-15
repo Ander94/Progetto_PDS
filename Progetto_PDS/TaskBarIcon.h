@@ -1,9 +1,5 @@
 #pragma once
 
-
-//#include "utente.h"
-#include "Settings.h"
-
 #include <wx/wx.h>
 #include <wx/taskbar.h>
 
@@ -11,10 +7,11 @@
 #include "WindowSaveFile.h"
 #include "WindowSelectUser.h"
 #include "ipcsetup.h"
-//#include "IPCserver.h"
 #include "IPCclient.h"
 #include "Settings.h"
 #include "client.h"
+
+
 // ----------------------------------------------------------------------------
 // Icona TaskBar
 // ----------------------------------------------------------------------------
@@ -27,13 +24,23 @@ public:
 	TaskBarIcon(class Settings* settings) {
 		m_settings = settings;
 	}
-
+	
+	//Ripristina finestra con doppio click
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
+
+	//Ripristina finestra
 	void OnMenuRestore(wxCommandEvent&);
+
+	//Chiude l'applicazione
 	void OnMenuExit(wxCommandEvent&);
+
+	//Cambia stato (online/offline)
 	void OnMenuStato(wxCommandEvent&);
+
+	//Aggiorna la grafica nella finestra principale
 	void OnMenuUIStato(wxUpdateUIEvent&);
 
+	//Crea menu popup
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
 	wxDECLARE_EVENT_TABLE();
@@ -64,7 +71,7 @@ private:
 	wxTextCtrl* m_nome;
 	TaskBarIcon *m_taskBarIcon;
 	
-
+	//Metodi collegati ai vari eventi possibili
 	void OnInviaFile(wxCommandEvent&);
 	void OnInviaDir(wxCommandEvent&);
 	void OnOK(wxCommandEvent&);
@@ -85,11 +92,10 @@ private:
 public:
 	MainFrame(const wxString& title, class Settings* settings);
 	MainFrame();
-	virtual ~MainFrame();
+	~MainFrame();
+
 	bool StartServer();
-	//bool StartClient();
 	class MyServer *GetServer() { return m_server; }
-	//MyClient *GetClient() { return m_client; }
 	Settings *GetSettings() { return m_settings; };
 
 	void SendFile(std::string path);

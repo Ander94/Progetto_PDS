@@ -113,13 +113,10 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 
 //interrompe trasferimento
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
-	//wxMessageBox(wxT("Invio interrotto qui!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
 	flagAbort.store(true);
 }
 
-//per la fine del trasferimento
 void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
-	//wxMessageBox(wxT("Trasferimento terminato!"), wxT("Attenzione"), wxOK | wxICON_EXCLAMATION, this);
 	m_abort->Disable();
 	this->m_parentWindow->decreseCountUtenti();
 }
