@@ -38,13 +38,13 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		//parte della cartella
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(3);
-		m_percDir = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
+		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
 		wxStaticText* m_Dir = new wxStaticText(this, wxID_ANY, "Avanzamento complessivo: ", wxDefaultPosition, wxDefaultSize);
 		m_percDir->SetFont((m_percDir->GetFont()));
 		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT | wxRIGHT, 35);
 		hDirSizer->Add(m_percDir, 1, wxALIGN_RIGHT);
 		hDirSizer->Add(
-			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
@@ -57,7 +57,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		//parte del file
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
-		m_percFile = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
+		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
 		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
@@ -70,7 +70,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
 		hFileSizer->Add(m_percFile, 1, wxALIGN_RIGHT);
 		hFileSizer->Add(
-			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
@@ -90,7 +90,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	else {
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
-		m_percFile = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize);
+		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(
@@ -100,7 +100,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
 		hFileSizer->Add(m_percFile, 1, wxALIGN_RIGHT);	
 		hFileSizer->Add(
-			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
