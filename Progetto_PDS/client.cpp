@@ -435,7 +435,10 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
+
+				//LEO: l'errore sull'invio multiplo viene dato se viene sostituito questo...
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				//Con questo, che è la funzione che trovi in timeout.cpp
 				//write_some(s, buf_to_send, dim_write);
 				
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
@@ -447,9 +450,6 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 					dif = (end - start).total_seconds();
 					//Valuto quanti secondi sono stati necessari per inviare dim_send byte.
 					sec = (int)((((size - dim_send) / ((dim_send)))*dif));
-					// dif : EVALUATE_TIME = sec : size-dim_send/BUFLEN pacchetti?
-
-					//start = boost::posix_time::second_clock::local_time();
 
 				}
 				calcola_tempo++;
@@ -465,10 +465,10 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			return throw std::invalid_argument("File non aperto correttamente.");
 		}
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		file_in.close();
-		return throw std::invalid_argument(e.what());
+		return throw std::invalid_argument("Attenzione: il trasferimento è stato interrotto.");
 	}
 }
 

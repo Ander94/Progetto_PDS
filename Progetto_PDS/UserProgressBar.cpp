@@ -12,7 +12,7 @@ EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
 EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
 wxEND_EVENT_TABLE()
 
-UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr,bool isDir) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
+UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
 {
 	flagAbort.store(false);
 	m_parentWindow = dynamic_cast<WindowProgressBar*>(parent);
@@ -24,7 +24,15 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	wxStaticText *username = new wxStaticText(this, wxID_ANY, m_utente, wxDefaultPosition, wxDefaultSize);
 	username->SetFont((username->GetFont()).Bold().Larger());
 	topSizer->Add(username, 0, wxALIGN_LEFT | wxALL, 3);
-	m_abort = new wxButton(this, wxID_CANCEL);
+
+	wxBitmap* cancel = new wxBitmap();
+	cancel->LoadFile(generalPath + "bottoni\\annulla.png", wxBITMAP_TYPE_ANY);
+	wxBitmap* cancel_hover = new wxBitmap();
+	cancel_hover->LoadFile(generalPath + "bottoni\\annulla_hover.png", wxBITMAP_TYPE_ANY);
+	m_abort = new wxBitmapButton(this, wxID_CANCEL, *cancel, wxDefaultPosition, wxDefaultSize);
+	m_abort->SetWindowStyle(wxNO_BORDER);
+	m_abort->SetBackgroundColour(this->GetBackgroundColour());
+	m_abort->SetBitmapHover(*cancel_hover);
 
 	if (isDir) {
 		//parte della cartella

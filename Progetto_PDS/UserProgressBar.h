@@ -23,7 +23,7 @@ class UserProgressBar : public wxWindow
 {
 private:
 	class WindowProgressBar *m_parentWindow;
-	wxButton *m_abort;
+	wxBitmapButton *m_abort;
 	wxStaticText* m_nameFile;
 	//tempo e percentuali
 	wxStaticText *m_percDir;
@@ -58,7 +58,7 @@ private:
 
 	wxDECLARE_EVENT_TABLE();
 public:
-	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir);
+	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath);
 
 	std::string GetUsername() { return m_utente; }
 	std::string GetIpAddr() { return m_ipAddr; }

@@ -348,7 +348,9 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
+				//LEO: l'errore sulla ricezione multipla viene dato se viene sostituito questo...
 				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+				//Con questo, che è la funzione che trovi in timeout.cpp
 				//dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
@@ -363,11 +365,11 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		//In tal caso vuol dire che ho riscontrato qualche problema 
 		file_out.close();
 		boost::filesystem::remove(fileName);
-		return throw std::invalid_argument(e.what());
+		return throw std::invalid_argument("Attenzione: il trasferimento è stato interrotto.");
 	}
 }
