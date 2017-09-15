@@ -13,7 +13,7 @@
 #include "MainApp.h"
 #include "protoType.h"
 #include <fstream>
-#include <filesystem> //per la funzione "copy"
+#include <filesystem>
 
 #define	SIZE 100 //dimensione immagine in pixel
 
@@ -129,6 +129,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	);
 	m_saved->SetSelection(m_settings->getAutoSaved());
 	
+	/*
+		Bottone cambia immagine profilo
+	*/
 	wxBitmap* cambia_immagine = new wxBitmap();
 	cambia_immagine->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia_immagine.png", wxBITMAP_TYPE_ANY);
 	wxBitmap* cambia_immagine_hover = new wxBitmap();
@@ -144,6 +147,10 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_changeImage->SetWindowStyle(wxNO_BORDER);
 	m_changeImage->SetBitmapHover(*cambia_immagine_hover);
 	m_changeImage->SetBackgroundColour(this->GetBackgroundColour());
+	
+	/*
+		Bottone gestione scorciatoia context menu
+	*/
 	int lung = 91, alt = 26;
 	wxBitmap* aggiungi = new wxBitmap();
 	aggiungi->LoadFile(m_settings->getGeneralPath() + "bottoni\\aggiungi.png", wxBITMAP_TYPE_ANY);
@@ -174,6 +181,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 		m_contextMenu->SetBitmapHover(*rimuovi_hover);
 	}
 	
+	/*
+		Bottone modifica path autosalvataggio
+	*/
 	wxBitmap* cambia = new wxBitmap();
 	cambia->LoadFile(m_settings->getGeneralPath() + "bottoni\\cambia.png", wxBITMAP_TYPE_ANY);
 	wxBitmap* cambia_hover = new wxBitmap();
@@ -235,77 +245,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
 	m_nome->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnLoseFocus, this);
 
-	sizerName->Add(editIcon, 0, wxRIGHT, 3);
-	sizerName->Add(m_nome);
-
-	sizerUserName->Add(sizerName, 0, wxALL, 10);
-
-	/*wxStaticText *m_nomeLen = new wxStaticText
-	(
-		this,
-		USER_ID,
-		wxT(" Massimo 24 caratteri")
-	);
-	m_nomeLen->SetFont(m_nomeLen->GetFont().Italic().Scaled(0.9f));*/
-	//sizerUserName->Add(m_nomeLen, 0, wxALIGN_LEFT | wxLEFT, 10);
-	
-	sizerUserName->Add(m_changeImage, flags);
-	sizerImage->Add(sizerUserName, 0, wxALIGN_LEFT | wxLEFT, 10);
-	
-	wxSizer* sizerGrid = new wxFlexGridSizer(2, 20,20);
-	sizerGrid->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		wxT("Scorciatoia nel context menù")
-	), 0, wxALIGN_CENTRE_VERTICAL);
-	sizerGrid->Add(m_contextMenu);
-
-	wxSizer* sizerText = new wxBoxSizer(wxHORIZONTAL);
-	sizerText->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		wxT("Salva in: ")
-	), 0, wxALIGN_CENTER_VERTICAL);
-	m_textSavePath = new wxStaticText
-	(
-		this, 
-		wxID_ANY, 
-		m_settings->getSavePath(), 
-		wxDefaultPosition,
-		wxDefaultSize,
-		wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START
-	);
-	sizerText->Add(m_textSavePath);
-	sizerGrid->Add(sizerText, 0, wxALIGN_CENTER_VERTICAL);
-	sizerGrid->Add(m_changeSavePath);
-
-	wxSizer* sizerBox = new wxBoxSizer(wxHORIZONTAL);
-	sizerBox->Add(m_status, flags);
-	sizerBox->Add(m_saved, flags);
-
-	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
-
-	sizerTop->Add(sizerImage, flags);
-
-	//sizerTop->Add(m_textStato, wxLEFT, 10);
-
-	sizerTop->Add(sizerBox, flags);
-
-	sizerTop->Add(sizerGrid, flags);
-
-	sizerTop->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		wxT("Utenti attualmente online:")
-	), flags);
-
-	sizerTop->Add(m_elencoUser, flags);
-
-	wxSizer * const sizerBtns1 = new wxBoxSizer(wxHORIZONTAL);
-
+	/*
+		Bottone invia file
+	*/
 	wxBitmap* inviaFile = new wxBitmap();
 	inviaFile->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_file.png", wxBITMAP_TYPE_ANY);
 	wxBitmap* inviaFile_hover = new wxBitmap();
@@ -321,6 +263,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_inviaFile->SetBitmapHover(*inviaFile_hover);
 	m_inviaFile->SetBackgroundColour(this->GetBackgroundColour());
 
+	/*
+		Bottone invia cartella
+	*/
 	lung = 90, alt = 25;
 	wxBitmap* inviaCartella = new wxBitmap();
 	inviaCartella->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_cartella.png", wxBITMAP_TYPE_ANY);
@@ -338,11 +283,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_inviaCartella->SetBackgroundColour(this->GetBackgroundColour());
 
 
-	sizerBtns1->Add(m_inviaFile, flags);
-	sizerBtns1->Add(m_inviaCartella, flags);
-
-	wxSizer * const sizerBtns2 = new wxBoxSizer(wxHORIZONTAL);
-
+	/*
+		Bottone nascondi finestra principale
+	*/
 	wxBitmap* nascondi = new wxBitmap();
 	nascondi->LoadFile(m_settings->getGeneralPath() + "bottoni\\nascondi.png", wxBITMAP_TYPE_ANY);
 	wxBitmap* nascondi_hover = new wxBitmap();
@@ -358,7 +301,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_nascondi->SetBitmapHover(*nascondi_hover);
 	m_nascondi->SetBackgroundColour(this->GetBackgroundColour());
 
-
+	/*
+		Bottone chiusura applicazione
+	*/
 	wxBitmap* esci = new wxBitmap();
 	esci->LoadFile(m_settings->getGeneralPath() + "bottoni\\esci.png", wxBITMAP_TYPE_ANY);
 	wxBitmap* esci_hover = new wxBitmap();
@@ -419,8 +364,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	wxSizer* sizerBtns1 = new wxBoxSizer(wxHORIZONTAL);
 	wxSizer* sizerBtns2 = new wxBoxSizer(wxHORIZONTAL);
 
-	
-	sizerName->Add(editIcon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
+	sizerName->Add(editIcon, 0, wxRIGHT, 3);
 	sizerName->Add(m_nome);
 
 	sizerUserName->Add(sizerName, 0, wxALL, 10);
