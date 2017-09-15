@@ -212,6 +212,8 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 		wxDefaultSize,
 		wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START
 	);
+	m_textSavePath->SetToolTip(m_settings->getSavePath());
+	m_textSavePath->SetMaxSize(wxSize(200, 50));
 
 	/*
 		Immagine profilo
@@ -243,6 +245,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_nome->SetMaxLength(20);
 	m_nome->SetBackgroundColour(this->GetBackgroundColour());
 	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
+	m_nome->SetToolTip("Clicca per modificare il nome utente");
 	m_nome->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnLoseFocus, this);
 
 	/*
@@ -546,6 +549,7 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 		return;     // the user changed idea...
 	m_settings->setSavePath(selectDirDialog.GetPath().ToStdString());
 	m_textSavePath->SetLabel(selectDirDialog.GetPath());
+	m_textSavePath->SetToolTip(selectDirDialog.GetPath());
 	Update();
 	
 }
