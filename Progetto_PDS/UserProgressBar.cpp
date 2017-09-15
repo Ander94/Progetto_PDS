@@ -44,7 +44,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT | wxRIGHT, 35);
 		hDirSizer->Add(m_percDir, 1, wxALIGN_RIGHT);
 		hDirSizer->Add(
-			new wxStaticText(this, wxID_ANY, " %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
@@ -70,7 +70,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
 		hFileSizer->Add(m_percFile, 1, wxALIGN_RIGHT);
 		hFileSizer->Add(
-			new wxStaticText(this, wxID_ANY, " %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
@@ -100,7 +100,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		hFileSizer->Add(m_timeFile, 1, wxALIGN_LEFT);
 		hFileSizer->Add(m_percFile, 1, wxALIGN_RIGHT);	
 		hFileSizer->Add(
-			new wxStaticText(this, wxID_ANY, " %", wxDefaultPosition, wxDefaultSize),
+			new wxStaticText(this, wxID_ANY, "  %", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
