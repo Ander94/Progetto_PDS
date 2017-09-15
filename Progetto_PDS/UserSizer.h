@@ -15,15 +15,12 @@ private:
 	wxBitmapToggleButton* m_button;
 	Settings* m_settings;
 
-	//riferimento all'utente, valutere shared_ptr
 	utente m_utente;
 
-	void OnUserClick(wxCommandEvent& event);
+	void OnUserClick(wxCommandEvent&);
 public:
 	UserSizer(wxWindow* parent, Settings* settings, utente &user);
-	~UserSizer();
 	
-	void UserSizer::PerformClick();
 	std::string getIpAddr() { return m_utente.getIpAddr(); }
 	std::string getUsername() { return m_utente.getUsername(); }
 	utente getUser() { return m_utente; }

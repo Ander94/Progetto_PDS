@@ -1,12 +1,10 @@
 #include <wx/wx.h>
-#include "share_icon.xpm"
 #include <list>
-#include <memory>
 
 #include "Settings.h"
-//#include "WindowSelectUser.h"
-//#include "WindowProgressBar.h"
 #include "UserSizer.h"
+
+#include "share_icon.xpm"
 
 enum {
 	TIMER_ID = 10000
@@ -53,13 +51,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	m_timer = new wxTimer(this, TIMER_ID);
 	int n=0;
 	
-	//inizializzazione barra stato
-	CreateStatusBar(1); //TODO barra stato non funziona
-
-	wxSizerFlags flags;
-	flags.Border(wxALL, 5);
-
-	wxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
+	CreateStatusBar(1);
 	
 	m_sizerUsers = new wxGridSizer(4, 5, 5);
 	std::vector<utente> lista = m_settings->getUtentiOnline();
@@ -78,14 +70,29 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 		n = m_ListaUtenti.size();
 	}
 	
-	sizerTop->Add(m_sizerUsers);
 
-	sizerTop->AddStretchSpacer()->SetMinSize(200, 20);
+	/*
+	GERARCHIA SIZER E CONTROLLI
+		
+	+sizerTop
+		+m_sizerUsers
+			(0..*) UserSizer 
+		spazio
+		+sizerBtns
+			m_cancel
+			m_flags
+	*/
 
+	wxSizerFlags flags;
+	flags.Border(wxALL, 5);
+	wxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
 	wxSizer* const sizerBtns = new wxBoxSizer(wxHORIZONTAL);
+
 	sizerBtns->Add(m_cancel, flags);
 	sizerBtns->Add(m_ok, flags);
 
+	sizerTop->Add(m_sizerUsers);
+	sizerTop->AddStretchSpacer()->SetMinSize(200, 20);
 	sizerTop->Add(sizerBtns, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 
 	this->SetSizerAndFit(sizerTop);
@@ -101,12 +108,6 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 
 }
 
-//distruttore non necessario, tutte le finestre figlie sono cancellate automaticamente
-//WindowSelectUser::~WindowSelectUser() {
-//	m_ListaUtenti.clear();
-//}
-
-//fa partire l'invio del file
 void WindowSelectUser::OnOk(wxCommandEvent& event) {
 	m_timer->Stop();
 	WindowProgressBar *window = new WindowProgressBar(m_frame, m_settings, this->getListaInvio(), true);
@@ -121,7 +122,7 @@ void WindowSelectUser::OnCancel(wxCommandEvent& event) {
 }
 
 void WindowSelectUser::OnCloseWindow(wxCloseEvent& event) {
-	//usare Destroy(), sennò va in loop (close chiama questo evento)!
+	//usare Destroy(), non Close(), sennò va in loop (close chiama questo evento)!
 	m_timer->Stop();
 	this->Destroy();
 }
@@ -157,7 +158,7 @@ void WindowSelectUser::UpdateUI() {
 		for (auto it : tmp2) {
 			bool found = false;
 			for (auto it2 = lista.begin(); it2 != lista.end(); it2++) {
-				if (it->getIpAddr() == it2->getIpAddr()) { //TODO convertire a ip
+				if (it->getIpAddr() == it2->getIpAddr()) {
 					found = true;
 					m_ListaUtenti.push_back(it);
 					//"rieseguo" il click sugli utenti selezionati prima dell'aggiornamento
@@ -194,29 +195,25 @@ void WindowSelectUser::UpdateUI() {
 	this->Show();
 }
 
-//aggiunge un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::insertUtenteLista(utente user) {
 	m_MappaInvio.insert(std::pair<std::string, utente>(user.getIpAddr(), user));
 	m_ok->Enable();
 }
 
-//rimuove un utente alla lista di invio, da usare in UserSizer::OnUserClick
 void WindowSelectUser::deleteUtenteLista(utente user) {
 	m_MappaInvio.erase(user.getIpAddr());
 	if (m_MappaInvio.size() == 0)
 		m_ok->Disable();
 }
 
-//aggiunge un nuovo utente alla finestra
 void WindowSelectUser::addUtente(utente user) {
 	UserSizer *u = new UserSizer(this, m_settings, user);
 	m_ListaUtenti.push_back(u);
 	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
 	
-	this->Update();
+	Update();
 }
 
-//rimuove un utente dalla finsetra
 void WindowSelectUser::removeUtente(utente user) {
 	int i = 0;
 	std::string ip = user.getIpAddr();
@@ -230,10 +227,9 @@ void WindowSelectUser::removeUtente(utente user) {
 		i++;
 	}
 	
-	this->Update();
+	Update();
 }
 
-//da usare con il metodo WindowSelectUser::OnOk per passare la lista di utenti selezionati per l'invio
 std::vector<utente> WindowSelectUser::getListaInvio()
 {
 	std::vector<utente> lista;

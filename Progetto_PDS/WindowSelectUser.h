@@ -8,7 +8,6 @@
 #include <wx/wx.h>
 #include <vector>
 #include <map>
-#include <memory>
 
 class WindowSelectUser : public wxFrame 
 {
@@ -22,7 +21,7 @@ private:
 	wxGridSizer* m_sizerUsers;
 	wxTimer* m_timer;
 
-	void OnOk(wxCommandEvent& event);
+	void OnOk(wxCommandEvent& event);	//fa partire l'invio del file
 	void OnCancel(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
 	void OnTimer(wxTimerEvent& event);
@@ -30,17 +29,20 @@ private:
 
 public:
 	WindowSelectUser(wxWindow* parent, Settings* settings);
-	//~WindowSelectUser();
 
-	//da usare per aggiornare la finestra (inserire o togliere utenti)
-	void UpdateUI();
+	//ogni volta che scatta il timer, controllo lo stato degli utenti online
+	void UpdateUI();	
+	//aggiunge un nuovo utente alla finestra
 	void addUtente(utente user);
+	//rimuove un utente dalla finsetra
 	void removeUtente(utente user);
 	
-	std::vector<utente> getListaInvio();
+	//da usare con il metodo WindowSelectUser::OnOk per passare la lista di utenti selezionati per l'invio
+	std::vector<utente> getListaInvio();	
 
-	//per m_MappaInvio, da usare in UserSizer
+	//aggiunge un utente alla lista di invio, da usare in UserSizer::OnUserClick
 	void insertUtenteLista(utente user);
+	//rimuove un utente alla lista di invio, da usare in UserSizer::OnUserClick
 	void deleteUtenteLista(utente user);
 };
 
