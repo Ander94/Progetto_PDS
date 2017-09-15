@@ -23,15 +23,33 @@ wxEND_EVENT_TABLE()
 WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
 	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
+	this->SetBackgroundColour(wxColour(240, 242, 245));
+	this->SetFont(this->GetFont().Bold().Scale(0.9f));
 	this->SetIcon(wxIcon(share_icon));
 	m_settings = settings;
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_ListaUtenti = std::list<UserSizer *>();  
 	m_MappaInvio = std::map<std::string, utente>();  
-	m_ok = new wxButton(this, wxID_OK, "OK");
-	m_ok->SetDefault();
+	//Button ok
+	wxBitmap* ok = new wxBitmap();
+	ok->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia.png", wxBITMAP_TYPE_ANY);
+	wxBitmap* ok_hover = new wxBitmap();
+	ok_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia_hover.png", wxBITMAP_TYPE_ANY);
+	m_ok = new wxBitmapButton(this, wxID_OK, *ok,wxDefaultPosition, wxDefaultSize);
+	m_ok->SetWindowStyle(wxNO_BORDER);
+	m_ok->SetBackgroundColour(this->GetBackgroundColour());
+	m_ok->SetBitmapHover(*ok_hover);
 	m_ok->Disable();
-	m_cancel = new wxButton(this, wxID_CANCEL, "CANCEL");
+
+	//Button cancel
+	wxBitmap* cancel = new wxBitmap();
+	cancel->LoadFile(m_settings->getGeneralPath() + "bottoni\\annulla.png", wxBITMAP_TYPE_ANY);
+	wxBitmap* cancel_hover = new wxBitmap();
+	cancel_hover->LoadFile(m_settings->getGeneralPath() + "bottoni\\annulla_hover.png", wxBITMAP_TYPE_ANY);
+	m_cancel = new wxBitmapButton(this, wxID_CANCEL, *cancel, wxDefaultPosition, wxDefaultSize);
+	m_cancel->SetWindowStyle(wxNO_BORDER);
+	m_cancel->SetBackgroundColour(this->GetBackgroundColour());
+	m_cancel->SetBitmapHover(*cancel_hover);
 	m_timer = new wxTimer(this, TIMER_ID);
 	int n=0;
 	

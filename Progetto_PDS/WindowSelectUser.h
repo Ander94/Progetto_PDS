@@ -17,8 +17,8 @@ private:
 	class MainFrame* m_frame;
 	std::map <std::string, utente> m_MappaInvio;	//utenti attualmente selezionati
 	std::list <class UserSizer *> m_ListaUtenti;	//utenti attualmente presenti nella finestra
-	wxButton* m_ok;
-	wxButton* m_cancel;
+	wxBitmapButton* m_ok;
+	wxBitmapButton* m_cancel;
 	wxGridSizer* m_sizerUsers;
 	wxTimer* m_timer;
 
