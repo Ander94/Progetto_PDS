@@ -25,6 +25,10 @@ public:
 		m_settings = settings;
 	}
 	
+	~TaskBarIcon() {
+		RemoveIcon();
+	}
+
 	//Ripristina finestra con doppio click
 	void OnLeftButtonDClick(wxTaskBarIconEvent&);
 
