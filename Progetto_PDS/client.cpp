@@ -1,7 +1,6 @@
 #include "client.h"
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
-
 /********************************************************************************
 Invia un il file specificato in filePath sul socket s.
 Riceve come parametri:
@@ -127,7 +126,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
 			buf_response[length] = '\0';
 			if (response != "+OK") {
-				return; 
+				return;
 			}
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
 			dim_to_send = size;
@@ -143,7 +142,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
 			buf_response[length] = '\0';
 			if (response != "+OK") {
-				return; 
+				return;
 			}
 			file_in.close();
 		}
@@ -192,7 +191,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	}
 	catch (std::exception e) {
 		wxQueueEvent(progBar, event.Clone());
-		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente " + utenteProprietario.getUsernameFromIp(ipAddr)+" sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente " + utenteProprietario.getUsernameFromIp(ipAddr) + " sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
 
@@ -426,8 +425,6 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			dim_to_send = size;
 			start = boost::posix_time::second_clock::local_time();
 
-			
-
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
 			while (dim_send < size && !progBar->testAbort()) {
@@ -436,14 +433,14 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
 
-				//LEO: l'errore sull'invio multiplo viene dato se viene sostituito questo...
+													   //LEO: l'errore sull'invio multiplo viene dato se viene sostituito questo...
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
-				//Con questo, che è la funzione che trovi in timeout.cpp
+																						   //Con questo, che è la funzione che trovi in timeout.cpp
 				//write_some(s, buf_to_send, dim_write);
-				
-				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
-				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
-				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
+
+																						   //Valuto il tempo di invio di EVALUATE_TIME pacchetti.
+																						   //Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
+																						   //pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
 				if (calcola_tempo % EVALUATE_TIME == 0)
 				{
 					end = boost::posix_time::second_clock::local_time();
