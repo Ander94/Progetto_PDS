@@ -17,40 +17,40 @@ int read_some(tcp::socket &s, char* buf, size_t dim_buf) {
 	//- (-1) in caso di errore
 	//- un valore maggiore di zero se la lettura è andata a buon fine
 	read_future_tcp = std::async(std::launch::async, [&]() {
-			char *buffer = (char*)malloc((dim_buf + 1) * sizeof(char));
-			int dim_read;
-			try {
-				//Leggo dal socket sul buffer "buffer"
-				dim_read = s.read_some(boost::asio::buffer(buffer, dim_buf));
-				//E copio in memoria il contenuto di buffer in buf
-				memcpy(buf, buffer, dim_read);
-				//Libero la memoria e torno la dimensione letta
-				free(buffer);
-				return dim_read;
-			}
-			catch (...) {
-				//In caso di eccezione, libero la memoria e torno il valore -1.
-				free(buffer);
-				return -1;
-			}
-		});
+		char *buffer = (char*)malloc((dim_buf + 1) * sizeof(char));
+		int dim_read;
+		try {
+			//Leggo dal socket sul buffer "buffer"
+			dim_read = s.read_some(boost::asio::buffer(buffer, dim_buf));
+			//E copio in memoria il contenuto di buffer in buf
+			memcpy(buf, buffer, dim_read);
+			//Libero la memoria e torno la dimensione letta
+			free(buffer);
+			return dim_read;
+		}
+		catch (...) {
+			//In caso di eccezione, libero la memoria e torno il valore -1.
+			free(buffer);
+			return -1;
+		}
+	});
 
-		int dim_read = -1;
-		//Attendo che std::async produca il risultato per un tempo TIMEOUT
-		std::future_status state = read_future_tcp.wait_for(std::chrono::seconds(TIMEOUT));
-		//Se il risultato non è stato prodotto, vuol dire che read è rimasta bloccata per troppo tempo
-		//ad esempio a causa della perdita di connessione
-		if (state != std::future_status::ready) {
-			throw std::invalid_argument("Attenzione: la connessione con l'utente è stata persa.");
+	int dim_read = -1;
+	//Attendo che std::async produca il risultato per un tempo TIMEOUT
+	std::future_status state = read_future_tcp.wait_for(std::chrono::seconds(TIMEOUT));
+	//Se il risultato non è stato prodotto, vuol dire che read è rimasta bloccata per troppo tempo
+	//ad esempio a causa della perdita di connessione
+	if (state != std::future_status::ready) {
+		throw std::invalid_argument("Attenzione: la connessione con l'utente è stata persa.");
+	}
+	else {
+		//Altrimenti leggo il risultato della read, notificando un eventuale errore.
+		dim_read = read_future_tcp.get();
+		if (dim_read < 0) {
+			throw std::invalid_argument("Attenzione l'utente ha interrotto l'invio del file.");
 		}
-		else {
-			//Altrimenti leggo il risultato della read, notificando un eventuale errore.
-			dim_read = read_future_tcp.get();
-			if (dim_read < 0) {
-				throw std::invalid_argument("Attenzione l'utente ha interrotto l'invio del file.");
-			}
-		}
-		return dim_read;
+	}
+	return dim_read;
 }
 
 int recive_from(udp::socket &s, char* buf, size_t dim_buf, boost::asio::ip::udp::endpoint& reciver_endpoint) {

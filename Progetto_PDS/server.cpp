@@ -82,26 +82,21 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath, Settings
 
 /*Funzionamento del protocollo:
 -Ricezione della query: +DR, +FL o +IM (Direttorio, file, immagine)
-
-	1) query +FL
+1) query +FL
 -Risposta +OK in caso di successo, -ERR in caso di errore
 -Ricezione del nome del file
 -Risposta +OK in caso di successo, -ERR in caso di mancata accetttazione da parte dell'utente.
 -Chiamata alla funzione recive_file che gestisce la ricezione di un file
-
-	2) query +IM
+2) query +IM
 -Risposta +OK in caso di successo, -ERR in caso di errore
 -Chiamata alla funzione recive_file che gestisce la ricezione di un file
-
-	3)query +DR
+3)query +DR
 -Risposta +OK in caso di successo, -ERR in caso di errore
 -Ricezione della dimensione della directory (solo prima volta)
 -Risposta +OK in caso di successo, -ERR in caso di errore  (solo prima volta)
 -Ricezione del nome della directory
 -Risposta +OK in caso di successo, -ERR in caso di errore o mancata accettazione
 -Ricezine della prossima query
-
-
 */
 void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, Settings* settings) {
 	size_t directory_size_to_send, directorySize, directory_size_send = 0, length;
@@ -202,8 +197,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				s.close();
 				return;
 			}
-			
-					
+
+
 		}
 
 		//Risolzuione della query di ricezione di un immagine del profilo da parte degli utenti connessi
@@ -282,7 +277,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					//Creo la directory.
 					boost::filesystem::create_directory(pathName);
 
-					
+
 				}
 
 				//In questo caso vuol dire che sto ricevondo un file da salvare all'interno di un direttorio creato precedentemente.
