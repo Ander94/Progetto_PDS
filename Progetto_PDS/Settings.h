@@ -6,17 +6,19 @@
 #include <ctime>
 #include <atomic>
 #include <Shlwapi.h>
-#include "timeout.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
-#include "utente.h"
-#include "sender.h"
+
+#include "TaskBarIcon.h"
+#include "MainApp.h"
 #include "ipcsetup.h"
 #include "IPCclient.h"
-#include "MainApp.h"
 
+#include "timeout.h"
+#include "utente.h"
+#include "sender.h"
 
 enum save_request {
 	SAVE_REQUEST_NO = 0,
@@ -50,9 +52,11 @@ private:
 	std::recursive_mutex rm_exit_recive_udp;//12
 	std::recursive_mutex rm_io_service_tcp;//13
 	std::recursive_mutex rm_scorciatoia;//14
+	std::recursive_mutex rm_taskBarIcon;//14
 
 
 	utente* m_utenteProprietario;
+	wxTaskBarIcon* m_taskBarIcon;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
@@ -66,6 +70,7 @@ private:
 	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;
 	boost::asio::io_service io_service_tcp;
+
 public:
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread, reciveAliveThread, sendAliveThread;
 
@@ -203,11 +208,19 @@ public:
 			boost::filesystem::copy_file(m_DefaultImagePath, m_ImagePath);
 	}
 
+	void setTaskBarIcon(wxTaskBarIcon* taskBarIcon) {
+		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
+		m_taskBarIcon = taskBarIcon;
+	}
+	void showBal(std::string title, std::string message) {
+		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
+		m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
+	}
+
 	void NewUtenteProprietario(std::string nomeUtente, std::string ip) {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		m_utenteProprietario = new utente(nomeUtente, ip);
 	}
-
 	utente& getUtenteProprietario() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		return *m_utenteProprietario;
@@ -217,7 +230,6 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
 		m_ImagePath = imagePath;
 	}
-
 	std::string getImagePath() {
 		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
 		return m_ImagePath;
@@ -524,54 +536,14 @@ public:
 		}
 		return true;
 	}
-
 	MyClient *GetClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
 		return m_client;
 	}
-
 	void DeleteClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
 		wxDELETE(m_client);
 	}
-
-	//void CreateRegFiles() {
-	//	std::string path = m_GeneralPath + "\\RegKey";
-	//	if (!boost::filesystem::is_directory(path)) {
-	//		if (!boost::filesystem::create_directories(path)) {
-	//			wxMessageBox("Impossibile creare directory: " + path, wxT("INFO"), wxOK | wxICON_INFORMATION);
-	//			return;
-	//		}
-	//	}
-	//	std::fstream add_key, rem_key;
-	//	add_key.open(path + "\\Add.reg", std::fstream::out);
-	//	std::string str1 = "\"Icon\"=\"" + m_GeneralPath + "icon1.ico\"";
-	//	std::string str2 = "@=\"" + m_GeneralPath + "Progetto_PDS.exe %1\"";
-	//	boost::replace_all(str1, "\\", "\\\\");
-	//	boost::replace_all(str2, "\\", "\\\\");
-	//	add_key << "Windows Registry Editor Version 5.00";
-	//	add_key << "\n\n";
-	//	add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share]\n";
-	//	add_key << str1;
-	//	add_key << "\n\n";
-	//	add_key << "[HKEY_CLASSES_ROOT\\*\\shell\\Share\\command]\n";
-	//	add_key << str2;
-	//	add_key << "\n\n";
-	//	add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share]\n";
-	//	add_key << str1;
-	//	add_key << "\n\n";
-	//	add_key << "[HKEY_CLASSES_ROOT\\Directory\\shell\\Share\\command]\n";
-	//	add_key << str2;
-	//	add_key.close();
-
-	//	rem_key.open(path + "\\Rem.reg", std::fstream::out);
-	//	rem_key << "Windows Registry Editor Version 5.00";
-	//	rem_key << "\n\n";
-	//	rem_key << "[-HKEY_CLASSES_ROOT\\*\\shell\\Share]";
-	//	rem_key << "\n\n";
-	//	rem_key << "[-HKEY_CLASSES_ROOT\\Directory\\shell\\Share]";
-	//	rem_key.close();
-	//}
 
 	void AddRegKey() {
 		std::string str = m_GeneralPath + "icon1.ico";
@@ -621,9 +593,6 @@ public:
 	}
 
 	void RemRegKey() {
-		/*std::string str = "\"" + m_GeneralPath + "\\RegKey\\Rem.reg\"";
-		if (system(str.c_str()) == 0)
-			setScorciatoiaAssente();*/
 
 		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"));
 

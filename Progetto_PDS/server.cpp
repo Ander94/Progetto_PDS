@@ -8,9 +8,9 @@ Riceve come parametri:
 -s: socket su cui vieme scambiato il file
 -utenteProprietario: riferimento a tutti gli utenti connessi all'applicazione.
 -generalPath: path dove salvare il file ricevuto
--mainframe: riferimento utile per la grafica
+-settings: riferimento utile per la grafica
 **********************************************************************************/
-void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, Settings* settings);
 
 /********************************************************************************
 Funzione che salva un file scambiato sul socket s.
@@ -26,9 +26,9 @@ Riceve come parametri:
 -a: acceptor utile per gestire l'accettazione di nuove richieste
 -utenteProprietario: riferimento a tutti gli utenti connessi all'applicazione.
 -generalPath: path dove salvare il file ricevuto
--mainframe: riferimento utile per la grafica
+-settings: riferimento utile per la grafica
 **********************************************************************************/
-void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
+void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, Settings* settings);
 
 /********************************************************************************
 HandleAccept gestisce l'accettazione di nuove richieste, gestendo eventuali errori
@@ -38,22 +38,22 @@ Riceve come parametri:
 -acceptor: acceptor utile per gestire l'accettazione di nuove richieste
 -utenteProprietario: riferimento a tutti gli utenti connessi all'applicazione.
 -generalPath: path dove salvare il file ricevuto
--mainframe: riferimento utile per la grafica
+-settings: riferimento utile per la grafica
 **********************************************************************************/
 void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service,boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
-	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe);
+	, utente& utenteProprietario, std::string generalPath, Settings* settings);
 
 
-void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, Settings* settings) {
 	//Inizializzo il socket
 	boost::shared_ptr< tcp::socket > socket(new tcp::socket(acceptor.get_io_service()));
 	//Lancio l'accettazione asincrona di richieste
-	acceptor.async_accept(*socket, boost::bind(HandleAccept, boost::asio::placeholders::error, boost::ref(io_service), socket, boost::ref(acceptor), boost::ref(utenteProprietario), generalPath, mainframe));
+	acceptor.async_accept(*socket, boost::bind(HandleAccept, boost::asio::placeholders::error, boost::ref(io_service), socket, boost::ref(acceptor), boost::ref(utenteProprietario), generalPath, settings));
 
 }
 
 void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service, boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
-	, utente& utenteProprietario, std::string generalPath, MainFrame* mainframe)
+	, utente& utenteProprietario, std::string generalPath, Settings* settings)
 {
 	//Controllo di eventuali errori durante l'accettazione.
 	if (error)
@@ -63,17 +63,17 @@ void HandleAccept(const boost::system::error_code& error, boost::asio::io_servic
 	}
 
 	//Se tutto è andato bene, si può lanciare un thread per accettare ciò che invia il client.
-	std::thread(reciveAfterAccept, std::ref(io_service), std::move(*socket), utenteProprietario, generalPath, mainframe).detach();
+	std::thread(reciveAfterAccept, std::ref(io_service), std::move(*socket), utenteProprietario, generalPath, settings).detach();
 
 	//Chiamo nuovamente StartAccept per esser capace di accettare una nuova connessione
-	StartAccept(io_service, acceptor, utenteProprietario, generalPath, mainframe);
+	StartAccept(io_service, acceptor, utenteProprietario, generalPath, settings);
 };
 
-void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFrame* mainframe, boost::asio::io_service& io_service) {
+void reciveTCPfile(utente& utenteProprietario, std::string generalPath, Settings* settings, boost::asio::io_service& io_service) {
 	//Inizializzio l'acceptor
 	tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), PORT_TCP));
 	//Chiamo StartAccept per esser capace di accettare una nuova connessione
-	StartAccept(io_service, acceptor, utenteProprietario, generalPath, mainframe);
+	StartAccept(io_service, acceptor, utenteProprietario, generalPath, settings);
 
 	//Faccio partire la procedura boost, da interrompere quando cade la linea.
 	io_service.run();
@@ -103,15 +103,12 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath, MainFram
 
 
 */
-void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, MainFrame* mainframe) {
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, Settings* settings) {
 	size_t directory_size_to_send, directorySize, directory_size_send = 0, length;
 	bool firstTime = true, firstDirectory = true;  //Indica se è la stringa contenente una directory che si sta ricevendo, cosi da inizializzare il tutto.
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
 	std::string ipAddrRemote, query, response, fileName;  //Ip di chi invia il file, query richesta, risposta inviata al client, e nome del file
-	Settings *m_settings = mainframe->GetSettings(); //Ricordare di liberare
-
 	
-
 
 	try {
 		ipAddrRemote = s.remote_endpoint().address().to_string();
@@ -122,8 +119,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 		//Risoluzione della query di ricezione file da parte del client
 		if (query == "+FL") {
-			if (!boost::filesystem::is_directory(m_settings->getSavePath())) {
-				wxMessageBox("La directory " + m_settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
+			if (!boost::filesystem::is_directory(settings->getSavePath())) {
+				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
 				boost::asio::write(s, boost::asio::buffer(response));
 				s.close();
@@ -139,11 +136,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			fileName = buf;
 
 			//Salvo su savePath il path assoluto dove scaricare il file
-			std::string savePath = mainframe->GetSettings()->getSavePath() + "\\" + fileName;
+			std::string savePath = settings->getSavePath() + "\\" + fileName;
 			std::string extension = boost::filesystem::extension(fileName);
 
 			//Controllo l'impostazione "autosalvataggio dell'utente"
-			if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+			if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 				//Se l'utente ha settato l'opzione, vedo se l'utente vuol accettare il file o meno, oppure salvarlo in una parte specifica 
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare il file \"" + fileName + "\" da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxHELP | wxICON_QUESTION);
 				dial->SetHelpLabel(wxID_SAVEAS);
@@ -157,7 +154,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				}
 				//Cambio il savePath se l'utente desidera scegliere un altro path di salvataggio per il file che si sta ricevendo
 				else if (ret_val == wxID_HELP) {
-					wxFileDialog saveFileDialog(NULL, "Salva " + fileName + " come", mainframe->GetSettings()->getSavePath(), fileName,
+					wxFileDialog saveFileDialog(NULL, "Salva " + fileName + " come", settings->getSavePath(), fileName,
 						"(*" + extension + ")|*" + extension, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 					if (saveFileDialog.ShowModal() == wxID_CANCEL)
 						return;     // the user changed idea...
@@ -170,8 +167,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
-					mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					recive_file(io_service, s, mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -182,7 +179,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			}
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
-				mainframe->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				recive_file(io_service, s, savePath);
 			}
 		}
@@ -211,8 +208,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 		//Risolzuione della query di ricezione di un immagine del profilo da parte degli utenti connessi
 		if (query == "+DR") {
-			if (!boost::filesystem::is_directory(m_settings->getSavePath())) {
-				wxMessageBox("La directory " + m_settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
+			if (!boost::filesystem::is_directory(settings->getSavePath())) {
+				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
 				boost::asio::write(s, boost::asio::buffer(response));
 				s.close();
@@ -244,7 +241,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
 					if (firstDirectory == true) {
-						if (m_settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
+						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_NO) {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
@@ -256,11 +253,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 						}
 
 						//Controlliamo se la directory esiste già
-						if (boost::filesystem::is_directory(mainframe->GetSettings()->getSavePath() + "\\" + fileName)) {
+						if (boost::filesystem::is_directory(settings->getSavePath() + "\\" + fileName)) {
 							//Richiedere se salvare o meno
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_YES) {
-								mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+								settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 							}
 							else {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
@@ -272,13 +269,13 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 						}
 						else {
-							mainframe->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+							settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 						}
 						firstDirectory = false;
 					}
 
 					//Se arriviamo qui, vuol dire che tutto si è svolto in modo positivo, e posso accettare la directory
-					std::string pathName(mainframe->GetSettings()->getSavePath() + "\\" + fileName);
+					std::string pathName(settings->getSavePath() + "\\" + fileName);
 					//Rispondo con +OK
 					response = "+OK";
 					boost::asio::write(s, boost::asio::buffer(response));
@@ -298,7 +295,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					buf[length] = '\0';
 					fileName = buf;
 
-					fileName = mainframe->GetSettings()->getSavePath() + "\\" + fileName;
+					fileName = settings->getSavePath() + "\\" + fileName;
 					recive_file(io_service, s, fileName);
 
 					//Vedo la dim del file che ho ricevuto, e aggiorno la quantità di byte ricevuta fin ora.

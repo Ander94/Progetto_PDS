@@ -13,7 +13,7 @@ private:
 	class WindowSelectUser* m_parentWindow;
 	wxStaticText* m_text;
 	wxBitmapToggleButton* m_button;
-	Settings* m_settings;
+	class Settings* m_settings;
 
 	utente m_utente;
 

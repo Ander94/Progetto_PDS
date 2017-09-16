@@ -99,6 +99,5 @@ public:
 	Settings *GetSettings() { return m_settings; };
 
 	void SendFile(std::string path);
-	void MainFrame::showBal(std::string title, std::string message);
 };
 

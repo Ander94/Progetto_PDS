@@ -392,10 +392,10 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 		this,
 		wxID_ANY,
 		wxT("Scorciatoia nel context menù")
-	), 0, wxALIGN_CENTRE_VERTICAL);
-	sizerGrid->Add(m_contextMenu);
-	sizerGrid->Add(sizerText, 0, wxALIGN_CENTER_VERTICAL);
-	sizerGrid->Add(m_changeSavePath);
+	), 1, wxALIGN_CENTRE_VERTICAL);
+	sizerGrid->Add(m_contextMenu, 0, wxALIGN_CENTRE_HORIZONTAL);
+	sizerGrid->Add(sizerText, 1, wxALIGN_CENTER_VERTICAL);
+	sizerGrid->Add(m_changeSavePath, 0, wxALIGN_CENTRE_HORIZONTAL);
 
 	sizerBtns1->Add(m_inviaFile, flags);
 	sizerBtns1->Add(m_inviaCartella, flags);
@@ -421,6 +421,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	Centre();
 
 	m_taskBarIcon = new TaskBarIcon(m_settings);
+	m_settings->setTaskBarIcon(m_taskBarIcon);
 	UpdateIcon();	
 
 	gs_dialog = this;
@@ -433,10 +434,6 @@ MainFrame::~MainFrame()
 	if (m_taskBarIcon != NULL)
 		delete m_taskBarIcon;
 	wxDELETE(m_server);
-}
-
-void MainFrame::showBal(std::string title, std::string message) {
-	m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
 }
 
 void MainFrame::OnInviaFile(wxCommandEvent& WXUNUSED(event))

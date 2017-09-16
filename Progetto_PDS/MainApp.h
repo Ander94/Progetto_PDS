@@ -4,14 +4,12 @@
 #include "wx/wx.h"
 #include <wx/cmdline.h>
 
+#include "TaskBarIcon.h"
 #include "settings.h"
 
 class MainApp : public wxApp
 {
 private:
-	std::recursive_mutex rm_settings;//1
-
-	class MainFrame* m_frame;
 	class Settings* m_settings;
 
 public:
@@ -32,16 +30,6 @@ public:
 	Viene chiamato quando l'applicazione termina, ma prima che le sue strutture siano distrutte.
 	**********************************************************************************/
 	int OnExit();
-
-	void setSettings(class Settings* settings) {
-		std::lock_guard<std::recursive_mutex> lk_settings(rm_settings);
-		this->m_settings = settings;
-	}
-
-	class Settings* GetSettings() {
-		std::lock_guard<std::recursive_mutex> lk_settings(rm_settings);
-		return m_settings;
-	}
 };
 
 

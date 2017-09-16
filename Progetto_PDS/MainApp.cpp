@@ -11,14 +11,14 @@
 
 #include "share_icon.xpm"
 
+#include "MainApp.h"
+
 #include "reciver.h"
 #include "server.h"
 
 #include <wx/cmdline.h>
 #include <wx/taskbar.h>
 
-#include "MainApp.h"
-#include "TaskBarIcon.h"
 #include "boost\asio.hpp"
 
 
@@ -34,7 +34,7 @@ bool MainApp::OnInit()
 
 	try
 	{
-		setSettings(new Settings());
+		Settings* m_settings = new Settings();
 		std::string path = argv[0];
 		std::string str = "Progetto_PDS.exe";
 		path.replace(path.end() - str.length(), path.end(), "");
@@ -86,7 +86,7 @@ bool MainApp::OnInit()
 			}
 				
 
-			MainFrame* frame = new MainFrame("LAN Sharing Service", GetSettings());
+			MainFrame* frame = new MainFrame("LAN Sharing Service", m_settings);
 			frame->SetIcon(wxIcon(share_icon));
 			SetTopWindow(frame);
 
@@ -95,7 +95,7 @@ bool MainApp::OnInit()
 			//Inizializzazione dei vari threads
 			m_settings->setExitRecive(false);
 			m_settings->setExitSend(false);
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), frame, boost::ref(m_settings->getIoService()));
+			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_settings, boost::ref(m_settings->getIoService()));
 			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->getExitRecive()));
 			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, boost::ref(m_settings->getUserName()), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
 			m_settings->sendAliveThread = boost::thread(m_settings->SendAlive, boost::ref(m_settings->getUtenteProprietario()), boost::ref(m_settings->getExitSend()));
@@ -128,6 +128,7 @@ void MainApp::OnInitCmdLine(wxCmdLineParser& parser)
 int MainApp::OnExit()
 {
 	//la chiusura dei thread si può inserire qua
+	//distruggere settings
 
 	return 0;
 }

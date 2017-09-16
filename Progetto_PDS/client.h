@@ -29,7 +29,7 @@ Riceve come parametri:
 -Il riferimento alla barra di progresso
 **********************************************************************************/
 void sendTCPfile(utente& utenteProprietario, std::string ipAddr,
-	std::string initialAbsolutePath, UserProgressBar* progBar);
+	std::string initialAbsolutePath, class UserProgressBar* progBar);
 
 
 /********************************************************************************
