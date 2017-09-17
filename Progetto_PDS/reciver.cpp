@@ -36,10 +36,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	s.bind(local_endpoint);
 
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
-	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), boost::ref(exit_app));
+	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
 
 	while (!exit_app.load()) {
-
 		//Ricevo un messaggio
 		length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 		//Estraggo l'ip di chi mi ha inviato il mesasggio
@@ -49,7 +48,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
 		found = reciveMessage.find("+GETADDR");
 		if (found == std::string::npos) {
-			//Estraggo username e stato del messaggio.
+			//Estraggo username e stato dal messaggio.
+			//In particolare leggo la stringa nel formato username\r\nstato\r\n
+			//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
 			n = 0;
 			do {
 				buf_username[n] = buf[n];
@@ -72,7 +73,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 			}
 			//Iscrivo l'utente.
 			iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath);
-			//Lancio il thread cosi son pronto a ricevere altri pacchetti UDP.
 		}
 	}
 
@@ -86,6 +86,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
+	int counter = 0;
 	//Evita di registrare se stessi.
 	if (false) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
@@ -117,14 +118,22 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		}
 	}
 
-	try {
-		sendImage(filePath, ipAddr);
+	//Invio la mia immagine del profilo all'utente che sto registrando.
+	sendImage(filePath, ipAddr);
+	
+	//Controllo che sia stata ricevuta correttamente l'immagine del profilo.
+	//Se è avvenuto qualche errore in ricezione.
+	//Cerco di ricevere l'immagine del profilo per un secondo. Se qualcosa è andato storto(ad esempio l'immagine non è stata ricevuta),
+	//non aggiungo l'utente.
+	//L'utente verrà aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
+	while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
+		Sleep(200);
+		if (counter>5) {
+			break;
+		}
 	}
-	catch (std::exception& e) {
-		wxMessageBox(e.what(), "Errore", wxOK | wxICON_ERROR);
-		exit(-1);
-	}
-
 	//Aggiungo il nuovo utente e il suo stato.
-	utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+	if (counter <= 5) {
+		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+	}
 }

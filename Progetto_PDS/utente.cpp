@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <algorithm>
+#include "Settings.h"
 
 
 
@@ -34,6 +35,28 @@ utente::~utente()
 {
 
 }
+
+bool utente::immagineRicevuta(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
+	for (unsigned int i = 0; i < this->immaginiRegistrate.size(); i++) {
+		if (ipAddr == immaginiRegistrate[i])
+			return true;
+	}
+	return false;
+}
+void utente::registraImmagine(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
+	this->immaginiRegistrate.push_back(ipAddr);
+}
+
+void utente::rimuoviImmagine(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
+	for (unsigned int i = 0; i < immaginiRegistrate.size(); i++) {
+		if (ipAddr == immaginiRegistrate[i])
+			this->immaginiRegistrate.erase(immaginiRegistrate.begin()+i);
+	}
+}
+
 
 std::string& utente::getUsername()
 {
@@ -169,7 +192,7 @@ std::string utente::getIpAddr() {
 
 
 
-void utente::checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app) {
+void utente::checkTime(utente& utenteProprietario, std::string generalPath,std::atomic<bool>& exit_app) {
 
 	boost::posix_time::ptime currentTime;
 	while (!exit_app.load()) {
@@ -178,12 +201,15 @@ void utente::checkTime(utente& utenteProprietario, std::atomic<bool>& exit_app) 
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
 			currentTime = boost::posix_time::second_clock::local_time();
 			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
+				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
 				for (j = i; j < utenteProprietario.getUtentiConnessi().size() - 1; j++) {
 					utenteProprietario.getUtentiConnessi()[j].setUsername(utenteProprietario.getUtentiConnessi()[j + 1].getUsername());
 					utenteProprietario.getUtentiConnessi()[j].setCurrentTime(utenteProprietario.getUtentiConnessi()[j + 1].getTime());
 					utenteProprietario.getUtentiConnessi()[j].setIpAddr(utenteProprietario.getUtentiConnessi()[j + 1].getIpAddr());
 				}
 				utenteProprietario.getUtentiConnessi().pop_back();
+				boost::filesystem::remove(generalPath + "local_image\\"  + ipAddr + ".png");
+				utenteProprietario.rimuoviImmagine(ipAddr);
 			}
 		}
 		Sleep(CHECK_TIME);
@@ -207,13 +233,16 @@ utente::utente(const utente& source) {
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_currentTime(m_currentTime);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
-
+	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
 	this->ipAddr = source.ipAddr;
 	this->state = source.state;
 	this->currentTime = source.currentTime;
 	this->username = source.username;
 	for (auto it : source.utentiConnessi) {
 		this->getUtentiConnessi().push_back(it);
+	}
+	for (auto it : source.immaginiRegistrate) {
+		this->immaginiRegistrate.push_back(it);
 	}
 }
 
@@ -223,7 +252,7 @@ utente &utente::operator =(const utente & source) {
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_currentTime(m_currentTime);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
-
+	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
 	if (this != &source) {
 		this->ipAddr = source.ipAddr;
 		this->state = source.state;
@@ -231,6 +260,9 @@ utente &utente::operator =(const utente & source) {
 		this->username = source.username;
 		for (auto it : source.utentiConnessi) {
 			this->getUtentiConnessi().push_back(it);
+		}
+		for (auto it : source.immaginiRegistrate) {
+			this->immaginiRegistrate.push_back(it);
 		}
 	}
 	return *this;

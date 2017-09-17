@@ -103,7 +103,7 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		char buf_response[PROTOCOL_PACKET];  //Contiene la risposta del protocollo
 		std::string send, response;          //Contiene domanda e risposta del protocollo
 
-											 //Valuta la dimensione del file da inviare, sotto forma di stringa 
+		//Valuta la dimensione del file da inviare, sotto forma di stringa 
 		size = boost::filesystem::file_size(filePath);
 		fileSize = std::to_string(size);
 
@@ -119,7 +119,6 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			if (response != "+OK") {
 				return;
 			}
-
 			//Invio qui la dimensione del file
 			boost::asio::write(s, boost::asio::buffer(fileSize));
 			//Ed attendo la risposta
@@ -154,7 +153,6 @@ void sendImage(std::string filePath, std::string ipAddr) {
 	{
 		return throw std::invalid_argument(e.what());
 	}
-
 	s.close();
 	io_service.stop();
 }
@@ -163,7 +161,6 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 
 
 	std::string basename;     //Nome del file/cartella da inviare.
-
 	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
 
 	//Se la directory/file specificata/o non è valida/o, ritorno al main
@@ -185,7 +182,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 	tcp::socket s(io_service);   //Inizializzo il socket
 
-								 //Mi connetto al server, se qualcosa non va a buon fine, ritorno al main
+	//Mi connetto al server, se qualcosa non va a buon fine, ritorno al main
 	try {
 		boost::asio::connect(s, iterator);
 	}
@@ -248,7 +245,7 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 	std::string send, response;  //Pacchetto inviato/ricevuto da parte del server sotto forma di stringa.
 	char buf_recive[PROTOCOL_PACKET];  //Buf che contine le risposte provenienti dal server
 
-									   //Invio +DR per comunicare che voglio invare un direttorio
+	//Invio +DR per comunicare che voglio invare un direttorio
 	send = "+DR";
 	boost::asio::write(s, boost::asio::buffer(send));
 
@@ -418,7 +415,6 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 
-
 			wxThreadEvent event1(wxEVT_THREAD, IncFile_EVENT);
 			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);
 
@@ -431,16 +427,11 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
-				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.
-
-													   //LEO: l'errore sull'invio multiplo viene dato se viene sostituito questo...
+				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.  
 				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
-																						   //Con questo, che è la funzione che trovi in timeout.cpp
-				//write_some(s, buf_to_send, dim_write);
-
-																						   //Valuto il tempo di invio di EVALUATE_TIME pacchetti.
-																						   //Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
-																						   //pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
+				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
+				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
+				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
 				if (calcola_tempo % EVALUATE_TIME == 0)
 				{
 					end = boost::posix_time::second_clock::local_time();
@@ -484,7 +475,6 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 	for (unsigned int i = 0; i < relativePath.length(); i++)
 		if (relativePath[i] == '\\')
 			relativePath[i] = '/';
-
 	return relativePath;
 }
 
@@ -492,6 +482,7 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 double long folder_size(std::string absolutePath) {
 
 	double long size = 0;
+	//In modo ricorsivo valuta tutta la dimensione della cartella.
 	for (bf::recursive_directory_iterator it(absolutePath); it != bf::recursive_directory_iterator(); ++it)
 	{
 		if (!bf::is_directory(*it)) {

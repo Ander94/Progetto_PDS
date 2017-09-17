@@ -10,7 +10,7 @@ Riceve come parametri:
 -generalPath: path dove salvare il file ricevuto
 -settings: riferimento utile per la grafica
 **********************************************************************************/
-void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, Settings* settings);
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente& utenteProprietario, std::string generalPath, Settings* settings);
 
 /********************************************************************************
 Funzione che salva un file scambiato sul socket s.
@@ -63,7 +63,7 @@ void HandleAccept(const boost::system::error_code& error, boost::asio::io_servic
 	}
 
 	//Se tutto è andato bene, si può lanciare un thread per accettare ciò che invia il client.
-	std::thread(reciveAfterAccept, std::ref(io_service), std::move(*socket), utenteProprietario, generalPath, settings).detach();
+	std::thread(reciveAfterAccept, std::ref(io_service), std::move(*socket), std::ref(utenteProprietario), generalPath, settings).detach();
 
 	//Chiamo nuovamente StartAccept per esser capace di accettare una nuova connessione
 	StartAccept(io_service, acceptor, utenteProprietario, generalPath, settings);
@@ -98,7 +98,7 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath, Settings
 -Risposta +OK in caso di successo, -ERR in caso di errore o mancata accettazione
 -Ricezine della prossima query
 */
-void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente utenteProprietario, std::string generalPath, Settings* settings) {
+void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente& utenteProprietario, std::string generalPath, Settings* settings) {
 	size_t directory_size_to_send, directorySize, directory_size_send = 0, length;
 	bool firstTime = true, firstDirectory = true;  //Indica se è la stringa contenente una directory che si sta ricevendo, cosi da inizializzare il tutto.
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
@@ -192,6 +192,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
 				boost::asio::write(s, boost::asio::buffer(response));
+				//Notifico che l'immagine è stat ricevuta e posso registrare correttamente l'utente.
+				utenteProprietario.registraImmagine(ipAddrRemote);
 			}
 			catch (std::exception&) {
 				s.close();
@@ -340,10 +342,7 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
-				//LEO: l'errore sulla ricezione multipla viene dato se viene sostituito questo...
 				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
-				//Con questo, che è la funzione che trovi in timeout.cpp
-				//dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
 			}
