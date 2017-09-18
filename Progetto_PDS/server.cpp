@@ -99,7 +99,8 @@ void reciveTCPfile(utente& utenteProprietario, std::string generalPath, Settings
 -Ricezine della prossima query
 */
 void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utente& utenteProprietario, std::string generalPath, Settings* settings) {
-	size_t directory_size_to_send, directorySize, directory_size_send = 0, length;
+	long long directory_size_to_send, directorySize, directory_size_send = 0;
+	int length;
 	bool firstTime = true, firstDirectory = true;  //Indica se è la stringa contenente una directory che si sta ricevendo, cosi da inizializzare il tutto.
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
 	std::string ipAddrRemote, query, response, fileName;  //Ip di chi invia il file, query richesta, risposta inviata al client, e nome del file
@@ -118,7 +119,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
 				boost::asio::write(s, boost::asio::buffer(response));
-				s.close();
+				if (s.is_open()) {
+					s.close();
+				}
 				return;
 			}
 			//Qui ricevo un file
@@ -144,7 +147,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					//Se l'utente non accetta il file, invio rispsota negativa al client.
 					response = "-ERR";
 					boost::asio::write(s, boost::asio::buffer(response));
-					s.close();
+					if (s.is_open()) {
+						s.close();
+					}
 					return;
 				}
 				//Cambio il savePath se l'utente desidera scegliere un altro path di salvataggio per il file che si sta ricevendo
@@ -196,11 +201,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				utenteProprietario.registraImmagine(ipAddrRemote);
 			}
 			catch (std::exception&) {
-				s.close();
+				if (s.is_open()) {
+					s.close();
+				}
 				return;
 			}
-
-
 		}
 
 		//Risolzuione della query di ricezione di un immagine del profilo da parte degli utenti connessi
@@ -209,7 +214,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
 				boost::asio::write(s, boost::asio::buffer(response));
-				s.close();
+				if (s.is_open()) {
+					s.close();
+				}
 				return;
 			}
 
@@ -244,7 +251,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 								//Se l'utente non accetta la directory, diamo risposta negativa.
 								response = "-ERR";
 								boost::asio::write(s, boost::asio::buffer(response));
-								s.close();
+								if (s.is_open()) {
+									s.close();
+								}
 								return;
 							}
 						}
@@ -260,7 +269,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 								//Se l'utente non accetta la directory, diamo risposta negativa.
 								response = "-ERR\0";
 								boost::asio::write(s, boost::asio::buffer(response));
-								s.close();
+								if (s.is_open()) {
+									s.close();
+								}
 								return;
 							}
 
@@ -310,11 +321,15 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		}
 	}
 	catch (std::exception& e) {
-		s.close();
+		if (s.is_open()) {
+			s.close();
+		}
 		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
 		return;
 	}
-	s.close();
+	if (s.is_open()) {
+		s.close();
+	}
 }
 
 void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
@@ -323,8 +338,8 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 	std::string response; //Risposta da invare al client
 	char buf[PROTOCOL_PACKET];  //Buffer che contiene i pacchetti utili alla sincronizzazione con il client.
 	char buf_recive[BUFLEN];  //Buffer che conterrà i pacchetti contenenti il file
-	int dim_recived = 0, dim_read, size, length;
-
+	long long dim_recived = 0, dim_read, size;
+	int length;
 	try
 	{
 		if (file_out.is_open()) {
@@ -334,15 +349,16 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			//Leggo la dimensione del file che ricevero, e la salvo su size
 			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 			buf[length] = '\0';
-			size = std::atoi(buf);
+			size = std::atoll(buf);
 			//Comunico al server che può inviare il file
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
-
+			
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
-				dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+				//dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
+				dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
 			}
@@ -356,11 +372,11 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}
-	catch (...)
+	catch (std::exception& e)
 	{
 		//In tal caso vuol dire che ho riscontrato qualche problema 
 		file_out.close();
 		boost::filesystem::remove(fileName);
-		return throw std::invalid_argument("Attenzione: il trasferimento è stato interrotto.");
+		return throw std::invalid_argument(e.what());
 	}
 }

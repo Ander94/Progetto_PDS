@@ -79,7 +79,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
 	//Chiudo il socket e il servizio boost.
-	s.close();
+	if (s.is_open()) {
+		s.close();
+	}
 	io_service.stop();
 	return;
 }

@@ -488,7 +488,9 @@ public:
 		if (response == ("+GETADDR" + unique_str)) {
 			ownIpAddr = reciver_endpoint.address().to_string();
 		}
-		s.close();
+		if (s.is_open()) {
+			s.close();
+		}
 		return;
 	}
 
@@ -591,7 +593,9 @@ public:
 			}
 		}
 		//Chiudo il socket e il servizio boost.
-		s.close();
+		if (s.is_open()) {
+			s.close();
+		}
 		io_service.stop();
 		return;
 	}

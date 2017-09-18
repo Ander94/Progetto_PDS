@@ -44,7 +44,7 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 Ritorna la dimensione della cartella specificata in absolutePath
 Riceve come parametro il path assoluto.
 **********************************************************************************/
-double long folder_size(std::string absolutePath);
+long long folder_size(std::string absolutePath);
 
 /********************************************************************************
 Sgancia un thread che permette l'invio deò file specificato in initalAbsolutePath.
@@ -153,7 +153,10 @@ void sendImage(std::string filePath, std::string ipAddr) {
 	{
 		return throw std::invalid_argument(e.what());
 	}
-	s.close();
+	if (s.is_open()) {
+		s.close();
+	}
+	
 	io_service.stop();
 }
 
@@ -212,7 +215,9 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 		}
 	}
 	//Chiudo il socket e la procedurea di servizio
-	s.close();
+	if (s.is_open()) {
+		s.close();
+	}
 	io_service.stop();
 	//segnalo la fine del trasferimento alla GUI
 	wxQueueEvent(progBar, event.Clone());
@@ -240,8 +245,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 	std::string initialAbsolutePath, std::string folder, UserProgressBar* progBar) {
 
 	std::string directorySize;   //Dimensione della directory sotto forma di stringa
-	double long directory_size_to_send;
-	size_t directory_size_send = 0, length; //Dimensione della directory, dimensione inviata e lunghezza di un pacchetto di risposta da parte del server
+	long long directory_size_to_send;
+	long long directory_size_send = 0; //Dimensione della directory
+	int length; //dimensione inviata e lunghezza di un pacchetto di risposta da parte del server
 	std::string send, response;  //Pacchetto inviato/ricevuto da parte del server sotto forma di stringa.
 	char buf_recive[PROTOCOL_PACKET];  //Buf che contine le risposte provenienti dal server
 
@@ -360,8 +366,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 
 	std::ifstream file_in(filePath, std::ios::in | std::ios::binary);  //Fiel da inviare
 	std::string fileSize; //Dimensione del file sotto forma di stringa 
-	double long size, dim_write, dim_send = 0, dim_to_send;    //Dimensione del file sotto forma di double per effettuare la divisione
-	size_t length;
+	long long size, dim_write, dim_send = 0, dim_to_send;    //Dimensione del file sotto forma di double per effettuare la divisione
+	int length;
 	boost::posix_time::ptime start, end; //Utile per valuare il tempo di invio di un pacchetto verso il server
 	long int dif = 0, sec = 0;  //Utile per valuare il tempo di invio di un pacchetto verso il server
 	int calcola_tempo = 1; //è utile per non valutare il tempo troppe volte, ma solo ogni 50 pacchetti inviati.
@@ -428,7 +434,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.  
-				boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				write_some(s,buf_to_send, dim_write);
+				//boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
 				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
@@ -437,7 +444,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 					end = boost::posix_time::second_clock::local_time();
 					dif = (end - start).total_seconds();
 					//Valuto quanti secondi sono stati necessari per inviare dim_send byte.
-					sec = (int)((((size - dim_send) / ((dim_send)))*dif));
+					sec = (long int)((((size - dim_send) /(long double) ((dim_send)))*dif));
 
 				}
 				calcola_tempo++;
@@ -453,10 +460,10 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			return throw std::invalid_argument("File non aperto correttamente.");
 		}
 	}
-	catch (...)
+	catch (std::exception& e)
 	{
 		file_in.close();
-		return throw std::invalid_argument("Attenzione: il trasferimento è stato interrotto.");
+		return throw std::invalid_argument(e.what());
 	}
 }
 
@@ -479,14 +486,14 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 }
 
 
-double long folder_size(std::string absolutePath) {
+long long folder_size(std::string absolutePath) {
 
-	double long size = 0;
+	long long size = 0;
 	//In modo ricorsivo valuta tutta la dimensione della cartella.
 	for (bf::recursive_directory_iterator it(absolutePath); it != bf::recursive_directory_iterator(); ++it)
 	{
 		if (!bf::is_directory(*it)) {
-			size += (double long)bf::file_size(*it);
+			size += bf::file_size(*it);
 		}
 	}
 

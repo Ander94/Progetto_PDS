@@ -152,7 +152,7 @@ void UserProgressBar::SetTimeFile(long sec) {
 		m_timeFile->SetLabelText(time);	
 }
 
-void UserProgressBar::SetMaxDir(double long dim) {
+void UserProgressBar::SetMaxDir(long long dim) {
 	m_totDir = dim;
 	m_parzialeDir = 0;
 	m_progDir->SetValue(0);
@@ -165,17 +165,17 @@ void UserProgressBar::SetNewFile(std::string path) {
 	this->Update();
 }
 
-void UserProgressBar::SetMaxFile(double long dim) {
+void UserProgressBar::SetMaxFile(long long dim) {
 	m_totFile = dim;
 	m_parzialeFile = 0;
 	m_percFile->SetLabelText("0");
 	this->Update();
 }
 
-void UserProgressBar::IncFile(double long dim) {
-	double long diff = dim - m_parzialeFile;
+void UserProgressBar::IncFile(long long dim) {
+	long long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
-	double long value = m_parzialeFile * 100 / m_totFile;
+	long long value = m_parzialeFile * 100 / m_totFile;
 	int intval = (int)floor(value + 0.5);
 	m_progFile->SetValue(intval);
 	if (m_percFile->GetLabelText() != std::to_string(intval))

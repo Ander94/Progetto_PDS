@@ -7,6 +7,6 @@
 #define DELETE_USER 2 //s
 #define UPDATE_WINDOW 1000 //ms
 #define PROTOCOL_PACKET 128
-#define EVALUATE_TIME 50
+#define EVALUATE_TIME 80
 #define TIMEOUT 5
 #define PORT_ALIVE 1300
