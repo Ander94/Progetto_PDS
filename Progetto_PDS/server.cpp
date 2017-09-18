@@ -109,7 +109,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 	try {
 		ipAddrRemote = s.remote_endpoint().address().to_string();
 		//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
-		length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+		length = read_some(s, buf, PROTOCOL_PACKET);
 		buf[length] = '\0';
 		query = buf;
 
@@ -118,7 +118,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
-				boost::asio::write(s, boost::asio::buffer(response));
+				write_some(s, response);
 				if (s.is_open()) {
 					s.close();
 				}
@@ -127,9 +127,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			//Qui ricevo un file
 			//Se tutto va bene invio una risposta positiva
 			response = "+OK";
-			boost::asio::write(s, boost::asio::buffer(response));
+			write_some(s, response);
 			//La risposta conterrà il pathName
-			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+			length = read_some(s, buf, PROTOCOL_PACKET);
 			buf[length] = '\0';
 			fileName = buf;
 
@@ -146,7 +146,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				if (ret_val == wxID_NO) {
 					//Se l'utente non accetta il file, invio rispsota negativa al client.
 					response = "-ERR";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 					if (s.is_open()) {
 						s.close();
 					}
@@ -173,7 +173,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
 					response = "-ERR";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 				}
 
 			}
@@ -190,13 +190,13 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			//Qui ricevo l'immagine di profilo
 			//Se tutto va bene invio una risposta positiva
 			response = "+OK";
-			boost::asio::write(s, boost::asio::buffer(response));
+			write_some(s, response);
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
 				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
-				boost::asio::write(s, boost::asio::buffer(response));
+				write_some(s, response);
 				//Notifico che l'immagine è stat ricevuta e posso registrare correttamente l'utente.
 				utenteProprietario.registraImmagine(ipAddrRemote);
 			}
@@ -213,7 +213,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
-				boost::asio::write(s, boost::asio::buffer(response));
+				write_some(s, response);
 				if (s.is_open()) {
 					s.close();
 				}
@@ -227,20 +227,20 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				if (query == "+DR") {
 					//Rispondo al server che posso accettare il direttorio
 					response = "+OK";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 					//Se è il "primo giro", vuol dire che ricevo le informazioni utili alla ricezione della directory
 					if (firstTime == true) {
-						length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+						length = read_some(s, buf, PROTOCOL_PACKET);
 						buf[length] = '\0';
 						directorySize = std::atoi(buf);
 						directory_size_to_send = directorySize;
 						//Comunico al server che può inviare il file
 						response = "+OK";
-						boost::asio::write(s, boost::asio::buffer(response));
+						write_some(s, response);
 						firstTime = false;
 					}
 					//Aspetto il nome del path
-					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+					length = read_some(s, buf, PROTOCOL_PACKET);
 					buf[length] = '\0';
 					fileName = buf;
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
@@ -250,7 +250,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 							if (dial->ShowModal() == wxID_NO) {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
 								response = "-ERR";
-								boost::asio::write(s, boost::asio::buffer(response));
+								write_some(s, response);
 								if (s.is_open()) {
 									s.close();
 								}
@@ -268,7 +268,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 							else {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
 								response = "-ERR\0";
-								boost::asio::write(s, boost::asio::buffer(response));
+								write_some(s, response);
 								if (s.is_open()) {
 									s.close();
 								}
@@ -286,7 +286,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					std::string pathName(settings->getSavePath() + "\\" + fileName);
 					//Rispondo con +OK
 					response = "+OK";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 					//Creo la directory.
 					boost::filesystem::create_directory(pathName);
 
@@ -297,9 +297,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				if (query == "+FL") {
 					//Rispondo con +OK
 					response = "+OK";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 					//Leggo il nome del file
-					length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+					length = read_some(s, buf, PROTOCOL_PACKET);
 					buf[length] = '\0';
 					fileName = buf;
 
@@ -311,10 +311,10 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					directory_size_send += (size_t)boost::filesystem::file_size(fileName);
 					//Invio la risposta +CN per dire al client che ho ricevuto il tutto, e può continuare ad inviare.
 					response = "+CN";
-					boost::asio::write(s, boost::asio::buffer(response));
+					write_some(s, response);
 				}
 				//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
-				length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+				length = read_some(s, buf, PROTOCOL_PACKET);
 				buf[length] = '\0';
 				query = buf;
 			}
@@ -343,16 +343,16 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 	try
 	{
 		if (file_out.is_open()) {
-			//Se tutto va bene, dico che posso ricevere il file con +OK\0
+			//Se tutto va bene, dico che posso ricevere il file con +OK
 			response = "+OK";
-			boost::asio::write(s, boost::asio::buffer(response));
+			write_some(s, response);
 			//Leggo la dimensione del file che ricevero, e la salvo su size
-			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+			length = read_some(s, buf, PROTOCOL_PACKET);
 			buf[length] = '\0';
 			size = std::atoll(buf);
 			//Comunico al server che può inviare il file
 			response = "+OK";
-			boost::asio::write(s, boost::asio::buffer(response));
+			write_some(s, response);
 			
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
@@ -368,7 +368,7 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 		{
 			//Se ho avuto qualche errore nell'apertura del file, invio -ERR
 			response = "-ERR";
-			boost::asio::write(s, boost::asio::buffer(response));
+			write_some(s, response);
 			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}

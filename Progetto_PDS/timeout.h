@@ -41,6 +41,14 @@ Riceve come parametri:
 int write_some(tcp::socket &s, char* buf, size_t dim_buf);
 
 /********************************************************************************
+Ritorna il numero di byte scritti sul socket s, presi dal buffer buf.
+Riceve come parametri:
+-Il socket su cui scrivere
+-la stringa da inviare sul socket
+**********************************************************************************/
+void write_some(tcp::socket &s, std::string& buf);
+
+/********************************************************************************
 Ritorna il numero di byte scritti sul socket s, presi dalla stringa message.
 Riceve come parametri:
 -Il socket su cui scrivere

@@ -111,18 +111,18 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		{
 			//Invio +IM per dire che è un file immagine
 			send = "+IM";
-			boost::asio::write(s, boost::asio::buffer(send));
+			write_some(s, send);
 			//Vedo se il server ha risposto con successo, e nel caso sollevo un eccezione
-			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
+			length = read_some(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			response = buf_response;
 			if (response != "+OK") {
 				return;
 			}
 			//Invio qui la dimensione del file
-			boost::asio::write(s, boost::asio::buffer(fileSize));
+			write_some(s, fileSize);
 			//Ed attendo la risposta
-			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
+			length = read_some(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -134,11 +134,11 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
 				//write_some(s, buf_to_send, dim_write);
-				boost::asio::write(s, boost::asio::buffer(buf_to_send, dim_write));
+				write_some(s, buf_to_send, dim_write);
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
-			length = s.read_some(boost::asio::buffer(buf_response, PROTOCOL_PACKET));
+			length = read_some(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -251,101 +251,105 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 	std::string send, response;  //Pacchetto inviato/ricevuto da parte del server sotto forma di stringa.
 	char buf_recive[PROTOCOL_PACKET];  //Buf che contine le risposte provenienti dal server
 
-	//Invio +DR per comunicare che voglio invare un direttorio
-	send = "+DR";
-	boost::asio::write(s, boost::asio::buffer(send));
-
-	//Attendo la risposta da parte del server
-	length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-	buf_recive[length] = '\0';
-	response = buf_recive;
-	if (response != "+OK") {
-		return throw std::invalid_argument("Errore nell'invio del direttorio.");
-	}
-
-	//Valuto la dimensione della directory
-	directory_size_to_send = folder_size(initialAbsolutePath);
-
-	wxThreadEvent event(wxEVT_THREAD, SetMaxDir_EVENT);
-	event.SetPayload(directory_size_to_send);
-	wxQueueEvent(progBar, event.Clone());
-
-	//Converto in string la dimensione cosi da poterla inviare al server.
-	directorySize = std::to_string(directory_size_to_send);
-	boost::asio::write(s, boost::asio::buffer(directorySize));
-	length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-	buf_recive[length] = '\0';
-	response = buf_recive;
-	//E attendo la risposta da parte del server
-	if (response != "+OK") {
-		return throw std::invalid_argument("Errore nell'invio del direttorio.");
-	}
-
-	//Invio il nome della cartella
-	boost::asio::write(s, boost::asio::buffer(folder));
-	length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-	buf_recive[length] = '\0';
-	response = buf_recive;
-	if (response != "+OK") {
-		return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
-	}
-
-	for (bf::recursive_directory_iterator it(initialAbsolutePath); it != bf::recursive_directory_iterator(); ++it)
-	{
-		//Attenzione:qua bisogna inviare il relativePath
-		//Il concetto è questo: noi utilizziamo il path assoluto, ma a lui dobbiamo inviare quello relativo al nome della directory da inviare
-		if (!bf::is_directory(*it)) {
-			//Se devo inviare un file chiamo send_file.
-			bf::path p(bf::absolute(*it));
-			wxThreadEvent event(wxEVT_THREAD, SetNewFile_EVENT);
-			event.SetString(p.filename().string());
-			wxQueueEvent(progBar, event.Clone());
-			try {
-				send_file(io_service, s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), progBar);
-				//Se è stato chiamato testAbort, vuol dire che l'invio è stato interroto a seguito del click su "CANCEL" nella GUI
-				if (progBar->testAbort())
-					return;
-			}
-			catch (std::exception& e) {
-				return throw std::invalid_argument(e.what());
-			}
-			//Aggiorno la dimensione inviata fin ora
-			directory_size_send += (size_t)bf::file_size(*it);
-			//Attendo la stringa +CN da parte del server che mi indica che posso continuare.
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-			buf_recive[length] = '\0';
-			response = buf_recive;
-			if (response != "+CN") {
-				return throw std::invalid_argument("Errore nell'invio del direttorio.");
-			}
-
+	try {
+		//Invio +DR per comunicare che voglio invare un direttorio
+		send = "+DR";
+		write_some(s, send);
+		//Attendo la risposta da parte del server
+		length = read_some(s, buf_recive, PROTOCOL_PACKET);
+		buf_recive[length] = '\0';
+		response = buf_recive;
+		if (response != "+OK") {
+			return throw std::invalid_argument("Errore nell'invio del direttorio.");
 		}
-		else {
-			//In questo caso voglio invare una stringa contenente il nome del direttorio.
-			//Prima invio la richesta +DR al server
-			send = "+DR";
-			boost::asio::write(s, boost::asio::buffer(send));
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-			buf_recive[length] = '\0';
-			response = buf_recive;
-			//E ne attendo la risposta
-			if (response != "+OK") {
-				wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
-				return throw std::invalid_argument("Errore nell'invio del direttorio.");
+
+		//Valuto la dimensione della directory
+		directory_size_to_send = folder_size(initialAbsolutePath);
+
+		wxThreadEvent event(wxEVT_THREAD, SetMaxDir_EVENT);
+		event.SetPayload(directory_size_to_send);
+		wxQueueEvent(progBar, event.Clone());
+
+		//Converto in string la dimensione cosi da poterla inviare al server.
+		directorySize = std::to_string(directory_size_to_send);
+		write_some(s, directorySize);
+		length = read_some(s, buf_recive, PROTOCOL_PACKET);
+		buf_recive[length] = '\0';
+		response = buf_recive;
+		//E attendo la risposta da parte del server
+		if (response != "+OK") {
+			return throw std::invalid_argument("Errore nell'invio del direttorio.");
+		}
+
+		//Invio il nome della cartella
+		write_some(s, folder);
+		length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+		buf_recive[length] = '\0';
+		response = buf_recive;
+		if (response != "+OK") {
+			return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
+		}
+
+		for (bf::recursive_directory_iterator it(initialAbsolutePath); it != bf::recursive_directory_iterator(); ++it)
+		{
+			//Attenzione:qua bisogna inviare il relativePath
+			//Il concetto è questo: noi utilizziamo il path assoluto, ma a lui dobbiamo inviare quello relativo al nome della directory da inviare
+			if (!bf::is_directory(*it)) {
+				//Se devo inviare un file chiamo send_file.
+				bf::path p(bf::absolute(*it));
+				wxThreadEvent event(wxEVT_THREAD, SetNewFile_EVENT);
+				event.SetString(p.filename().string());
+				wxQueueEvent(progBar, event.Clone());
+				try {
+					send_file(io_service, s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), progBar);
+					//Se è stato chiamato testAbort, vuol dire che l'invio è stato interroto a seguito del click su "CANCEL" nella GUI
+					if (progBar->testAbort())
+						return;
+				}
+				catch (std::exception& e) {
+					return throw std::invalid_argument(e.what());
+				}
+				//Aggiorno la dimensione inviata fin ora
+				directory_size_send += (size_t)bf::file_size(*it);
+				//Attendo la stringa +CN da parte del server che mi indica che posso continuare.
+				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				buf_recive[length] = '\0';
+				response = buf_recive;
+				if (response != "+CN") {
+					return throw std::invalid_argument("Errore nell'invio del direttorio.");
+				}
+
 			}
-			//Successivamente invio il path relativo a folder al server.
-			boost::asio::write(s, boost::asio::buffer(relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder)));
-			//E ne attendo la risposta.
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
-			buf_recive[length] = '\0';
-			response = buf_recive;
-			if (response != "+OK") {
-				return throw std::invalid_argument("Errore nell'invio del direttorio.");
+			else {
+				//In questo caso voglio invare una stringa contenente il nome del direttorio.
+				//Prima invio la richesta +DR al server
+				send = "+DR";
+				write_some(s, send);
+				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				buf_recive[length] = '\0';
+				response = buf_recive;
+				//E ne attendo la risposta
+				if (response != "+OK") {
+					wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
+					return throw std::invalid_argument("Errore nell'invio del direttorio.");
+				}
+				//Successivamente invio il path relativo a folder al server.
+				write_some(s, relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder));
+				//E ne attendo la risposta.
+				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				buf_recive[length] = '\0';
+				response = buf_recive;
+				if (response != "+OK") {
+					return throw std::invalid_argument("Errore nell'invio del direttorio.");
+				}
 			}
 		}
+		send = "-END";
+		write_some(s, send);
 	}
-	send = "-END";
-	boost::asio::write(s, boost::asio::buffer(send));
+	catch (std::exception& e) {
+		return throw std::invalid_argument(e.what());
+	}
 }
 
 
@@ -392,10 +396,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			//Qui inizia il protocollo di invio del file 
 			//Invio +FL per dire che è un file
 			send = "+FL";
-			boost::asio::write(s, boost::asio::buffer(send));
-
+			write_some(s, send);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+			length = read_some(s, buf_recive, PROTOCOL_PACKET);
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
@@ -403,9 +406,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			}
 
 			//invio il nome del file al server
-			boost::asio::write(s, boost::asio::buffer(sendPath));
+			write_some(s, sendPath);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+			length = read_some(s, buf_recive, PROTOCOL_PACKET);
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
@@ -413,9 +416,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			}
 
 			//Invio qui la dimensione del file
-			boost::asio::write(s, boost::asio::buffer(fileSize));
+			write_some(s, fileSize);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
-			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+			length = read_some(s, buf_recive, PROTOCOL_PACKET);
 			buf_recive[length] = '\0';
 			if (response != "+OK") {
 				return throw std::invalid_argument("Errore nell'invio del file.");
@@ -496,6 +499,5 @@ long long folder_size(std::string absolutePath) {
 			size += bf::file_size(*it);
 		}
 	}
-
 	return size;
 }

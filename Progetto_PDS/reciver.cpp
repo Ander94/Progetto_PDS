@@ -40,39 +40,43 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 	while (!exit_app.load()) {
 		//Ricevo un messaggio
-		length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
-		//Estraggo l'ip di chi mi ha inviato il mesasggio
-		ipAddr = reciver_endpoint.address().to_string();
-		buf[length] = '\0';
-		reciveMessage = buf;
-		//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
-		found = reciveMessage.find("+GETADDR");
-		if (found == std::string::npos) {
-			//Estraggo username e stato dal messaggio.
-			//In particolare leggo la stringa nel formato username\r\nstato\r\n
-			//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
-			n = 0;
-			do {
-				buf_username[n] = buf[n];
-				n++;
-			} while (buf[n]!='\r' && buf[n+1]!='\n');
-			buf_username[n] = '\0';
-			username = buf_username;
-			n+=2;
-			do {
-				buf_state[n-username.length()-2] = buf[n];
-				n++;
-			} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
-			buf_state[n-username.length()-2] = '\0';
-			s_state = buf_state;
-			if (s_state == "ONLINE") {
-				state = status::STAT_ONLINE;
+		try{
+			length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+			//Estraggo l'ip di chi mi ha inviato il mesasggio
+			ipAddr = reciver_endpoint.address().to_string();
+			buf[length] = '\0';
+			reciveMessage = buf;
+			//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
+			found = reciveMessage.find("+GETADDR");
+			if (found == std::string::npos) {
+				//Estraggo username e stato dal messaggio.
+				//In particolare leggo la stringa nel formato username\r\nstato\r\n
+				//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
+				n = 0;
+				do {
+					buf_username[n] = buf[n];
+					n++;
+				} while (buf[n] != '\r' && buf[n + 1] != '\n');
+				buf_username[n] = '\0';
+				username = buf_username;
+				n += 2;
+				do {
+					buf_state[n - username.length() - 2] = buf[n];
+					n++;
+				} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
+				buf_state[n - username.length() - 2] = '\0';
+				s_state = buf_state;
+				if (s_state == "ONLINE") {
+					state = status::STAT_ONLINE;
+				}
+				else {
+					state = status::STAT_OFFLINE;
+				}
+				//Iscrivo l'utente.
+				iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath);
 			}
-			else {
-				state = status::STAT_OFFLINE;
-			}
-			//Iscrivo l'utente.
-			iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath);
+		}
+		catch (...) {
 		}
 	}
 
