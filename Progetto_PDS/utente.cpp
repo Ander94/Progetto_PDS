@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #include <boost/asio.hpp>
 #include "utente.h"
 #include <iterator>
@@ -8,11 +10,13 @@
 #include "Settings.h"
 
 
-
+//Sono presenti diversi tipi di costruttori.(versioni overload)
+//Costruttre 
 utente::utente()
 {
 }
 
+//Costruttore 
 utente::utente(std::string username, std::string ipAddr, status state)
 {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
@@ -23,6 +27,7 @@ utente::utente(std::string username, std::string ipAddr, status state)
 	this->state = state;
 }
 
+//Costruttore 
 utente::utente(std::string username, std::string ipAddr)
 {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
@@ -31,6 +36,7 @@ utente::utente(std::string username, std::string ipAddr)
 	this->ipAddr = ipAddr;
 }
 
+//Distruttore
 utente::~utente()
 {
 
@@ -38,6 +44,7 @@ utente::~utente()
 
 bool utente::immagineRicevuta(std::string ipAddr) {
 	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
+	//Utilizzo un ciclo per scandire il vettore immaginiRegistrate, e ritorno un booleano che mi indica la presenza di quell'indirizzo IP
 	for (unsigned int i = 0; i < this->immaginiRegistrate.size(); i++) {
 		if (ipAddr == immaginiRegistrate[i])
 			return true;
@@ -45,12 +52,14 @@ bool utente::immagineRicevuta(std::string ipAddr) {
 	return false;
 }
 void utente::registraImmagine(std::string ipAddr) {
+	//Inserisco un nuovo IP in immaginiRegistrate
 	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
 	this->immaginiRegistrate.push_back(ipAddr);
 }
 
 void utente::rimuoviImmagine(std::string ipAddr) {
 	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
+	//Elimino dal vettore l'elemento contenete la stringa specificata in ipAddr
 	for (unsigned int i = 0; i < immaginiRegistrate.size(); i++) {
 		if (ipAddr == immaginiRegistrate[i])
 			this->immaginiRegistrate.erase(immaginiRegistrate.begin()+i);
@@ -92,6 +101,8 @@ std::vector<utente> utente::getUtentiOnline() {
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 	std::vector<utente> utentiOnline;
+	//Inserisco nel vettore utentiOnline solamente gli utenti che hanno stato STAT_ONLINE,
+	//scandendo il vettore getUtentiConnessi
 	for (auto it : this->getUtentiConnessi()) {
 		if (it.getState() == STAT_ONLINE) {
 			utentiOnline.push_back(it);
@@ -103,6 +114,8 @@ std::vector<utente> utente::getUtentiOnline() {
 bool utente::contieneUtente(std::string ipAddr) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
+	//Scandisce il vettore utentiConnessi alla ricerca dell'utente con indirizzo ip ipAddr.
+	//Torna un valore booleano a seconda del risultato della ricerca.
 	for (auto it : this->getUtentiConnessi()) {
 		if (it.getIpAddr() == ipAddr)
 			return true;
@@ -113,6 +126,8 @@ bool utente::contieneUtente(std::string ipAddr) {
 utente& utente::getUtente(std::string ipAddr) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
+	//ricerca l'utente con indirizzo ip ipAddr, e ne torna il riferimento.
+	//Se l'utente non esiste, lancia un eccezione.
 	for (auto& it : this->getUtentiConnessi()) {
 		if (it.getIpAddr() == ipAddr) {
 			return it;
@@ -125,6 +140,7 @@ std::string utente::getUsernameFromIp(std::string ipAddr) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	std::lock_guard<std::recursive_mutex> lk_ipAddr(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
+	//Tora il nome dell'utente a partire dall'ip ipAddr.
 	for (auto it : this->getUtentiConnessi()) {
 		if (it.getIpAddr() == ipAddr) {
 			return it.getUsername();
@@ -140,6 +156,7 @@ void utente::addUtente(std::string username, std::string ipAddr, status state, b
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 
+	//Aggiunge un nuovo utente alla lista degli utenti connessi.
 	utente nuovoUtente(username, ipAddr, state);
 	nuovoUtente.setCurrentTime(currentTime);
 	nuovoUtente.setIpAddr(ipAddr);
@@ -149,21 +166,15 @@ void utente::addUtente(std::string username, std::string ipAddr, status state, b
 
 
 
-int utente::removeUtente(std::string username) {
-	std::lock_guard<std::recursive_mutex> lk_username(m_username);
-	std::lock_guard<std::recursive_mutex> lk_state(m_state);
-	std::lock_guard<std::recursive_mutex> lk_currentTime(m_currentTime);
+int utente::removeUtente(std::string ipAddr) {
+	std::lock_guard<std::recursive_mutex> lk_username(m_ipAddr);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
 
-	//sistemare meglio ciclo per eliminare
-	unsigned int i, j;
+	//Elimina l'utente con l'ip specificato.
+	unsigned int i;
 	for (i = 0; i<this->getUtentiConnessi().size(); i++) {
-		if (this->getUtentiConnessi()[i].getUsername() == username) {
-			for (j = i; j<this->getUtentiConnessi().size() - 1; j++) {
-				this->getUtentiConnessi()[j].setUsername(this->getUtentiConnessi()[j + 1].getUsername());
-				this->getUtentiConnessi()[j].setCurrentTime(this->getUtentiConnessi()[j + 1].getTime());
-			}
-			this->getUtentiConnessi().pop_back();
+		if (this->getUtentiConnessi()[i].getIpAddr() == ipAddr) {
+			this->getUtentiConnessi().erase(getUtentiConnessi().begin() + i);
 		}
 	}
 	return 0;
@@ -193,21 +204,15 @@ std::string utente::getIpAddr() {
 
 
 void utente::checkTime(utente& utenteProprietario, std::string generalPath,std::atomic<bool>& exit_app) {
-
+	//Funzione che scorre tutto il vettore utentiConnessi e ricerca gli utenti inattivi per un tempo DELETE_USER
 	boost::posix_time::ptime currentTime;
 	while (!exit_app.load()) {
-		unsigned int i, j;
-		//std::cout << "Controllo " << std::endl;
+		unsigned int i;
 		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
 			currentTime = boost::posix_time::second_clock::local_time();
 			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
 				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
-				for (j = i; j < utenteProprietario.getUtentiConnessi().size() - 1; j++) {
-					utenteProprietario.getUtentiConnessi()[j].setUsername(utenteProprietario.getUtentiConnessi()[j + 1].getUsername());
-					utenteProprietario.getUtentiConnessi()[j].setCurrentTime(utenteProprietario.getUtentiConnessi()[j + 1].getTime());
-					utenteProprietario.getUtentiConnessi()[j].setIpAddr(utenteProprietario.getUtentiConnessi()[j + 1].getIpAddr());
-				}
-				utenteProprietario.getUtentiConnessi().pop_back();
+				utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
 				boost::filesystem::remove(generalPath + "local_image\\"  + ipAddr + ".png");
 				utenteProprietario.rimuoviImmagine(ipAddr);
 			}
@@ -226,7 +231,7 @@ status utente::getState() {
 	return this->state;
 }
 
-
+//Costruttore di copia
 utente::utente(const utente& source) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	std::lock_guard<std::recursive_mutex> lk_ipAddr(m_ipAddr);
@@ -246,6 +251,7 @@ utente::utente(const utente& source) {
 	}
 }
 
+//Operatore di assegnazione
 utente &utente::operator =(const utente & source) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
 	std::lock_guard<std::recursive_mutex> lk_ipAddr(m_ipAddr);

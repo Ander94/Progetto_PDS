@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #include "sender.h"
 
 void sendUDPMessage(std::string& username, status& current_status, std::atomic<bool>& exit_app) {

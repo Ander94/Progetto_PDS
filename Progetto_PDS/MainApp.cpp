@@ -1,4 +1,4 @@
-// For compilers that support precompilation, includes "wx/wx.h".
+//SERGIO: COMMENTATO
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
@@ -132,8 +132,5 @@ void MainApp::OnInitCmdLine(wxCmdLineParser& parser)
 
 int MainApp::OnExit()
 {
-	//la chiusura dei thread si può inserire qua
-	//distruggere settings
-
 	return 0;
 }

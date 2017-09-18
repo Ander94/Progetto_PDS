@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #include "server.h"
 
 using boost::asio::ip::tcp;
@@ -230,7 +232,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					write_some(s, response);
 					//Se è il "primo giro", vuol dire che ricevo le informazioni utili alla ricezione della directory
 					if (firstTime == true) {
-						length = read_some(s, buf, PROTOCOL_PACKET);
+						length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 						buf[length] = '\0';
 						directorySize = std::atoi(buf);
 						directory_size_to_send = directorySize;

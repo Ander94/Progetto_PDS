@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #include "client.h"
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;

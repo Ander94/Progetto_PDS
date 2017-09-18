@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #include "timeout.h"
 #include <iostream>
 #include <vector>
@@ -81,7 +83,7 @@ int recive_from(udp::socket &s, char* buf, size_t dim_buf, boost::asio::ip::udp:
 
 	int dim_read = -1;
 	//Attendo che std::async produca il risultato per un tempo TIMEOUT
-	std::future_status state = read_future_udp.wait_for(std::chrono::seconds(TIMEOUT));
+	std::future_status state = read_future_udp.wait_for(std::chrono::seconds(1));
 	//Se il risultato non è stato prodotto, vuol dire che read è rimasta bloccata per troppo tempo
 	//ad esempio a causa della perdita di connessione
 	if (state != std::future_status::ready) {

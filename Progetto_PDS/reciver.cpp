@@ -1,3 +1,5 @@
+//COMMENTATO TUTTO
+
 #pragma once
 #include "reciver.h"
 #include "Settings.h"
@@ -94,7 +96,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 
 	int counter = 0;
 	//Evita di registrare se stessi.
-	if (false) {
+	if (true) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}
@@ -133,7 +135,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	//non aggiungo l'utente.
 	//L'utente verrà aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
 	while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
-		Sleep(200);
+		Sleep(100);
 		if (counter>5) {
 			break;
 		}
