@@ -26,14 +26,14 @@ private:
 	std::string m_utente;
 	std::string m_ipAddr;
 
-	double long m_tot = 0, m_parziale;
+	long long m_tot = 0, m_parziale;
 	std::atomic<bool> flagAbort;
 
 	void OnAbortClick(wxCommandEvent& event);	//l'utente ha interrotto il trasferimento
 
-	void OnSetMaxDim(wxThreadEvent& event) { SetMaxDim(event.GetPayload<int>()); };
+	void OnSetMaxDim(wxThreadEvent& event) { SetMaxDim(event.GetPayload<long long>()); };
 
-	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<int>()); };
+	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<long long>()); };
 
 	wxDECLARE_EVENT_TABLE();
 public:
@@ -44,10 +44,10 @@ public:
 	WindowDownload* GetParent() { return m_parentWindow; }
 
 	//passare la dimensione del direttorio
-	void SetMaxDim(int dim);
+	void SetMaxDim(long long dim);
 
 	//passare la quantità di byte inviati
-	void IncFile(int dim);
+	void IncFile(long long dim);
 
 	//per testare se bisogna interrompere l'invio
 	bool testAbort() { return flagAbort.load(); }

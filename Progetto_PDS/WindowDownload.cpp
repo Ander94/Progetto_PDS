@@ -70,15 +70,15 @@ void FileInDownload::OnAbortClick(wxCommandEvent& event) {
 	flagAbort.store(true);
 }
 
-void FileInDownload::SetMaxDim(int dim) {
+void FileInDownload::SetMaxDim(long long dim) {
 	m_tot = dim;
 	m_parziale = 0;
 }
 
-void FileInDownload::IncFile(int dim) {
-	int diff = dim - m_parziale;
+void FileInDownload::IncFile(long long dim) {
+	long long  diff = dim - m_parziale;
 	m_parziale = dim;
-	int value = m_parziale * 100 / m_tot;
+	long long  value = m_parziale * 100 / m_tot;
 	int intval = (int)floor(value + 0.5);
 	
 	if (m_perc->GetLabelText() != std::to_string(intval))
@@ -86,9 +86,6 @@ void FileInDownload::IncFile(int dim) {
 
 	Update();
 }
-
-
-
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
@@ -178,14 +175,6 @@ void WindowDownload::OnMinimize(wxIconizeEvent& event) {
 	Show(false);
 }
 
-//void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
-
-//void WindowDownload::OnNewDownload(wxThreadEvent& event) {
-//	FileInDownload* fp = event.GetPayload<FileInDownload*>();
-//	std::string ip = event.GetString();
-//	m_MappaDownload.insert(std::pair<std::string, FileInDownload*>(ip, fp));
-//}
-
 FileInDownload* WindowDownload::newDownload(std::string user, std::string file) {
 	if (m_counter++ == 0)
 		m_sizerDownload->Clear();
@@ -216,42 +205,3 @@ void WindowDownload::OnEndDownload(wxThreadEvent& event) {
 	Layout();
 	Fit();
 }
-
-//void WindowSelectUser::deleteUtenteLista(utente user) {
-//	m_MappaInvio.erase(user.getIpAddr());
-//	if (m_MappaInvio.size() == 0)
-//		m_ok->Disable();
-//}
-//
-//void WindowSelectUser::addUtente(utente user) {
-//	UserSizer *u = new UserSizer(this, m_settings, user);
-//	m_ListaUtenti.push_back(u);
-//	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
-//
-//	Update();
-//}
-//
-//void WindowSelectUser::removeUtente(utente user) {
-//	int i = 0;
-//	std::string ip = user.getIpAddr();
-//
-//	for (auto it = m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++) {
-//		if ((*it)->getIpAddr() == ip) {
-//			this->m_ListaUtenti.erase(it);
-//			m_sizerUsers->Remove(i);
-//			break;
-//		}
-//		i++;
-//	}
-//
-//	Update();
-//}
-//
-//std::vector<utente> WindowSelectUser::getListaInvio()
-//{
-//	std::vector<utente> lista;
-//	for (auto it : m_MappaInvio)
-//		lista.push_back(it.second);
-//
-//	return lista;
-//}
