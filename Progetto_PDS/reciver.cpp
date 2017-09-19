@@ -3,8 +3,10 @@
 #pragma once
 #include "reciver.h"
 #include "Settings.h"
+#include <mutex>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
+std::mutex iscrizione;
 
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
@@ -75,7 +77,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 					state = status::STAT_OFFLINE;
 				}
 				//Iscrivo l'utente.
-				iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath);
+				boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath).detach();
 			}
 		}
 		catch (...) {
@@ -94,9 +96,10 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
+	std::lock_guard<std::mutex> lg(iscrizione);
 	int counter = 0;
 	//Evita di registrare se stessi.
-	if (true) {
+	if (false) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}
@@ -135,7 +138,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	//non aggiungo l'utente.
 	//L'utente verrà aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
 	while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
-		Sleep(100);
+		Sleep(200);
 		if (counter>5) {
 			break;
 		}

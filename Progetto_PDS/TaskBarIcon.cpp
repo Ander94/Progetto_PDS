@@ -507,8 +507,16 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
 {
+	std::string oldUsername(m_settings->getUtenteProprietario().getUsername());
 	std::string username(m_nome->GetValue());
-	m_settings->getUtenteProprietario().setUsername(username);
+	if (username.empty()==true) {
+		m_settings->getUtenteProprietario().setUsername(oldUsername);
+	}
+	else {
+		m_settings->getUtenteProprietario().setUsername(username);
+	}
+	
+	
 	m_settings->updateState();
 	Update();
 }

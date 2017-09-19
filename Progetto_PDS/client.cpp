@@ -462,7 +462,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			file_in.close();
 		}
 		else {
-			return throw std::invalid_argument("File non aperto correttamente.");
+			return throw std::invalid_argument("File non aperto correttamente.\nAssicurarsi che il file non sia aperto da un altra applicazione\nprima di procedere con l'invio.");
 		}
 	}
 	catch (std::exception& e)
