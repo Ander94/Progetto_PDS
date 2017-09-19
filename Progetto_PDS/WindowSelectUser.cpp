@@ -1,3 +1,4 @@
+//NON COMMENTATO
 #include <wx/wx.h>
 #include <list>
 
@@ -116,7 +117,6 @@ void WindowSelectUser::OnOk(wxCommandEvent& event) {
 }
 
 void WindowSelectUser::OnCancel(wxCommandEvent& event) {
-	wxMessageBox(wxT("Invio annullato."), wxT("Info"), wxOK | wxICON_INFORMATION, this);
 	m_frame->Show();
 	this->Close();
 }

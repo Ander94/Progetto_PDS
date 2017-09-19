@@ -1,3 +1,4 @@
+//NON COMMENTATO
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <list>

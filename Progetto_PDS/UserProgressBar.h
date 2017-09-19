@@ -39,7 +39,7 @@ private:
 	std::mutex mut;
 
 	bool m_isDir;
-	double long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
+	long long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
 
@@ -49,13 +49,13 @@ private:
 
 	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
 	
-	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetPayload<double long>()); };
+	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetPayload<long long>()); };
 	
 	void OnSetNewFile(wxThreadEvent& event) { SetNewFile(event.GetString().ToStdString()); };
 	
-	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetPayload<double long>()); };
+	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetPayload<long long>()); };
 	
-	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<double long>()); };
+	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<long long>()); };
 
 	wxDECLARE_EVENT_TABLE();
 public:
@@ -71,16 +71,16 @@ public:
 	void SetTimeFile(long sec);
 
 	//passare la dimensione del direttorio
-	void SetMaxDir(double long dim);
+	void SetMaxDir(long long dim);
 
 	//passare il file attualmente in trasferimento (da usare solo in modalità direttorio!)
 	void SetNewFile(std::string path);
 
 	//passare la dimensione del file
-	void SetMaxFile(double long dim);
+	void SetMaxFile(long long dim);
 
 	//passare la quantità di byte inviati
-	void IncFile(double long dim);
+	void IncFile(long long dim);
 
 	//per testare se bisogna interrompere l'invio
 	bool testAbort() { return flagAbort.load(); }
