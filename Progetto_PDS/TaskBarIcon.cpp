@@ -8,6 +8,7 @@
 #include "share_icon_offline.xpm"
 
 #include "TaskBarIcon.h"
+#include "WindowDownload.h"
 #include "IPCserver.h"
 #include "Settings.h"
 #include "MainApp.h"
@@ -422,7 +423,9 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 
 	m_taskBarIcon = new TaskBarIcon(m_settings);
 	m_settings->setTaskBarIcon(m_taskBarIcon);
-	UpdateIcon();	
+	UpdateIcon();
+	WindowDownload* wp = new WindowDownload(this, m_settings);
+	m_settings->setWindowDownload(wp);
 
 	gs_dialog = this;
 
@@ -547,8 +550,8 @@ void MainFrame::OnChangeSavePath(wxCommandEvent& event)
 	m_settings->setSavePath(selectDirDialog.GetPath().ToStdString());
 	m_textSavePath->SetLabel(selectDirDialog.GetPath());
 	m_textSavePath->SetToolTip(selectDirDialog.GetPath());
+	Layout();
 	Update();
-	
 }
 
 void MainFrame::OnRadioBoxStato(wxCommandEvent& event)
@@ -694,6 +697,7 @@ enum
 	PU_RESTORE = 10001,
 	PU_EXIT,
 	PU_STATO,
+	PU_DOWNLOAD
 };
 
 
@@ -702,6 +706,7 @@ EVT_MENU(PU_RESTORE, TaskBarIcon::OnMenuRestore)
 EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
 EVT_MENU(PU_STATO, TaskBarIcon::OnMenuStato)
+EVT_MENU(PU_DOWNLOAD, TaskBarIcon::OnMenuDownload)
 EVT_UPDATE_UI(PU_STATO, TaskBarIcon::OnMenuUIStato)
 wxEND_EVENT_TABLE()
 
@@ -736,6 +741,10 @@ void TaskBarIcon::OnMenuUIStato(wxUpdateUIEvent &event)
 	event.SetText(stato);
 }
 
+void TaskBarIcon::OnMenuDownload(wxCommandEvent&) {
+	m_settings->showDownload();
+}
+
 wxMenu *TaskBarIcon::CreatePopupMenu()
 {
 	wxMenu *menu = new wxMenu;
@@ -745,6 +754,8 @@ wxMenu *TaskBarIcon::CreatePopupMenu()
 	std::string stato;
 	m_settings->getStato() ? stato = "Vai online" : stato = "Vai offline";
 	menu->Append(PU_STATO, stato);
+	menu->AppendSeparator();
+	menu->Append(PU_DOWNLOAD, wxT("Download in corso"));
 	menu->AppendSeparator();
 	menu->Append(PU_EXIT, wxT("Esci"));
 

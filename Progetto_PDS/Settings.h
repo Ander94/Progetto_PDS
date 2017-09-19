@@ -53,10 +53,12 @@ private:
 	std::recursive_mutex rm_io_service_tcp;//13
 	std::recursive_mutex rm_scorciatoia;//14
 	std::recursive_mutex rm_taskBarIcon;//14
+	std::recursive_mutex rm_windowDownload;//15
 
 
 	utente* m_utenteProprietario;
 	wxTaskBarIcon* m_taskBarIcon;
+	wxFrame* m_windowDownload;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
@@ -110,7 +112,6 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
-		std::lock_guard<std::recursive_mutex> lk_scorciatoia(rm_scorciatoia);
 
 		save_path_file.open(this->getGeneralPath() + "stato.txt", std::fstream::out);
 		save_path_file << this->getUtenteProprietario().getUsername() << std::endl;
@@ -137,7 +138,7 @@ public:
 	}
 
 	/*
-	Da chiamare subito dopo la creazione di una nuovo oggetto settings
+		Da chiamare subito dopo la creazione di una nuovo oggetto settings
 	*/
 	void Init(std::string path, std::string nomeUtente)
 	{
@@ -162,6 +163,7 @@ public:
 		m_GeneralPath = path;
 		m_mod = MOD_USER;
 		m_utenteProprietario->setUsernamePc(nomeUtente);
+
 		if (!boost::filesystem::is_regular_file(m_GeneralPath + "stato.txt")) {
 			m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
 			m_stato = status::STAT_ONLINE;
@@ -224,6 +226,20 @@ public:
 	utente& getUtenteProprietario() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		return *m_utenteProprietario;
+	}
+
+	void setWindowDownload(wxFrame* windowDownload) {
+		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
+		m_windowDownload = windowDownload;
+	}
+	void showDownload() {
+		m_windowDownload->Show(true);
+		m_windowDownload->Center();
+		m_windowDownload->SetFocus();
+	}
+	wxFrame* getWindowDownload() {
+		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
+		return m_windowDownload;
 	}
 
 	void setImagePath(std::string imagePath) {

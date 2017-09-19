@@ -11,7 +11,6 @@
 
 enum {
 	CLIENT_EVENT = 5000,
-	SERVER_EVENT,
 	SetTimeFile_EVENT,
 	SetMaxDir_EVENT,
 	SetNewFile_EVENT,
@@ -26,6 +25,8 @@ private:
 	wxBitmapButton *m_abort;
 	wxStaticText* m_nameFile;
 	//tempo e percentuali
+	boost::posix_time::ptime m_startTime;
+	wxStaticText *m_timeDir;
 	wxStaticText *m_percDir;
 	wxStaticText *m_timeFile;
 	wxStaticText *m_percFile;

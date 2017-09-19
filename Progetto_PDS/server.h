@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include "TaskBarIcon.h"
+#include "WindowDownload.h"
 #include "Settings.h"
 #include "utente.h"
 

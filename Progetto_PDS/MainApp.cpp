@@ -74,7 +74,7 @@ bool MainApp::OnInit()
 		else {
 			//se entro qua, significa che non ci sono altri processi aperti
 			m_settings->Init(path, wxGetUserName().ToStdString());
-			
+
 			//i privilegi di amministratore servono per modificare le chiavi di registro
 			if (argument == "_ADMIN_PRIVILEGES") {
 				m_settings->setAdmin();

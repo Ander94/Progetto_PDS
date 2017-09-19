@@ -41,8 +41,11 @@ public:
 	//Cambia stato (online/offline)
 	void OnMenuStato(wxCommandEvent&);
 
-	//Aggiorna la grafica nella finestra principale
+	//Aggiorna la grafica
 	void OnMenuUIStato(wxUpdateUIEvent&);
+
+	//Mostra la finestra dei download in corso
+	void OnMenuDownload(wxCommandEvent&);
 
 	//Crea menu popup
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;

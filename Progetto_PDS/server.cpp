@@ -1,4 +1,5 @@
 #include "server.h"
+#define FILTER_EVENT 10	//invia meno update alla grafica
 
 using boost::asio::ip::tcp;
 
@@ -18,7 +19,7 @@ Riceve come parametri:
 -s: socket su cui vieme scambiato il file
 -fileName: nome del file da salvare
 **********************************************************************************/
-void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp);
 
 /********************************************************************************
 StartAccept inizializza il socket e lancia l'accettazione asincrona di richieste da parte del client.
@@ -104,6 +105,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
 	std::string ipAddrRemote, query, response, fileName;  //Ip di chi invia il file, query richesta, risposta inviata al client, e nome del file
 	
+	FileInDownload* fp; //fileindownload pointer
+	WindowDownload* wp = dynamic_cast<WindowDownload*>(settings->getWindowDownload()); //windowdownload pointer
 
 	try {
 		ipAddrRemote = s.remote_endpoint().address().to_string();
@@ -163,7 +166,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
+					fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -175,7 +179,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-				recive_file(io_service, s, savePath);
+				fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+				recive_file(io_service, s, savePath, fp);
 			}
 		}
 
@@ -189,7 +194,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
-				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
+				fp = nullptr;
+				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png", nullptr);
 				response = "+OK";
 				boost::asio::write(s, boost::asio::buffer(response));
 			}
@@ -236,6 +242,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
 					if (firstDirectory == true) {
+						fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
 						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_NO) {
@@ -291,7 +298,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 
 					fileName = settings->getSavePath() + "\\" + fileName;
-					recive_file(io_service, s, fileName);
+					recive_file(io_service, s, fileName, fp);
 
 					//Vedo la dim del file che ho ricevuto, e aggiorno la quantità di byte ricevuta fin ora.
 					//Ciò è utile per l'avanzamento della barra di progresso.
@@ -309,19 +316,30 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 	}
 	catch (std::exception& e) {
 		s.close();
+
 		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+		if (fp != nullptr) {
+			wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
+			event.SetPayload(fp);
+			wxQueueEvent(wp, event.Clone());
+		}
 		return;
 	}
 	s.close();
+	if (fp != nullptr) {
+		wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
+		event.SetPayload(fp);
+		wxQueueEvent(wp, event.Clone());
+	}
 }
 
-void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp) {
 
 	std::ofstream file_out(fileName, std::ios::out | std::ios::binary);  //File da salvare
 	std::string response; //Risposta da invare al client
 	char buf[PROTOCOL_PACKET];  //Buffer che contiene i pacchetti utili alla sincronizzazione con il client.
 	char buf_recive[BUFLEN];  //Buffer che conterrà i pacchetti contenenti il file
-	int dim_recived = 0, dim_read, size, length;
+	int dim_recived = 0, dim_read, size, length, count = 0;
 
 	try
 	{
@@ -333,10 +351,17 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
 			buf[length] = '\0';
 			size = std::atoi(buf);
+			if (fp != nullptr) {
+				wxThreadEvent event1(wxEVT_THREAD, SetMaxDim_EVENT);
+				event1.SetPayload(size);
+				wxQueueEvent(fp, event1.Clone());
+			}
+
 			//Comunico al server che può inviare il file
 			response = "+OK";
 			boost::asio::write(s, boost::asio::buffer(response));
 
+			wxThreadEvent event2(wxEVT_THREAD, SetMaxDim_EVENT);
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size)
 			{
@@ -346,6 +371,11 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 				//dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
+				if (fp != nullptr && count++ == FILTER_EVENT) {
+					count = 0;
+					event2.SetPayload(dim_recived);
+					wxQueueEvent(fp, event2.Clone());
+				}
 			}
 			file_out.close();
 		}

@@ -19,6 +19,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	m_utente = user;
 	m_ipAddr = ipAddr;
 	m_isDir = isDir;
+	//m_startTime = boost::posix_time::second_clock::local_time();
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	
 	wxStaticText *username = new wxStaticText(this, wxID_ANY, m_utente, wxDefaultPosition, wxDefaultSize);
@@ -39,6 +40,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(3);
 		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
+		//m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
 		wxStaticText* m_Dir = new wxStaticText(this, wxID_ANY, "Avanzamento complessivo: ", wxDefaultPosition, wxDefaultSize);
 		m_percDir->SetFont((m_percDir->GetFont()));
 		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT | wxRIGHT, 35);
@@ -48,7 +50,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
-
+		//hDirSizer->Add(m_timeDir);
 		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
 		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 
@@ -183,6 +185,21 @@ void UserProgressBar::IncFile(double long dim) {
 
 	if (m_isDir) {
 		m_parzialeDir += diff;
+
+		////tempo rimanente
+		//boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
+		//long enlapsed = (curTime - m_startTime).total_seconds();
+		//if (enlapsed > 2) {
+		//	long totSec = m_totDir / m_parzialeDir * enlapsed;
+		//	long sec = totSec - enlapsed;
+		//	long min = sec / 60;
+		//	sec = sec % 60;
+		//	std::string time = std::to_string(min) + ":" + std::to_string(sec);
+		//	if (m_timeDir->GetLabelText() != time)
+		//		m_timeDir->SetLabel(std::to_string(min) + ":" + std::to_string(sec));
+		//}
+		
+		//percentuale avanzamento
 		value = m_parzialeDir * 100 / m_totDir;
 		intval = (int)floor(value + 0.5);
 		m_progDir->SetValue(intval);
