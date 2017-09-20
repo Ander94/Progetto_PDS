@@ -408,6 +408,11 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 
+			if (sendPath.length()>PROTOCOL_PACKET-1) {
+				return throw std::invalid_argument("Attenzione: l'elemento " + bf::basename(sendPath) + " possiede un nome troppo lungo\nModificare il nome dell'elemento e procedere nuovamente con l'invio.\n ");
+			}
+			
+
 			//invio il nome del file al server
 			write_some(s, sendPath);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
@@ -458,13 +463,12 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				}
 				calcola_tempo++;
 
-				if (count++ == FILTER_EVENT) {
-					count = 0;
+				
 					event1.SetPayload(dim_send);
 					wxQueueEvent(progBar, event1.Clone());
 					event2.SetPayload(sec);
 					wxQueueEvent(progBar, event2.Clone());
-				}
+				
 
 				wxMutexGuiEnter();
 				abort = progBar->testAbort();

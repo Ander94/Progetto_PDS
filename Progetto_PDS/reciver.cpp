@@ -19,11 +19,9 @@ Riceve come parametri:
 **********************************************************************************/
 void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath);
 
-void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app, udp::socket& s) {
 
 
-	boost::asio::io_service io_service; //Procedura di servizio boost
-	udp::socket s(io_service);  //Socket su cui ricevere i pacchetti UDP
 	boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 	boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
 
@@ -86,12 +84,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
-	//Chiudo il socket e il servizio boost.
-	if (s.is_open()) {
-		s.close();
-	}
-	io_service.stop();
-	return;
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
@@ -99,7 +91,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	std::lock_guard<std::mutex> lg(iscrizione);
 	int counter = 0;
 	//Evita di registrare se stessi.
-	if (false) {
+	if (true) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}

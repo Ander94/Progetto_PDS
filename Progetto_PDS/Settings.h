@@ -60,7 +60,7 @@ private:
 	std::recursive_mutex rm_scorciatoia;//14
 	std::recursive_mutex rm_taskBarIcon;//14
 	std::recursive_mutex rm_windowDownload;//15
-
+	std::recursive_mutex rm_sock;//16
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
@@ -78,12 +78,14 @@ private:
 	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;  //Atomic che indica se i threads di invio/ricezione di pacchetti udp possono essere disattivati
 	boost::asio::io_service io_service_tcp;   //io_service che mette in run/stop la procedura di accettazione dei file.
-
+	boost::asio::io_service io_service_udp;
+	boost::asio::ip::udp::socket sock;
 public:
 	//Tengo traccia di tutti i thread lanciati ed utilizzati dall'applicazione
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread, reciveAliveThread, sendAliveThread;
 	
-	Settings() {}
+	Settings():sock(io_service_udp) {
+	}
 
 	~Settings() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
@@ -94,6 +96,18 @@ public:
 	void setExitSend(bool value) {
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
 		this->exit_send_udp.store(value);
+	}
+
+	boost::asio::ip::udp::socket& getScoketRecive() {
+		std::lock_guard<std::recursive_mutex> lk_sock(rm_sock);
+		return this->sock;
+	}
+
+	void closeSocketRecive() {
+		std::lock_guard<std::recursive_mutex> lk_sock(rm_sock);
+		if (this->sock.is_open()) {
+			this->sock.close();
+		}
 	}
 
 	//Torna il valore della variabile booleana exit_send_udp 

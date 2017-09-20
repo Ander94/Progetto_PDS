@@ -77,7 +77,7 @@ private:
 	wxStaticText* m_textSavePath;
 	wxTextCtrl* m_nome;
 	TaskBarIcon *m_taskBarIcon;
-	
+	std::mutex m;
 	//Metodi collegati ai vari eventi possibili
 	void OnInviaFile(wxCommandEvent&);
 	void OnInviaDir(wxCommandEvent&);

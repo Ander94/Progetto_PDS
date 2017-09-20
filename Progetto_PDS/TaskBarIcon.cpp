@@ -2,12 +2,13 @@
 #include <wx/wx.h>
 #include <wx/taskbar.h>
 #include <wx/artprov.h>
-
+#include <wx/caret.h>
 #include <shellapi.h>
 
 #include "share_icon.xpm"
 #include "share_icon_offline.xpm"
-
+#include <boost/algorithm/string/classification.hpp> 
+#include <boost/algorithm/string/split.hpp> 
 #include "TaskBarIcon.h"
 #include "WindowDownload.h"
 #include "IPCserver.h"
@@ -88,9 +89,14 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 		wxID_ANY,
 		wxT("Ricerca degli utenti connessi in corso"),
 		wxDefaultPosition,
-		wxSize(300, 80),
-		wxTE_MULTILINE | wxTE_READONLY
+		wxSize(350, 40),
+		wxTE_MULTILINE | wxTE_READONLY 
 	);
+	m_elencoUser->SetScrollbar(wxVERTICAL, 0,0,0);
+	m_elencoUser->Bind(wxEVT_SET_FOCUS, [&](wxFocusEvent&) {
+		HideCaret(m_elencoUser->GetHWND());
+	});
+
 
 	/*
 		Pulsanti scelta stato
@@ -473,6 +479,7 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 	m_settings->getIoService().stop();
 	m_settings->reciveTCPfileThread.join();
 	m_settings->setExitRecive(true);
+	m_settings->closeSocketRecive();
 	m_settings->reciveUdpMessageThread.join();
 	m_settings->reciveAliveThread.join();
 	m_settings->setExitSend(true);
@@ -489,23 +496,59 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 
 void MainFrame::OnTimer(wxTimerEvent& event)
 {
+	std::lock_guard<std::mutex> lg(m);
+
+	//Puo contenere 112 caratteri
 	utente user = m_settings->getUtenteProprietario();
-	m_elencoUser->Clear();
-	bool first = true;
+	bool isTheSame = true;
+	std::vector<std::string> oldUsers;
+	std::vector<std::string> newUsers;
+	boost::split(oldUsers, m_elencoUser->GetValue().ToStdString(), boost::is_any_of(", "), boost::token_compress_on);
 	for (auto it : user.getUtentiOnline()) {
-		if (first) {
-			(*m_elencoUser) << it.getUsername();
-			first = false;
-		}
-		else {
-			(*m_elencoUser) << ", " +  it.getUsername();
-		}
-		
+		newUsers.push_back(it.getUsername());
 	}
-	if (m_elencoUser->IsEmpty()) {
-		(*m_elencoUser) << "Nessun utente connesso.";
-		first = true;
+	std::sort(oldUsers.begin(), oldUsers.end());
+	std::sort(newUsers.begin(), newUsers.end());
+	if (oldUsers.size()!=newUsers.size()) {
+		isTheSame = false;
 	}
+	else {
+		for (unsigned int i = 0; i < oldUsers.size(); i++)
+			if (oldUsers[i] != newUsers[i])
+			{
+				isTheSame = false;
+				break;
+			}
+	}
+
+	if (user.getUtentiOnline().size()>=12) {
+		m_elencoUser->SetScrollbar(wxVERTICAL, 0, 0, 255);
+	}
+	else {
+		m_elencoUser->SetScrollbar(wxVERTICAL, 0, 0, 0);
+	}
+
+	//Se sono uguali, non le modificare.
+	if(isTheSame==false ){
+		m_elencoUser->Clear();
+		bool first = true;
+		for (auto it : user.getUtentiOnline()) {
+			if (first) {
+				(*m_elencoUser) << it.getUsername();
+				first = false;
+			}
+			else {
+				(*m_elencoUser) << ", " + it.getUsername();
+			}
+
+		}
+		if (m_elencoUser->IsEmpty()) {
+			(*m_elencoUser) << "Nessun utente connesso.";
+			first = true;
+		}
+	}
+	
+	
 }
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)

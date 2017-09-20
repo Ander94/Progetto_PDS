@@ -20,7 +20,7 @@ EVT_TIMER(TIMER_ID, WindowSelectUser::OnTimer)
 wxEND_EVENT_TABLE()
 
 WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
-	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
+	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN | wxSTAY_ON_TOP)
 {
 	this->SetBackgroundColour(wxColour(240, 242, 245));
 	this->SetFont(this->GetFont().Bold().Scale(0.9f));

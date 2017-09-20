@@ -14,7 +14,7 @@ EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
 EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
 wxEND_EVENT_TABLE()
 
-UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
+UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath) : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE | wxSIZE_NO_ADJUSTMENTS)
 {
 	flagAbort.store(false);
 	m_parentWindow = dynamic_cast<WindowProgressBar*>(parent);
@@ -63,10 +63,10 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo...", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		vFileSizer->Add(m_nameFile, 1, wxALIGN_LEFT);
-		vFileSizer->Add(m_progFile, 1, wxALIGN_LEFT);
+		vFileSizer->Add(m_progFile, 1, wxALIGN_RIGHT);
 		hFileSizer->Add(
 			new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
 			0,
@@ -95,7 +95,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo...", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(
 				new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
@@ -109,7 +109,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			wxALIGN_RIGHT | wxLEFT,
 			5);
 		vFileSizer->Add(hFileSizer, 1, wxEXPAND);
-		vFileSizer->Add(m_progFile, 1, wxALIGN_LEFT);
+		vFileSizer->Add(m_progFile, 1, wxALIGN_RIGHT);
 		
 		wxBoxSizer* hSizer = new wxBoxSizer(wxHORIZONTAL);
 		hSizer->Add(vFileSizer, 1);
@@ -151,7 +151,7 @@ void UserProgressBar::SetTimeFile(long sec) {
 	else
 		s_min = std::to_string(min);
 
-	std::string time(s_min + ":" + s_sec);
+	std::string time(s_min + ":" + s_sec + "      ");
 	if (m_timeFile->GetLabelText() != time)
 		m_timeFile->SetLabelText(time);	
 }
@@ -172,7 +172,7 @@ void UserProgressBar::SetNewFile(std::string path) {
 void UserProgressBar::SetMaxFile(long long dim) {
 	m_totFile = dim;
 	m_parzialeFile = 0;
-	m_percFile->SetLabelText("0");
+	m_percFile->SetLabelText("   0");
 	this->Update();
 }
 
@@ -182,8 +182,8 @@ void UserProgressBar::IncFile(long long dim) {
 	long long value = m_parzialeFile * 100 / m_totFile;
 	int intval = (int)floor(value + 0.5);
 	m_progFile->SetValue(intval);
-	if (m_percFile->GetLabelText() != std::to_string(intval))
-		m_percFile->SetLabelText(std::to_string(intval));
+	if (m_percFile->GetLabelText() != " " + std::to_string(intval) + " ")
+		m_percFile->SetLabelText(" " + std::to_string(intval) + " ");
 
 	if (m_isDir) {
 		m_parzialeDir += diff;
