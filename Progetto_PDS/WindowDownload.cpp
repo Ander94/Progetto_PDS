@@ -107,7 +107,6 @@ WindowDownload::WindowDownload(wxWindow* parent, Settings* settings)
 	this->SetIcon(wxIcon(share_icon));
 	
 	m_settings = settings;
-	m_MappaDownload = std::map<std::string, FileInDownload*>();
 	
 	//Button ok
 	wxBitmap* ok = new wxBitmap();
@@ -176,6 +175,7 @@ void WindowDownload::OnMinimize(wxIconizeEvent& event) {
 }
 
 FileInDownload* WindowDownload::newDownload(std::string user, std::string file) {
+	std::lock_guard<std::mutex> lg(m_mutex);
 	if (m_counter++ == 0)
 		m_sizerDownload->Clear();
 
@@ -184,11 +184,12 @@ FileInDownload* WindowDownload::newDownload(std::string user, std::string file) 
 
 	Layout();
 	Fit();
-
+	Update();
 	return fp;
 }
 
 void WindowDownload::OnEndDownload(wxThreadEvent& event) {
+	std::lock_guard<std::mutex> lg(m_mutex);
 	FileInDownload* tmp = event.GetPayload<FileInDownload*>();
 	tmp->Destroy();
 
@@ -204,4 +205,5 @@ void WindowDownload::OnEndDownload(wxThreadEvent& event) {
 
 	Layout();
 	Fit();
+	Update();
 }

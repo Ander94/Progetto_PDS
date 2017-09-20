@@ -21,7 +21,7 @@ private:
 	class WindowDownload *m_parentWindow;
 	wxBitmapButton *m_abort;
 	wxStaticText* m_nameFile;
-	wxStaticText *m_perc;
+	wxStaticText* m_perc;
 
 	std::string m_utente;
 	std::string m_ipAddr;
@@ -67,10 +67,10 @@ class WindowDownload : public wxFrame
 private:
 	class Settings* m_settings;
 	class MainFrame* m_frame;
-	std::map <std::string, FileInDownload*> m_MappaDownload;	//utenti attualmente selezionati
 	wxBitmapButton* m_ok;
 	wxSizer* m_sizerDownload;
 	int m_counter = 0;
+	std::mutex m_mutex;
 
 	void OnOk(wxCommandEvent&);
 	void OnMinimize(wxIconizeEvent&);
@@ -81,12 +81,5 @@ private:
 public:
 	WindowDownload(wxWindow* parent, Settings* settings);
 
-
-	//void OnNewDownload(wxThreadEvent&);
 	FileInDownload* newDownload(std::string user, std::string file);
-	////aggiunge un nuovo utente alla finestra
-	//void addUtente(utente user);
-	////rimuove un utente dalla finsetra
-	//void removeUtente(utente user);
-
 };
