@@ -496,59 +496,30 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 
 void MainFrame::OnTimer(wxTimerEvent& event)
 {
-	std::lock_guard<std::mutex> lg(m);
-
-	//Puo contenere 112 caratteri
 	utente user = m_settings->getUtenteProprietario();
-	bool isTheSame = true;
-	std::vector<std::string> oldUsers;
-	std::vector<std::string> newUsers;
-	boost::split(oldUsers, m_elencoUser->GetValue().ToStdString(), boost::is_any_of(", "), boost::token_compress_on);
+	m_elencoUser->Clear();
+	bool first = true;
 	for (auto it : user.getUtentiOnline()) {
-		newUsers.push_back(it.getUsername());
+		if (first) {
+			(*m_elencoUser) << it.getUsername();
+			first = false;
+		}
+		else {
+			(*m_elencoUser) << ", " + it.getUsername();
+		}
+
 	}
-	std::sort(oldUsers.begin(), oldUsers.end());
-	std::sort(newUsers.begin(), newUsers.end());
-	if (oldUsers.size()!=newUsers.size()) {
-		isTheSame = false;
-	}
-	else {
-		for (unsigned int i = 0; i < oldUsers.size(); i++)
-			if (oldUsers[i] != newUsers[i])
-			{
-				isTheSame = false;
-				break;
-			}
+	if (m_elencoUser->IsEmpty()) {
+		(*m_elencoUser) << "Nessun utente connesso.";
+		first = true;
 	}
 
-	if (user.getUtentiOnline().size()>=12) {
-		m_elencoUser->SetScrollbar(wxVERTICAL, 0, 0, 255);
+	if (m_elencoUser->GetValue().ToStdString().length()>=224) {
+		m_elencoUser->SetScrollbar(wxVERTICAL, 0, 0, 50);
 	}
 	else {
 		m_elencoUser->SetScrollbar(wxVERTICAL, 0, 0, 0);
 	}
-
-	//Se sono uguali, non le modificare.
-	if(isTheSame==false || oldUsers.size()==0 || newUsers.size()==0 ){
-		m_elencoUser->Clear();
-		bool first = true;
-		for (auto it : user.getUtentiOnline()) {
-			if (first) {
-				(*m_elencoUser) << it.getUsername();
-				first = false;
-			}
-			else {
-				(*m_elencoUser) << ", " + it.getUsername();
-			}
-
-		}
-		if (m_elencoUser->IsEmpty()) {
-			(*m_elencoUser) << "Nessun utente connesso.";
-			first = true;
-		}
-	}
-	
-	
 }
 
 void MainFrame::OnChangeUsername(wxCommandEvent& event)
