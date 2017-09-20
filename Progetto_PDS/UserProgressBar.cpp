@@ -21,7 +21,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	m_utente = user;
 	m_ipAddr = ipAddr;
 	m_isDir = isDir;
-	//m_startTime = boost::posix_time::second_clock::local_time();
+	m_startTime = boost::posix_time::second_clock::local_time();
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	
 	wxStaticText *username = new wxStaticText(this, wxID_ANY, m_utente, wxDefaultPosition, wxDefaultSize);
@@ -40,19 +40,21 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	if (isDir) {
 		//parte della cartella
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
-		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(3);
+		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(4);
 		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
-		//m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
-		wxStaticText* m_Dir = new wxStaticText(this, wxID_ANY, "Avanzamento complessivo: ", wxDefaultPosition, wxDefaultSize);
+		m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
 		m_percDir->SetFont((m_percDir->GetFont()));
-		hDirSizer->Add(m_Dir, 1, wxALIGN_LEFT | wxRIGHT, 35);
+		hDirSizer->Add(
+			new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
+			0,
+			wxALIGN_LEFT);
+		hDirSizer->Add(m_timeDir, 1, wxALIGN_LEFT);
 		hDirSizer->Add(m_percDir, 1, wxALIGN_RIGHT);
 		hDirSizer->Add(
 			new wxStaticText(this, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize),
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
-		//hDirSizer->Add(m_timeDir);
 		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
 		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 
@@ -63,7 +65,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		vFileSizer->Add(m_nameFile, 1, wxALIGN_LEFT);
 		vFileSizer->Add(m_progFile, 1, wxALIGN_LEFT);
@@ -188,18 +190,31 @@ void UserProgressBar::IncFile(long long dim) {
 	if (m_isDir) {
 		m_parzialeDir += diff;
 
-		////tempo rimanente
-		//boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
-		//long enlapsed = (curTime - m_startTime).total_seconds();
-		//if (enlapsed > 2) {
-		//	long totSec = m_totDir / m_parzialeDir * enlapsed;
-		//	long sec = totSec - enlapsed;
-		//	long min = sec / 60;
-		//	sec = sec % 60;
-		//	std::string time = std::to_string(min) + ":" + std::to_string(sec);
-		//	if (m_timeDir->GetLabelText() != time)
-		//		m_timeDir->SetLabel(std::to_string(min) + ":" + std::to_string(sec));
-		//}
+		//tempo rimanente
+		boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
+		long enlapsed = (curTime - m_startTime).total_seconds();
+		if (enlapsed > 1) {
+			long totSec = m_totDir / m_parzialeDir * enlapsed;
+			long sec = totSec - enlapsed;
+			long min = sec / 60;
+			sec = sec % 60;
+			
+			std::string s_min;
+			std::string s_sec;
+			if (sec <= 9)
+				s_sec = "0" + std::to_string(sec);
+			else
+				s_sec = std::to_string(sec);
+
+			if (min <= 9)
+				s_min = "0" + std::to_string(min);
+			else
+				s_min = std::to_string(min);
+			
+			std::string time = s_min + ":" + s_sec;
+			if (m_timeDir->GetLabelText() != time)
+				m_timeDir->SetLabel(time);
+		}
 		
 		//percentuale avanzamento
 		value = m_parzialeDir * 100 / m_totDir;
