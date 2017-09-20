@@ -529,7 +529,7 @@ void MainFrame::OnTimer(wxTimerEvent& event)
 	}
 
 	//Se sono uguali, non le modificare.
-	if(isTheSame==false ){
+	if(isTheSame==false || oldUsers.size()==0 || newUsers.size()==0 ){
 		m_elencoUser->Clear();
 		bool first = true;
 		for (auto it : user.getUtentiOnline()) {

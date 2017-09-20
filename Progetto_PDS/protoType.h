@@ -11,3 +11,4 @@
 #define TIMEOUT 10 //s
 #define PORT_ALIVE 1300
 #define FILTER_EVENT 200 //invia meno update alla grafica
+#define EVALUATE_TIME_DIR 10

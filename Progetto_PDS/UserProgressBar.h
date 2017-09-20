@@ -42,7 +42,7 @@ private:
 	long long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
-
+	long calcola_tempo;
 	void OnAbortClick(wxCommandEvent& event);	//l'utente ha interrotto il trasferimento
 
 	void OnClientEvent(wxThreadEvent& event);	//il thread ha segnalato la fine del trasferimento

@@ -179,6 +179,7 @@ void UserProgressBar::SetMaxFile(long long dim) {
 }
 
 void UserProgressBar::IncFile(long long dim) {
+	this->calcola_tempo++;
 	long long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
 	long long value = m_parzialeFile * 100 / m_totFile;
@@ -189,33 +190,30 @@ void UserProgressBar::IncFile(long long dim) {
 
 	if (m_isDir) {
 		m_parzialeDir += diff;
-
+		if (this->calcola_tempo%EVALUATE_TIME == 0){
 		//tempo rimanente
 		boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
-		long enlapsed = (curTime - m_startTime).total_seconds();
-		if (enlapsed > 1) {
-			long totSec = m_totDir / m_parzialeDir * enlapsed;
-			long sec = totSec - enlapsed;
-			long min = sec / 60;
-			sec = sec % 60;
-			
-			std::string s_min;
-			std::string s_sec;
-			if (sec <= 9)
-				s_sec = "0" + std::to_string(sec);
-			else
-				s_sec = std::to_string(sec);
+		long dif = (curTime - m_startTime).total_seconds();
+		long sec = (long int)((((m_totDir - m_parzialeDir) / (long double)((m_parzialeDir)))*dif));
+		long min = sec / 60;
+		sec = sec % 60;
 
-			if (min <= 9)
-				s_min = "0" + std::to_string(min);
-			else
-				s_min = std::to_string(min);
-			
-			std::string time = s_min + ":" + s_sec;
-			if (m_timeDir->GetLabelText() != time)
-				m_timeDir->SetLabel(time);
-		}
-		
+		std::string s_min;
+		std::string s_sec;
+		if (sec <= 9)
+			s_sec = "0" + std::to_string(sec);
+		else
+			s_sec = std::to_string(sec);
+
+		if (min <= 9)
+			s_min = "0" + std::to_string(min);
+		else
+			s_min = std::to_string(min);
+
+		std::string time = s_min + ":" + s_sec;
+		if (m_timeDir->GetLabelText() != time)
+			m_timeDir->SetLabel(time);
+	}
 		//percentuale avanzamento
 		value = m_parzialeDir * 100 / m_totDir;
 		intval = (int)floor(value + 0.5);
