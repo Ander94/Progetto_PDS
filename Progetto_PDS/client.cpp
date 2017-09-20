@@ -1,6 +1,7 @@
 //COMMENTATO TUTTO
 
 #include "client.h"
+
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
 /********************************************************************************
@@ -373,7 +374,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 	std::ifstream file_in(filePath, std::ios::in | std::ios::binary);  //Fiel da inviare
 	std::string fileSize; //Dimensione del file sotto forma di stringa 
 	long long size, dim_write, dim_send = 0, dim_to_send;    //Dimensione del file sotto forma di double per effettuare la divisione
-	int length;
+	int length, count = 0;
 	boost::posix_time::ptime start, end; //Utile per valuare il tempo di invio di un pacchetto verso il server
 	long int dif = 0, sec = 0;  //Utile per valuare il tempo di invio di un pacchetto verso il server
 	int calcola_tempo = 1; //è utile per non valutare il tempo troppe volte, ma solo ogni 50 pacchetti inviati.
@@ -434,7 +435,10 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
-			while (dim_send < size && !progBar->testAbort()) {
+			wxMutexGuiEnter();
+			bool abort = progBar->testAbort();
+			wxMutexGuiLeave();	
+			while (dim_send < size && !abort) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
@@ -454,11 +458,23 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				}
 				calcola_tempo++;
 
-				event1.SetPayload(dim_send);
-				wxQueueEvent(progBar, event1.Clone());
-				event2.SetPayload(sec);
-				wxQueueEvent(progBar, event2.Clone());
+				if (count++ == FILTER_EVENT) {
+					count = 0;
+					event1.SetPayload(dim_send);
+					wxQueueEvent(progBar, event1.Clone());
+					event2.SetPayload(sec);
+					wxQueueEvent(progBar, event2.Clone());
+				}
+
+				wxMutexGuiEnter();
+				abort = progBar->testAbort();
+				wxMutexGuiLeave();
 			}
+			//invio un ultimo evento per essere sicuro di settare la barra al 100% e il tempo a 0
+			event1.SetPayload(dim_send);
+			wxQueueEvent(progBar, event1.Clone());
+			event2.SetPayload(0);
+			wxQueueEvent(progBar, event2.Clone());
 			file_in.close();
 		}
 		else {

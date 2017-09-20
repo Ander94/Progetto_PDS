@@ -10,7 +10,7 @@
 #include "WindowDownload.h"
 #include "Settings.h"
 #include "utente.h"
-
+#include "protoType.h"
 
 /********************************************************************************
 Riceve un file da un utente connesso al servizio, salvandolo sul path specificato come argomento

@@ -96,17 +96,17 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	sizerTop->AddStretchSpacer()->SetMinSize(200, 20);
 	sizerTop->Add(sizerBtns, flags.Align(wxALIGN_CENTER_HORIZONTAL));
 
-	this->SetSizerAndFit(sizerTop);
-	this->Show();
-	this->Centre();
-
 	if (n == 0)
 		SetStatusText("In attesa di altri utenti...");
-	else 
+	else
 		SetStatusText("Seleziona uno o più utenti");
 
-	m_timer->Start(UPDATE_WINDOW);
+	SetSizerAndFit(sizerTop);
+	Show(true );
+	Centre();
+	SetFocus();
 
+	m_timer->Start(UPDATE_WINDOW);
 }
 
 void WindowSelectUser::OnOk(wxCommandEvent& event) {

@@ -1,7 +1,6 @@
 //COMMENTATO TUTTO
 
 #include "server.h"
-#define FILTER_EVENT 10	//invia meno update alla grafica
 
 using boost::asio::ip::tcp;
 
@@ -172,8 +171,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
+					wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+					wxMutexGuiLeave();
+					
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
 				}
 				else {
@@ -185,8 +187,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			}
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
+				wxMutexGuiEnter();
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+				wxMutexGuiLeave();
+
 				recive_file(io_service, s, savePath, fp);
 			}
 		}
@@ -253,7 +258,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
 					if (firstDirectory == true) {
+						wxMutexGuiEnter();
 						fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+						wxMutexGuiLeave();
 						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_NO) {
@@ -361,6 +368,7 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 	char buf_recive[BUFLEN];  //Buffer che conterrà i pacchetti contenenti il file
 	long long dim_recived = 0, dim_read, size, count = 0;
 	int length;
+	bool abort = false;
 	try
 	{
 		if (file_out.is_open()) {
@@ -383,7 +391,12 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			
 			wxThreadEvent event2(wxEVT_THREAD, SetMaxDim_EVENT);
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
-			while (dim_recived<size)
+			if (fp != nullptr) {
+				wxMutexGuiEnter();
+				abort = fp->testAbort();
+				wxMutexGuiLeave();
+			}
+			while (dim_recived<size && !abort)
 			{
 				//dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
 				dim_read = read_some(s, buf_recive, BUFLEN);
@@ -394,6 +407,16 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 					event2.SetPayload(dim_recived);
 					wxQueueEvent(fp, event2.Clone());
 				}
+				if (fp != nullptr) {
+					wxMutexGuiEnter();
+					abort = fp->testAbort();
+					wxMutexGuiLeave();
+				}
+			}
+			//ultimo evento per settare avanzamento a 100%
+			if (fp != nullptr) {
+				event2.SetPayload(dim_recived);
+				wxQueueEvent(fp, event2.Clone());
 			}
 			file_out.close();
 		}

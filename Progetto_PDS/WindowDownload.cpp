@@ -9,7 +9,7 @@ wxBEGIN_EVENT_TABLE(FileInDownload, wxWindow)
 EVT_THREAD(SetMaxDim_EVENT, FileInDownload::OnSetMaxDim)
 EVT_THREAD(Inc_EVENT, FileInDownload::OnIncFile)
 wxEND_EVENT_TABLE()
-//
+
 FileInDownload::FileInDownload(wxWindow* parent, wxWindowID id, std::string user, std::string file, std::string generalPath) :
 	wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxNO_FULL_REPAINT_ON_RESIZE)
 {
@@ -54,7 +54,7 @@ FileInDownload::FileInDownload(wxWindow* parent, wxWindowID id, std::string user
 		wxID_ANY,
 		file,
 		wxDefaultPosition,
-		wxSize(100, 50)
+		wxDefaultSize
 	), 1, wxALIGN_CENTER | wxALL, 5);
 	sizerTop->Add(percSizer, 1, wxALIGN_CENTER | wxALL, 5);
 	sizerTop->Add(m_abort, 0, wxALIGN_CENTER | wxALL, 5);

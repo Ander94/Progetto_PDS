@@ -65,8 +65,6 @@ public:
 	std::string GetIpAddr() { return m_ipAddr; }
 	WindowProgressBar* GetParent() { return m_parentWindow; }
 
-	//void UpdateUI();
-
 	//setta il tempo rimasto del file
 	void SetTimeFile(long sec);
 
