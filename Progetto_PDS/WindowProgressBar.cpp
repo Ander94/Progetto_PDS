@@ -43,16 +43,15 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 	}
 
 	SetSizerAndFit(topSizer);
-	Show(true);
-	Centre();
-	SetFocus();
 }
 
 void WindowProgressBar::StartSending() {
+	Show(true);
+	Centre();
+	SetFocus();
 	for (auto it : m_ListaUtenti) {
 		sendTCPfile(m_settings->getUtenteProprietario(), it->GetIpAddr(), m_settings->getSendPath(), it);
 	}
-		
 }
 
 void WindowProgressBar::decreseCountUtenti() {

@@ -275,9 +275,8 @@ public:
 		m_windowDownload = windowDownload;
 	}
 	void showDownload() {
+		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
 		m_windowDownload->Show(true);
-		m_windowDownload->Center();
-		m_windowDownload->SetFocus();
 	}
 	wxFrame* getWindowDownload() {
 		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
