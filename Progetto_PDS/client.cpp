@@ -204,7 +204,8 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 			send_file(io_service, s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
 		}
 		catch (std::exception& e) {
-			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+			std::string error(e.what());
+			wxMessageBox("File: "+ basename + boost::filesystem::extension(initialAbsolutePath) + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 
 	}
@@ -214,7 +215,8 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 			send_directory(io_service, s, initialAbsolutePath, basename, progBar);
 		}
 		catch (std::exception& e) {
-			wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
+			std::string error(e.what());
+			wxMessageBox("Directory: " + basename + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 	}
 	//Chiudo il socket e la procedurea di servizio
@@ -440,9 +442,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
-			wxMutexGuiEnter();
+			//wxMutexGuiEnter();
 			bool abort = progBar->testAbort();
-			wxMutexGuiLeave();	
+			//wxMutexGuiLeave();	
 			while (dim_send < size && !abort) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
@@ -470,9 +472,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				wxQueueEvent(progBar, event2.Clone());
 				
 
-				wxMutexGuiEnter();
+				//wxMutexGuiEnter();
 				abort = progBar->testAbort();
-				wxMutexGuiLeave();
+				//wxMutexGuiLeave();
 			}
 			//invio un ultimo evento per essere sicuro di settare la barra al 100% e il tempo a 0
 			event1.SetPayload(dim_send);

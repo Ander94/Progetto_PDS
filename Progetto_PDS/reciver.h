@@ -25,4 +25,4 @@ Riceve come parametri:
 -generalPath: path da cui prelevare l'immagine del profilo.
 -l'atomic exit_app, che indica quando interrompere la ricezione di messaggi UDP dalla LAN.
 **********************************************************************************/
-void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app, udp::socket& s);
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app);

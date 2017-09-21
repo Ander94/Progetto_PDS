@@ -20,7 +20,8 @@ Riceve come parametri:
 -s: socket su cui vieme scambiato il file
 -fileName: nome del file da salvare
 **********************************************************************************/
-void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp);
+//LEO: void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp);
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
 /********************************************************************************
 StartAccept inizializza il socket e lancia l'accettazione asincrona di richieste da parte del client.
@@ -106,9 +107,10 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 	bool firstTime = true, firstDirectory = true;  //Indica se è la stringa contenente una directory che si sta ricevendo, cosi da inizializzare il tutto.
 	char buf[PROTOCOL_PACKET];  //Buffer utile per le risposte in ricezione
 	std::string ipAddrRemote, query, response, fileName;  //Ip di chi invia il file, query richesta, risposta inviata al client, e nome del file
-	
-	FileInDownload* fp; //fileindownload pointer
-	WindowDownload* wp = dynamic_cast<WindowDownload*>(settings->getWindowDownload()); //windowdownload pointer
+	bool is_dir = false, is_file = false;
+	std::string name_dir(""), path_dir("");
+	//FileInDownload* fp; //fileindownload pointer
+	//WindowDownload* wp = dynamic_cast<WindowDownload*>(settings->getWindowDownload()); //windowdownload pointer
 
 	try {
 		ipAddrRemote = s.remote_endpoint().address().to_string();
@@ -119,6 +121,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 		//Risoluzione della query di ricezione file da parte del client
 		if (query == "+FL") {
+			is_file = true;
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
@@ -171,12 +174,12 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
-					wxMutexGuiEnter();
+					//wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-					wxMutexGuiLeave();
-					
-					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
+					//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+					//wxMutexGuiLeave();
+					//recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
+					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -187,12 +190,12 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			}
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
-				wxMutexGuiEnter();
+				//wxMutexGuiEnter();
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-				fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-				wxMutexGuiLeave();
-
-				recive_file(io_service, s, savePath, fp);
+				//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+				//wxMutexGuiLeave();
+				//recive_file(io_service, s, savePath, fp);
+				recive_file(io_service, s, savePath);
 			}
 		}
 
@@ -206,8 +209,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
-				fp = nullptr;
-				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png", nullptr);
+				//fp = nullptr;
+				//recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png", nullptr);
+				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
 				write_some(s, response);
 				//Notifico che l'immagine è stat ricevuta e posso registrare correttamente l'utente.
@@ -223,6 +227,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 		//Risolzuione della query di ricezione di un immagine del profilo da parte degli utenti connessi
 		if (query == "+DR") {
+			is_dir = true;
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
 				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
 				response = "+ERR";
@@ -256,11 +261,14 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					length = read_some(s, buf, PROTOCOL_PACKET);
 					buf[length] = '\0';
 					fileName = buf;
+					
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
 					if (firstDirectory == true) {
-						wxMutexGuiEnter();
-						fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-						wxMutexGuiLeave();
+						path_dir = settings->getSavePath() + "\\" + fileName;
+						name_dir = fileName;
+						//wxMutexGuiEnter();
+						//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+						//wxMutexGuiLeave();
 						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_NO) {
@@ -276,6 +284,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 						//Controlliamo se la directory esiste già
 						if (boost::filesystem::is_directory(settings->getSavePath() + "\\" + fileName)) {
+							
 							//Richiedere se salvare o meno
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 							if (dial->ShowModal() == wxID_YES) {
@@ -320,7 +329,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 
 					fileName = settings->getSavePath() + "\\" + fileName;
-					recive_file(io_service, s, fileName, fp);
+				//	recive_file(io_service, s, fileName);
+					recive_file(io_service, s, fileName);
 
 					//Vedo la dim del file che ho ricevuto, e aggiorno la quantità di byte ricevuta fin ora.
 					//Ciò è utile per l'avanzamento della barra di progresso.
@@ -340,12 +350,25 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		if (s.is_open()) {
 			s.close();
 		}
-		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);
-		if (fp != nullptr) {
+		std::string error(e.what());
+		if (is_file == true) {
+			wxMessageBox("File: " + fileName + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+		}
+		else if (is_dir==true) {
+			wxMessageBox("Directory: " + name_dir + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+			if (boost::filesystem::is_directory(path_dir + "\\") == true) {
+				boost::filesystem::remove_all(path_dir + "\\");
+			}
+		}
+		else {
+			wxMessageBox(error, wxT("Errore"), wxOK | wxICON_ERROR);
+		}
+
+		/*if (fp != nullptr) {
 			wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
 			event.SetPayload(fp);
 			wxQueueEvent(wp, event.Clone());
-		}
+		}*/
 		return;
 	}
 	
@@ -353,14 +376,14 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		s.close();
 	}
 
-	if (fp != nullptr) {
+	/*if (fp != nullptr) {
 		wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
 		event.SetPayload(fp);
 		wxQueueEvent(wp, event.Clone());
-	}
+	}*/
 }
 
-void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp) {
+void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
 
 	std::ofstream file_out(fileName, std::ios::out | std::ios::binary);  //File da salvare
 	std::string response; //Risposta da invare al client
@@ -379,11 +402,11 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			length = read_some(s, buf, PROTOCOL_PACKET);
 			buf[length] = '\0';
 			size = std::atoll(buf);
-			if (fp != nullptr) {
+			/*if (fp != nullptr) {
 				wxThreadEvent event1(wxEVT_THREAD, SetMaxDim_EVENT);
 				event1.SetPayload(size);
 				wxQueueEvent(fp, event1.Clone());
-			}
+			}*/
 
 			//Comunico al server che può inviare il file
 			response = "+OK";
@@ -391,18 +414,18 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			
 			wxThreadEvent event2(wxEVT_THREAD, SetMaxDim_EVENT);
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
-			if (fp != nullptr) {
+			/*if (fp != nullptr) {
 				wxMutexGuiEnter();
 				abort = fp->testAbort();
 				wxMutexGuiLeave();
-			}
+			}*/
 			while (dim_recived<size && !abort)
 			{
 				//dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
 				dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
-				if (fp != nullptr && count++ == FILTER_EVENT) {
+				/*if (fp != nullptr && count++ == FILTER_EVENT) {
 					count = 0;
 					event2.SetPayload(dim_recived);
 					wxQueueEvent(fp, event2.Clone());
@@ -411,13 +434,13 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 					wxMutexGuiEnter();
 					abort = fp->testAbort();
 					wxMutexGuiLeave();
-				}
+				}*/
 			}
 			//ultimo evento per settare avanzamento a 100%
-			if (fp != nullptr) {
+			/*if (fp != nullptr) {
 				event2.SetPayload(dim_recived);
 				wxQueueEvent(fp, event2.Clone());
-			}
+			}*/
 			file_out.close();
 		}
 		else

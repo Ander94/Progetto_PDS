@@ -141,6 +141,8 @@ void UserProgressBar::SetTimeFile(long sec) {
 	std::string s_sec;
 
 	long min = sec / 60;
+	long hour = min / 60;
+	min = min % 60;
 	sec = sec % 60;
 
 	if (sec <= 9)
@@ -153,9 +155,18 @@ void UserProgressBar::SetTimeFile(long sec) {
 	else
 		s_min = std::to_string(min);
 
-	std::string time(s_min + ":" + s_sec);
+	std::string s_hour;
+	std::string time("");
+	if (hour>0) {
+		s_hour = std::to_string(hour);
+		time = s_hour + "h " + s_min + ":" + s_sec;
+	}
+	else {
+		time = s_min + ":" + s_sec;
+	}
+
 	if (m_timeFile->GetLabelText() != time)
-		m_timeFile->SetLabelText(time);	
+		m_timeFile->SetLabel(time);
 }
 
 void UserProgressBar::SetMaxDir(long long dim) {
@@ -196,10 +207,12 @@ void UserProgressBar::IncFile(long long dim) {
 		long dif = (curTime - m_startTime).total_seconds();
 		long sec = (long int)((((m_totDir - m_parzialeDir) / (long double)((m_parzialeDir)))*dif));
 		long min = sec / 60;
+		long hour = min / 60;
+		min = min % 60;
 		sec = sec % 60;
-
 		std::string s_min;
 		std::string s_sec;
+		std::string s_hour;
 		if (sec <= 9)
 			s_sec = "0" + std::to_string(sec);
 		else
@@ -209,8 +222,16 @@ void UserProgressBar::IncFile(long long dim) {
 			s_min = "0" + std::to_string(min);
 		else
 			s_min = std::to_string(min);
-
-		std::string time = s_min + ":" + s_sec;
+		
+		s_hour = std::to_string(hour);
+		std::string time("");
+		if (hour>0) {
+			time = s_hour + "h " + s_min + ":" + s_sec;
+		} 
+		else {
+			time = s_min + ":" + s_sec;
+		}
+		
 		if (m_timeDir->GetLabelText() != time)
 			m_timeDir->SetLabel(time);
 	}

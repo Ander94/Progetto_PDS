@@ -19,11 +19,10 @@ Riceve come parametri:
 **********************************************************************************/
 void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath);
 
-void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app, udp::socket& s) {
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
 
 
-	boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
-	boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
+
 
 	char buf[PROTOCOL_PACKET], buf_username[PROTOCOL_PACKET], buf_state[PROTOCOL_PACKET];
 	size_t length, found;
@@ -31,59 +30,75 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	status state;
 	int n;
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-	s.open(boost::asio::ip::udp::v4());
-	s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-	s.set_option(boost::asio::socket_base::broadcast(true));
-	local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
-	s.bind(local_endpoint);
-
+	
+	boost::asio::io_service io_service;
+	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
-
 	while (!exit_app.load()) {
-		//Ricevo un messaggio
-		try{
-			length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
-			//Estraggo l'ip di chi mi ha inviato il mesasggio
-			ipAddr = reciver_endpoint.address().to_string();
-			buf[length] = '\0';
-			reciveMessage = buf;
-			//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
-			found = reciveMessage.find("+GETADDR");
-			if (found == std::string::npos) {
-				//Estraggo username e stato dal messaggio.
-				//In particolare leggo la stringa nel formato username\r\nstato\r\n
-				//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
-				n = 0;
-				do {
-					buf_username[n] = buf[n];
-					n++;
-				} while (buf[n] != '\r' && buf[n + 1] != '\n');
-				buf_username[n] = '\0';
-				username = buf_username;
-				n += 2;
-				do {
-					buf_state[n - username.length() - 2] = buf[n];
-					n++;
-				} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
-				buf_state[n - username.length() - 2] = '\0';
-				s_state = buf_state;
-				if (s_state == "ONLINE") {
-					state = status::STAT_ONLINE;
+		
+		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
+		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
+		s.open(boost::asio::ip::udp::v4());
+		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+		s.set_option(boost::asio::socket_base::broadcast(true));
+		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
+		s.bind(local_endpoint);
+		bool exit_internal_loop = false;
+		while (!exit_app.load() && exit_internal_loop == false) {
+			//Ricevo un messaggio
+			try {
+				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+				//Estraggo l'ip di chi mi ha inviato il mesasggio
+				ipAddr = reciver_endpoint.address().to_string();
+				buf[length] = '\0';
+				reciveMessage = buf;
+				//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP
+				found = reciveMessage.find("+GETADDR");
+				if (found == std::string::npos) {
+					//Estraggo username e stato dal messaggio.
+					//In particolare leggo la stringa nel formato username\r\nstato\r\n
+					//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
+					n = 0;
+					do {
+						buf_username[n] = buf[n];
+						n++;
+					} while (buf[n] != '\r' && buf[n + 1] != '\n');
+					buf_username[n] = '\0';
+					username = buf_username;
+					n += 2;
+					do {
+						buf_state[n - username.length() - 2] = buf[n];
+						n++;
+					} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
+					buf_state[n - username.length() - 2] = '\0';
+					s_state = buf_state;
+					if (s_state == "ONLINE") {
+						state = status::STAT_ONLINE;
+					}
+					else {
+						state = status::STAT_OFFLINE;
+					}
+					//Iscrivo l'utente.
+					boost::thread(iscriviUtente, username, ipAddr, state, boost::ref(utenteProprietario), generalPath).detach();
 				}
-				else {
-					state = status::STAT_OFFLINE;
+			}
+			catch (...) {
+				iscrizione.unlock();
+				if (s.is_open()) {
+					s.close();
 				}
-				//Iscrivo l'utente.
-				boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath).detach();
+				io_service.stop();
+				exit_internal_loop = true;
 			}
 		}
-		catch (...) {
-		}
 	}
-
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
+	if (s.is_open()) {
+		s.close();
+	}
+	io_service.stop();
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {

@@ -60,7 +60,6 @@ private:
 	std::recursive_mutex rm_scorciatoia;//14
 	std::recursive_mutex rm_taskBarIcon;//14
 	std::recursive_mutex rm_windowDownload;//15
-	std::recursive_mutex rm_sock;//16
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
@@ -78,13 +77,12 @@ private:
 	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;  //Atomic che indica se i threads di invio/ricezione di pacchetti udp possono essere disattivati
 	boost::asio::io_service io_service_tcp;   //io_service che mette in run/stop la procedura di accettazione dei file.
-	boost::asio::io_service io_service_udp;
-	boost::asio::ip::udp::socket sock;
+
 public:
 	//Tengo traccia di tutti i thread lanciati ed utilizzati dall'applicazione
-	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread, reciveAliveThread, sendAliveThread;
+	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	
-	Settings():sock(io_service_udp) {
+	Settings() {
 	}
 
 	~Settings() {
@@ -98,18 +96,7 @@ public:
 		this->exit_send_udp.store(value);
 	}
 
-	boost::asio::ip::udp::socket& getScoketRecive() {
-		std::lock_guard<std::recursive_mutex> lk_sock(rm_sock);
-		return this->sock;
-	}
-
-	void closeSocketRecive() {
-		std::lock_guard<std::recursive_mutex> lk_sock(rm_sock);
-		if (this->sock.is_open()) {
-			this->sock.close();
-		}
-	}
-
+	
 	//Torna il valore della variabile booleana exit_send_udp 
 	std::atomic<bool>& getExitSend() {
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
@@ -538,94 +525,6 @@ public:
 		//Invio in rete una stringa del tipo +GETADDRunique_str, che mi aiuterà ad identificare il mio IP
 		socket.send_to(boost::asio::buffer("+GETADDR" + unique_str), sender_endpoint);
 		socket.close();
-		return;
-	}
-	
-
-	//Invia in rete dei messaggi del tipo ipAddr_ALIVE.
-	//Ciò mi aiuta a capire se il mio PC ha avuto un problema di connessione internet, o eventualmente a settare un nuovo indirizzo IP in caso di cambio di rete.
-	static void SendAlive(utente& utenteProprietario, std::atomic<bool>& exit_app) {
-		boost::asio::io_service io_service;   //Procedura di servizio boost
-		boost::asio::ip::udp::socket socket(io_service);  //Socket su cui verranno inviati i pacchetti UDP
-		boost::asio::ip::udp::endpoint sender_endpoint;   //Destinazione dei pacchetti UDP
-		socket.open(boost::asio::ip::udp::v4()); //Inizializzo il socket per l'utilizzo di pacchetti IPv4
-		socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-		//Dico che il "sender_endpoint", ovvero colui che riceverà i pacchetti UDP, è il mio indirizzo.
-		
-		while (!exit_app.load()) {
-			//Invio al mio indirizzo la stringa "ipAddr_ALIVE", cosi da notificare che sono ancora sveglio.
-			udp::resolver resolver(io_service);
-			udp::resolver::query query(udp::v4(), utenteProprietario.getIpAddr(), std::to_string(PORT_ALIVE));
-			udp::resolver::iterator iterator = resolver.resolve(query);
-			sender_endpoint = boost::asio::ip::udp::endpoint(*iterator);
-			std::string message(utenteProprietario.getIpAddr() + "_ALIVE");
-			//Se non riesco ad inviare il messaggio per un tempo TIMEOUT, ciò vuol dire che il mio indirizzo IP è cambiato oppure 
-			//Ho peso la connessione.
-			try {
-				send_to(socket, message, sender_endpoint);
-			}
-			catch (...) {
-				utenteProprietario.setIpAddr(getOwnIP());
-			}
-			//I pacchetti vengonoo inviati ongi TIME_SEND_MESSAGE_UDP ms
-			Sleep(TIME_SEND_MESSAGE_UDP);
-		}
-		socket.close();
-		io_service.stop();
-		return;
-	}
-	
-
-	//Notifica un eventuale cambiamento di rete.
-	//Ciò comprende:
-	//-Cambiamento del proprio IP.
-	//-Caduta di connessione.
-	static void ReciveAlive(utente& utenteProprietario, std::atomic<bool>& exit_app) {
-		boost::asio::io_service io_service; //Procedura di servizio boost
-		udp::socket s(io_service);  //Socket su cui ricevere i pacchetti UDP
-		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
-		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
-		char buf[PROTOCOL_PACKET];  //Buffer di ricezione.
-		int length;
-		std::string ipAddr, reciveMessage;
-
-		//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-		s.open(boost::asio::ip::udp::v4());
-		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_ALIVE);
-		s.bind(local_endpoint);
-
-		//Finche il thread non verrà chiuso a causa della chiusura del programma..
-		while (!exit_app.load()) {
-			//Ricevo un messaggio
-			try {
-				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
-				//Estraggo l'ip di chi mi ha inviato il mesasggio
-				ipAddr = reciver_endpoint.address().to_string();
-				buf[length] = '\0';
-				reciveMessage = buf;
-				//Se il messaggio che ho ricevuto ha un IP differente da quello che ho attualemnte, ciò vorrà dire che la connessione è stata persa o è cambiato l'ip.
-				if (reciveMessage != getOwnIP() + "_ALIVE" && getOwnIP()!=utenteProprietario.getIpAddr()) {
-					utenteProprietario.setIpAddr(getOwnIP());
-					std::thread([&]() {
-							Sleep(TIMEOUT*1000);
-							//Se sono nel caso in cui la connessione è stata persa, lo notifico all'utente, per segnalare che eventuali trasferimenti possono
-							//Essere in stand by.
-							if (utenteProprietario.getIpAddr() == "127.0.0.1" || utenteProprietario.getIpAddr() == "0.0.0.0") {
-								wxMessageBox("Attenzione: la connessione è stata persa.\nControllare lo stato della propria connessione per continuare ad utilizzare\nl'applicazione di Lan Sharing.", "Info", wxOK | wxICON_INFORMATION);
-							}
-					}).detach();
-				}
-			}
-			catch (...) {
-				utenteProprietario.setIpAddr(getOwnIP());
-			}
-		}
-		//Chiudo il socket e il servizio boost.
-		if (s.is_open()) {
-			s.close();
-		}
-		io_service.stop();
 		return;
 	}
 
