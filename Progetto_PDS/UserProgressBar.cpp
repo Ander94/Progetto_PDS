@@ -8,6 +8,7 @@
 wxBEGIN_EVENT_TABLE(UserProgressBar, wxWindow)
 EVT_THREAD(CLIENT_EVENT, UserProgressBar::OnClientEvent)
 EVT_THREAD(SetTimeFile_EVENT, UserProgressBar::OnSetTimeFile)
+EVT_THREAD(SetNewDir_EVENT, UserProgressBar::OnSetNewDir)
 EVT_THREAD(SetMaxDir_EVENT, UserProgressBar::OnSetMaxDir)
 EVT_THREAD(SetNewFile_EVENT, UserProgressBar::OnSetNewFile)
 EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
@@ -42,7 +43,9 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(4);
 		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
+		m_nameDir = new wxStaticText(this, wxID_ANY, "Cartella: ", wxDefaultPosition, wxDefaultSize);
 		m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
+		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		m_percDir->SetFont((m_percDir->GetFont()));
 		hDirSizer->Add(
 			new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
@@ -55,10 +58,9 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			0,
 			wxALIGN_RIGHT | wxLEFT,
 			5);
-		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
-		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
-
+		vDirSizer->Add(m_nameDir, 1, wxALIGN_LEFT);
 		vDirSizer->Add(m_progDir, 1, wxALIGN_LEFT);
+		vDirSizer->Add(hDirSizer, 1, wxEXPAND);
 
 		//parte del file
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
@@ -82,6 +84,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			5);
 		vFileSizer->Add(hFileSizer, 1, wxEXPAND);
 
+		//metto insieme entrambe le parti
 		wxBoxSizer* vSizer = new wxBoxSizer(wxVERTICAL);
 		vSizer->Add(vDirSizer);
 		vSizer->Add(vFileSizer);
@@ -167,6 +170,11 @@ void UserProgressBar::SetTimeFile(long sec) {
 
 	if (m_timeFile->GetLabelText() != time)
 		m_timeFile->SetLabel(time);
+}
+
+void UserProgressBar::SetNewDir(std::string path) {
+	m_nameDir->SetLabelText("Cartella: " + path);
+	this->Update();
 }
 
 void UserProgressBar::SetMaxDir(long long dim) {

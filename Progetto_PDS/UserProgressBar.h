@@ -12,6 +12,7 @@
 enum {
 	CLIENT_EVENT = 5000,
 	SetTimeFile_EVENT,
+	SetNewDir_EVENT,
 	SetMaxDir_EVENT,
 	SetNewFile_EVENT,
 	SetMaxFile_EVENT,
@@ -24,15 +25,14 @@ private:
 	class WindowProgressBar *m_parentWindow;
 	wxBitmapButton *m_abort;
 	wxStaticText* m_nameFile;
-	//tempo e percentuali
-	boost::posix_time::ptime m_startTime;
+	wxStaticText* m_nameDir;
 	wxStaticText *m_timeDir;
 	wxStaticText *m_percDir;
 	wxStaticText *m_timeFile;
 	wxStaticText *m_percFile;
-	//barre avanzamento
 	wxGauge *m_progDir;
 	wxGauge *m_progFile;
+	boost::posix_time::ptime m_startTime;
 
 	std::string m_utente;
 	std::string m_ipAddr;
@@ -43,12 +43,15 @@ private:
 	long m_min=0, m_sec=0;
 	std::atomic<bool> flagAbort;
 	long calcola_tempo;
+
 	void OnAbortClick(wxCommandEvent& event);	//l'utente ha interrotto il trasferimento
 
 	void OnClientEvent(wxThreadEvent& event);	//il thread ha segnalato la fine del trasferimento
 
 	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
 	
+	void OnSetNewDir(wxThreadEvent& event) { SetNewDir(event.GetString().ToStdString()); };
+
 	void OnSetMaxDir(wxThreadEvent& event) { SetMaxDir(event.GetPayload<long long>()); };
 	
 	void OnSetNewFile(wxThreadEvent& event) { SetNewFile(event.GetString().ToStdString()); };
@@ -73,6 +76,9 @@ public:
 
 	//passare il file attualmente in trasferimento (da usare solo in modalità direttorio!)
 	void SetNewFile(std::string path);
+
+	//passare la cartella attualmente in trasferimento (da usare solo in modalità direttorio!)
+	void SetNewDir(std::string path);
 
 	//passare la dimensione del file
 	void SetMaxFile(long long dim);

@@ -106,7 +106,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	std::lock_guard<std::mutex> lg(iscrizione);
 	int counter = 0;
 	//Evita di registrare se stessi.
-	if (true) {
+	if (false) {
 		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
 			return;
 		}

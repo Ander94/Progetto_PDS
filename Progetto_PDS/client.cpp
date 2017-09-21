@@ -302,9 +302,17 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 			if (!bf::is_directory(*it)) {
 				//Se devo inviare un file chiamo send_file.
 				bf::path p(bf::absolute(*it));
-				wxThreadEvent event(wxEVT_THREAD, SetNewFile_EVENT);
-				event.SetString(p.filename().string());
-				wxQueueEvent(progBar, event.Clone());
+				bf::path root(relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder));
+				
+				//invio il nome della cartella alla finestra di progresso
+				wxThreadEvent event1(wxEVT_THREAD, SetNewDir_EVENT);
+				event1.SetString(root.remove_filename().string());
+				wxQueueEvent(progBar, event1.Clone());
+				
+				//invio in nome del file alla finestra di progresso
+				wxThreadEvent event2(wxEVT_THREAD, SetNewFile_EVENT);
+				event2.SetString(p.filename().string());
+				wxQueueEvent(progBar, event2.Clone());
 				try {
 					send_file(io_service, s, bf::absolute(*it).string(), relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder), progBar);
 					//Se è stato chiamato testAbort, vuol dire che l'invio è stato interroto a seguito del click su "CANCEL" nella GUI
