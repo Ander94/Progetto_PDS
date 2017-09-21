@@ -43,7 +43,16 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(4);
 		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
-		m_nameDir = new wxStaticText(this, wxID_ANY, "Cartella: ", wxDefaultPosition, wxDefaultSize);
+		m_nameDir = new wxStaticText
+		(
+			this,
+			wxID_ANY,
+			"Cartella: ",
+			wxDefaultPosition,
+			wxSize(400, 14),
+			wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE
+		);
+		//m_nameDir->SetMaxSize(wxSize(400, 50));
 		m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
 		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		m_percDir->SetFont((m_percDir->GetFont()));
@@ -174,7 +183,8 @@ void UserProgressBar::SetTimeFile(long sec) {
 
 void UserProgressBar::SetNewDir(std::string path) {
 	m_nameDir->SetLabelText("Cartella: " + path);
-	this->Update();
+	m_nameDir->SetToolTip(path);
+	Update();
 }
 
 void UserProgressBar::SetMaxDir(long long dim) {
