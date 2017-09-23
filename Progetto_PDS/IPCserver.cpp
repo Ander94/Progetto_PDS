@@ -50,8 +50,8 @@ MyConnectionServer::OnExecute(const wxString& topic,
 	size_t size,
 	wxIPCFormat format)
 {
-	m_frame->Show(true);
 	m_frame->Iconize(false);
+	m_frame->Show(true);
 	return true;
 }
 
@@ -62,12 +62,6 @@ MyConnectionServer::OnPoke(const wxString& topic,
 	size_t size,
 	wxIPCFormat format)
 {
-	//wxMessageBox("Ricevuto poke: " + item.ToStdString(), wxT("INFO"), wxOK | wxICON_INFORMATION);
 	m_frame->SendFile(item.ToStdString());
 	return wxConnection::OnPoke(topic, item, data, size, format);
-}
-
-bool MyConnectionServer::OnDisconnect()
-{
-	return true;
 }

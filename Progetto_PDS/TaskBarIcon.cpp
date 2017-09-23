@@ -672,7 +672,7 @@ void MainFrame::UpdateIcon() {
 			"Sharing service\n"
 			"Clicca per iniziare a condividere file!"))
 		{
-			wxLogError(wxT("Could not set icon."));
+			wxLogError(wxT("Non è stato possibile settare l'icona."));
 		}
 	}
 	else {
@@ -680,7 +680,7 @@ void MainFrame::UpdateIcon() {
 			"Sharing service\n"
 			"Clicca per iniziare a condividere file!"))
 		{
-			wxLogError(wxT("Could not set icon."));
+			wxLogError(wxT("Non è stato possibile settare l'icona taskbar."));
 		}
 	}
 }

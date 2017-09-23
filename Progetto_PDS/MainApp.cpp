@@ -26,7 +26,10 @@ IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
-	//wxMessageBox(cwd, wxT("INFO"), wxOK | wxICON_INFORMATION);
+	//wxMessageBox(argv[0], wxT("INFO"), wxOK | wxICON_INFORMATION);
+	//wxLogMessage(argv[0]);
+	//wxLogError(argv[0]);
+
 
 	//-------------------------------------------------------------------------------------------------
 	//           MAIN
@@ -78,10 +81,14 @@ bool MainApp::OnInit()
 			//i privilegi di amministratore servono per modificare le chiavi di registro
 			if (argument == "_ADMIN_PRIVILEGES") {
 				m_settings->setAdmin();
-				if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE)
-					m_settings->AddRegKey();
-				else
-					m_settings->RemRegKey();
+				if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
+					if (m_settings->AddRegKey() == -1)
+						wxLogError(wxT("Non è stato possibile creare la chiave di registro."));
+				}
+				else {
+					if (m_settings->RemRegKey() == -1)
+						wxLogError(wxT("Non è stato possibile rimuovere la chiave di registro."));
+				}
 				argument = "_NO_ARGUMENT";
 			}
 				
@@ -111,7 +118,7 @@ bool MainApp::OnInit()
 	}
 	catch (const std::exception& e)
 	{
-		wxMessageBox(e.what(), wxT("Errore"), wxOK | wxICON_ERROR);	//TODO gestione errori
+		wxLogError(wxT("Errore nell'avvio dell'applicazione.\nSi prega di riavviare."));  //TODO c'è qualcosa che lancia eccezioni?
 	}
 	
 	return true;

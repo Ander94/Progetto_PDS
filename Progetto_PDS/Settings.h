@@ -12,6 +12,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 
+#include <wx/log.h>
+
 #include "TaskBarIcon.h"
 #include "MainApp.h"
 #include "ipcsetup.h"
@@ -63,7 +65,7 @@ private:
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
-	wxFrame* m_windowDownload;
+	wxFrame* m_windowDownload;	//TODO da rimuovere
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
@@ -86,7 +88,7 @@ public:
 	}
 
 	~Settings() {
-		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);	//TODO secondo me si può rimuovere
 		delete(m_utenteProprietario);
 	}
 
@@ -263,6 +265,7 @@ public:
 	}
 	void showDownload() {
 		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
+		m_windowDownload->Iconize(false);
 		m_windowDownload->Show(true);
 	}
 	wxFrame* getWindowDownload() {
@@ -538,7 +541,7 @@ public:
 		return true;
 	}
 	MyClient *GetClient() {
-		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
+		std::lock_guard<std::recursive_mutex> lk_client(rm_client); //TODO si può togliere
 		return m_client;
 	}
 	void DeleteClient() {
@@ -546,7 +549,7 @@ public:
 		wxDELETE(m_client);
 	}
 
-	void AddRegKey() {
+	int AddRegKey() {
 		std::string str = m_GeneralPath + "icon1.ico";
 		std::wstring stemp = std::wstring(str.begin(), str.end());
 		LPCTSTR data = stemp.c_str();
@@ -557,49 +560,61 @@ public:
 		DWORD dwDisposition;
 
 		//PRIMA CHIAVE------------------------------------------------------
-		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
+		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) != ERROR_SUCCESS)
+			return -1;
 
-		RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR));
+		if (RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR)) != ERROR_SUCCESS)
+			return -1;
 		
 		RegCloseKey(hkey);
 		
-		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share\\command"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
+		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share\\command"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) != ERROR_SUCCESS)
+			return -1;
 		
-		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
+		if (RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR)) != ERROR_SUCCESS)
+			return -1;
 
 		RegCloseKey(hkey);
 
 		//--------------------------------------------------------------------
 
 		//SECONDA CHIAVE------------------------------------------------------
-		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
+		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) != ERROR_SUCCESS)
+			return -1;
 		
-		RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR));
+		if (RegSetValueEx(hkey, TEXT("Icon"), 0, REG_SZ, (LPBYTE)data, _tcslen(data) * sizeof(TCHAR)) != ERROR_SUCCESS)
+			return -1;
 		
 		RegCloseKey(hkey);
 		
-		RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share\\command"),
-			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition);
+		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share\\command"),
+			0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwDisposition) != ERROR_SUCCESS)
+			return -1;
 		
-		RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR));
+		if (RegSetValueEx(hkey, NULL, 0, REG_SZ, (LPBYTE)data2, _tcslen(data2) * sizeof(TCHAR)) != ERROR_SUCCESS)
+			return -1;
 		
 		RegCloseKey(hkey);
 		
 		//--------------------------------------------------------------------
 
 		setScorciatoiaPresente();
+		return 0;
 	}
 
-	void RemRegKey() {
+	int RemRegKey() {
 
-		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share"));
+		if (SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share")) != ERROR_SUCCESS)
+			return -1;
 
-		SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share"));
+		if (SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("Directory\\shell\\Share")) != ERROR_SUCCESS)
+			return -1;
 
 		setScorciatoiaAssente();
+		return 0;
 	}
 
 };
