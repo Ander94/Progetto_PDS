@@ -4,6 +4,7 @@
 #include "reciver.h"
 #include "Settings.h"
 #include <mutex>
+#include <atomic>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
@@ -13,7 +14,7 @@ using boost::asio::ip::tcp;
 std::mutex iscrizione;
 
 //Booleano utile a mostrare lo stato della propria connessione una volta sola.
-bool first_time;
+std::atomic<bool> first_time;
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
 Riceve come parametri:
@@ -54,7 +55,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
 		s.bind(local_endpoint);
 		bool exit_internal_loop = false;
-        first_time = true;
+		first_time.store(true);
         
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
@@ -119,22 +120,25 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	//Evita di registrare se stessi.
     //getOwnIP torna l'ip del nostro PC
     std::string myIp(Settings::getOwnIP());
-	if (false) {
+	if (true) {
 		if (myIp ==ipAddr || myIp == "127.0.0.1") {
-            std::thread([&](){
-                //Se in 5 secondi non rilevo una connessione attiva, lo notifico all'utente.
-                Sleep(5000);
-                if(Settings::getOwnIP() == "127.0.0.1" && first_time == true){
-                    first_time = false;
-                    wxMessageBox("Attenzione: la connessione internet è assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.");
-                }
-            }).detach();
+			if (myIp == "127.0.0.1") {
+				if (first_time.load()) {
+					std::thread([]() {
+						Sleep(5000);
+						if ( Settings::getOwnIP() == "127.0.0.1")
+							wxMessageBox("Attenzione: la connessione internet èË assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.", wxT("INFO"), wxOK | wxICON_INFORMATION);
+					}).detach();
+					first_time.store(false);
+				}
+			}
+			else {
+				first_time.store(true);
+			}
 			return;
 		}
 	}
-    first_time = false;
 	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
-
 	//Controllo se l'utente Ë gi‡ iscritto
 	if (utenteProprietario.contieneUtente(ipAddr) == true) {
 		//Se l'utente Ë gi‡ iscritto, setto un nuovo tempo (cioË vuol dire che l'utente Ë ancora online)
