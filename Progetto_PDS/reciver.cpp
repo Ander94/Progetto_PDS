@@ -6,45 +6,56 @@
 #include <mutex>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
+
+//Mutex utile per iscrivere un utente alla volta.
+//Ciò è necessario per prevenire il caso in cui un utente che sta effettuando l'iscrizione si iscriva nuovamente,
+//figurando cosi più volte nella lista degli utenti connessi.
 std::mutex iscrizione;
 
+//Booleano utile a mostrare lo stato della propria connessione una volta sola.
+bool first_time;
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
 Riceve come parametri:
--utenteProprietario: contiene tutti gli utenti iscritti
 -username: l'username da iscrivere
 -ipAddr: ip dell'utente da iscrivere
 -status: stato online/offline dell'utente da iscrivere
+ -utenteProprietario: contiene tutti gli utenti iscritti
 -generalPath: path da cui prelevare l'immagine del profilo.
 **********************************************************************************/
 void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath);
 
 void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
-
-
-
-
-	char buf[PROTOCOL_PACKET], buf_username[PROTOCOL_PACKET], buf_state[PROTOCOL_PACKET];
+    
+	char buf[PROTOCOL_PACKET], buf_username[PROTOCOL_PACKET], buf_state[PROTOCOL_PACKET]; //Buffer utili a gestire i pacchetti proveniento dalla rete
 	size_t length, found;
 	std::string ipAddr, reciveMessage, username, s_state;
 	status state;
 	int n;
+    
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-	
 	boost::asio::io_service io_service;
 	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano pi˘ pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
+    
+    
+    //Per quale motivo ho due cicli?
+    //-Il ciclo itnterno serve per ricevere la stringa proveniente dalla LAN
+    //-In caso di eccezione, per cui recive_from dovesse fallire, catch chiuderà il socket, che però verrà re-inizializzato grazie all'uso
+    //del ciclo esterno.
+    //=>Ciò comporta che l'applicazione riceva sempre pacchetti, anche in caso di eccezioni.
 	while (!exit_app.load()) {
-		
 		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
-		s.open(boost::asio::ip::udp::v4());
+		s.open(boost::asio::ip::udp::v4());  //Apro il socket
 		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-		s.set_option(boost::asio::socket_base::broadcast(true));
+		s.set_option(boost::asio::socket_base::broadcast(true));  //Inizializzo l'opzione che mi consente l'invio in LAN
 		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
 		s.bind(local_endpoint);
 		bool exit_internal_loop = false;
+        first_time = true;
+        
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
@@ -103,15 +114,25 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
 
-	std::lock_guard<std::mutex> lg(iscrizione);
-	int counter = 0;
+	std::lock_guard<std::mutex> lg(iscrizione); //Acquisisco il mutex
+	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 	//Evita di registrare se stessi.
+    //getOwnIP torna l'ip del nostro PC
+    std::string myIp(Settings::getOwnIP());
 	if (false) {
-		if (Settings::getOwnIP() == ipAddr || ipAddr == "127.0.0.1") {
+		if (myIp ==ipAddr || myIp == "127.0.0.1") {
+            std::thread([&](){
+                //Se in 5 secondi non rilevo una connessione attiva, lo notifico all'utente.
+                Sleep(5000);
+                if(Settings::getOwnIP() == "127.0.0.1" && first_time == true){
+                    first_time = false;
+                    wxMessageBox("Attenzione: la connessione internet è assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.");
+                }
+            }).detach();
 			return;
 		}
 	}
-
+    first_time = false;
 	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
 
 	//Controllo se l'utente Ë gi‡ iscritto
@@ -131,8 +152,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	if (boost::filesystem::is_regular_file(filePath) != true) {
 		filePath = generalPath + "user_default.png";
 		if (boost::filesystem::is_regular_file(filePath) != true) {
-			wxMessageBox("Immagne per profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
-			exit(-1);
+			wxMessageBox("Immagne del profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 	}
 

@@ -4,9 +4,11 @@
 
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
+
 /********************************************************************************
-Invia un il file specificato in filePath sul socket s.
+Invia il file specificato in filePath sul socket s.
 Riceve come parametri:
+-Il riferimento all'io_service da cui  gestito il socket
 -Il socket sul quale inviare il file
 -Il path assoluto del file da inviare
 -Il path relativo del file da inviare
@@ -19,6 +21,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 /********************************************************************************
 Invia la directory specificata in initialAbsolutePath sul socket s
 Riceve come parametri:
+-Il riferimento all'io_service da cui  gestito il socket
 -Il socket sul quale inviare il file
 -Il path assoluto della directory da inviare
 -Il nome della directory da inviare
@@ -45,12 +48,12 @@ std::string relative_path(std::string absolutePath, std::string initialAbsoluteP
 
 /********************************************************************************
 Ritorna la dimensione della cartella specificata in absolutePath
-Riceve come parametro il path assoluto.
+Riceve come parametro il path assoluto sotto forma di stringa.
 **********************************************************************************/
 long long folder_size(std::string absolutePath);
 
 /********************************************************************************
-Sgancia un thread che permette l'invio deò file specificato in initalAbsolutePath.
+Sgancia un thread che permette l'invio del file specificato in initalAbsolutePath.
 Riceve come parametri:
 -utenteProprietario, ovvero il riferimento all'utente che ha aperto l'applicazione con tutti gli utenti ad esso connessi
 -L'ip dell'utente a cui inviare il file
@@ -85,11 +88,11 @@ void sendImage(std::string filePath, std::string ipAddr) {
 
 	boost::asio::io_service io_service;  //Procedura di servizio boost
 	tcp::resolver resolver(io_service); //Da la possibilità di risolvere la query  specificata sucessivamente
-	tcp::resolver::query query(tcp::v4(), ipAddr, std::to_string(PORT_TCP));  //La query mostra la volontà di connettersi all'indirizzo IPv4 alla porta PORT_TCP
+	tcp::resolver::query query(tcp::v4(), ipAddr, std::to_string(PORT_TCP));  //La query mostra la volontˆ di connettersi all'indirizzo IPv4 alla porta PORT_TCP
 	tcp::resolver::iterator iterator = resolver.resolve(query);
-	tcp::socket s(io_service);
+	tcp::socket s(io_service); //Socket
 
-	//Mi connetto al server, se qualcosa non va a buon fine, ritorno al main lanciando un eccezione
+	//Mi connetto al con l'utente, se qualcosa non va a buon fine, ritorno al main lanciando un eccezione
 	try {
 		boost::asio::connect(s, iterator);
 	}
@@ -133,10 +136,11 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
 			dim_to_send = size;
 			while (dim_to_send > 0) {
+                //Viene letto il conteuto del file e inviato sul socket s.
+                //Con un ciclo carico ogni volta il buffer buf_to_send di dimensione dim_write
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				//write_some(s, buf_to_send, dim_write);
 				write_some(s, buf_to_send, dim_write);
 			}
 
@@ -149,13 +153,19 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			file_in.close();
 		}
 		else {
+            //Vuol dire che non sono riuscito ad aprire l'immagine.
 			return throw std::invalid_argument("Errore nell'invio dell'immagine. Immagine inesistente.");
 		}
 	}
 	catch (std::exception& e)
 	{
+        if (s.is_open()) {
+            s.close();
+        }
+        //Torno l'eccezione che  stata rilevata.
 		return throw std::invalid_argument(e.what());
 	}
+    //Chiudo il socket e ritorno.
 	if (s.is_open()) {
 		s.close();
 	}
@@ -204,6 +214,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 			send_file(io_service, s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
 		}
 		catch (std::exception& e) {
+            //Gestisco un eventuale eccezione
 			std::string error(e.what());
 			wxMessageBox("File: "+ basename + boost::filesystem::extension(initialAbsolutePath) + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
 		}
@@ -215,6 +226,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 			send_directory(io_service, s, initialAbsolutePath, basename, progBar);
 		}
 		catch (std::exception& e) {
+            //Gestisco un eventuale eccezione
 			std::string error(e.what());
 			wxMessageBox("Directory: " + basename + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
 		}
@@ -458,8 +470,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
 				dim_to_send -= dim_write;  //decremento la dimensione da inviare di dim_write
 				file_in.read(buf_to_send, dim_write);  //Carico in buf_to_send una quantità di dati pari a dim_write.  
-				write_some(s,buf_to_send, dim_write);
-				//boost::asio::write(s, boost::asio::buffer(buf_to_send, (int)dim_write));   //E la invio al server.
+				write_some(s,buf_to_send, dim_write); //E la invio al server.
 				//Valuto il tempo di invio di EVALUATE_TIME pacchetti.
 				//Ho fatto la scelta di valutare il tempo ogni EVALUATE_TIME 
 				//pacchetti perchè sennò la variazione di tempo sarebbe stata troppo evidente.
@@ -473,7 +484,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				}
 				calcola_tempo++;
 
-				
+                //Aggiorno la barra di progresso con un nuovo evento
 				event1.SetPayload(dim_send);
 				wxQueueEvent(progBar, event1.Clone());
 				event2.SetPayload(sec);
@@ -481,6 +492,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				
 
 				//wxMutexGuiEnter();
+                //Se  stato premuto "Cancel" setto il flag che mi annullerˆ il trasferimento
 				abort = progBar->testAbort();
 				//wxMutexGuiLeave();
 			}

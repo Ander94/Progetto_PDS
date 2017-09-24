@@ -421,7 +421,6 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			}*/
 			while (dim_recived<size && !abort)
 			{
-				//dim_read = s.read_some(boost::asio::buffer(buf_recive, BUFLEN));
 				dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
