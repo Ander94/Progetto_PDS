@@ -15,7 +15,7 @@ FileInDownload::FileInDownload(wxWindow* parent, wxWindowID id, std::string user
 {
 	flagAbort.store(false);
 	m_parentWindow = dynamic_cast<WindowDownload*>(parent);
-	m_perc = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
+	//m_perc = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
 	
 	wxBitmap* cancel = new wxBitmap();
 	cancel->LoadFile(generalPath + "bottoni\\annulla.png", wxBITMAP_TYPE_ANY);
@@ -26,28 +26,19 @@ FileInDownload::FileInDownload(wxWindow* parent, wxWindowID id, std::string user
 	m_abort->SetBackgroundColour(this->GetBackgroundColour());
 	m_abort->SetBitmapHover(*cancel_hover);
 
+	wxFlexGridSizer* sizerTop = new wxFlexGridSizer(3);
+	//wxBoxSizer* percSizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxFlexGridSizer* sizerTop = new wxFlexGridSizer(4);
-	wxBoxSizer* percSizer = new wxBoxSizer(wxHORIZONTAL);
+	//percSizer->Add(m_perc);
+	//percSizer->Add(new wxStaticText
+	//(
+	//	this,
+	//	wxID_ANY,
+	//	"%",
+	//	wxDefaultPosition,
+	//	wxDefaultSize
+	//), 0, wxLEFT, 5);
 
-	percSizer->Add(m_perc);
-	percSizer->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		"%",
-		wxDefaultPosition,
-		wxDefaultSize
-	), 0, wxLEFT, 5);
-
-	sizerTop->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		user,
-		wxDefaultPosition,
-		wxSize(100, 50)
-	), 1, wxALIGN_CENTER | wxALL, 5);
 	sizerTop->Add(new wxStaticText
 	(
 		this,
@@ -56,13 +47,21 @@ FileInDownload::FileInDownload(wxWindow* parent, wxWindowID id, std::string user
 		wxDefaultPosition,
 		wxDefaultSize
 	), 1, wxALIGN_CENTER | wxALL, 5);
-	sizerTop->Add(percSizer, 1, wxALIGN_CENTER | wxALL, 5);
+	sizerTop->Add(new wxStaticText
+	(
+		this,
+		wxID_ANY,
+		user,
+		wxDefaultPosition,
+		wxDefaultSize
+	), 1, wxALIGN_CENTER | wxALL, 5);
+	//sizerTop->Add(percSizer, 1, wxALIGN_CENTER | wxALL, 5);
 	sizerTop->Add(m_abort, 0, wxALIGN_CENTER | wxALL, 5);
 
 
 	m_abort->Bind(wxEVT_BUTTON, &FileInDownload::OnAbortClick, this);
 
-	this->SetSizerAndFit(sizerTop);
+	SetSizerAndFit(sizerTop);
 }
 
 //interrompe trasferimento
@@ -107,7 +106,7 @@ WindowDownload::WindowDownload(wxWindow* parent, Settings* settings)
 	this->SetIcon(wxIcon(share_icon));
 	
 	m_settings = settings;
-	
+
 	//Button ok
 	wxBitmap* ok = new wxBitmap();
 	ok->LoadFile(m_settings->getGeneralPath() + "bottoni\\esci.png", wxBITMAP_TYPE_ANY);
@@ -118,7 +117,8 @@ WindowDownload::WindowDownload(wxWindow* parent, Settings* settings)
 	m_ok->SetBackgroundColour(this->GetBackgroundColour());
 	m_ok->SetBitmapHover(*ok_hover);
 
-		
+	CreateStatusBar(1);
+
 	wxSizer* sizerTop = new wxBoxSizer(wxVERTICAL);
 	wxSizer* sizerIntestazione = new wxBoxSizer(wxHORIZONTAL);
 	m_sizerDownload = new wxBoxSizer(wxVERTICAL);
@@ -139,30 +139,23 @@ WindowDownload::WindowDownload(wxWindow* parent, Settings* settings)
 		wxDefaultPosition,
 		wxSize(100, 50)
 	), 1, wxALIGN_CENTER | wxALL, 5);
-	sizerIntestazione->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		"AVANZAMENTO",
-		wxDefaultPosition,
-		wxSize(100, 50)
-	), 1, wxALIGN_CENTER | wxALL, 5);
+	//sizerIntestazione->Add(new wxStaticText
+	//(
+	//	this,
+	//	wxID_ANY,
+	//	"AVANZAMENTO",
+	//	wxDefaultPosition,
+	//	wxSize(100, 50)
+	//), 1, wxALIGN_CENTER | wxALL, 5);
 
-	m_sizerDownload->Add(new wxStaticText
-	(
-		this,
-		wxID_ANY,
-		"Nessun download in corso",
-		wxDefaultPosition,
-		wxDefaultSize
-	), 1, wxALIGN_CENTER | wxALL, 5);
+	SetStatusText("Nessun download in corso");
 
 	sizerTop->Add(sizerIntestazione);
 	sizerTop->Add(m_sizerDownload, 1, wxALL, 5);
-	sizerTop->AddStretchSpacer()->SetMinSize(200, 20);
+	sizerTop->AddSpacer(40);
 	sizerTop->Add(m_ok, 1, wxALIGN_CENTER | wxALL, 5);
 
-	this->SetSizerAndFit(sizerTop);
+	SetSizerAndFit(sizerTop);
 }
 
 void WindowDownload::OnOk(wxCommandEvent& event) {
@@ -177,7 +170,7 @@ void WindowDownload::OnMinimize(wxIconizeEvent& event) {
 FileInDownload* WindowDownload::newDownload(std::string user, std::string file) {
 	std::lock_guard<std::mutex> lg(m_mutex);
 	if (m_counter++ == 0)
-		m_sizerDownload->Clear();
+		SetStatusText("Premi annulla per interrompere il download");
 
 	FileInDownload* fp = new FileInDownload(this, wxID_ANY, user, file, m_settings->getGeneralPath());
 	m_sizerDownload->Add(fp, 1, wxALL | 5);
@@ -190,18 +183,11 @@ FileInDownload* WindowDownload::newDownload(std::string user, std::string file) 
 
 void WindowDownload::OnEndDownload(wxThreadEvent& event) {
 	std::lock_guard<std::mutex> lg(m_mutex);
-	FileInDownload* tmp = event.GetPayload<FileInDownload*>();
-	tmp->Destroy();
+	FileInDownload* fp = event.GetPayload<FileInDownload*>();
+	fp->Destroy();
 
 	if (--m_counter == 0) 
-		m_sizerDownload->Add(new wxStaticText
-		(
-			this,
-			wxID_ANY,
-			"Nessun download in corso",
-			wxDefaultPosition,
-			wxDefaultSize
-		), 1, wxALIGN_CENTER | wxALL, 5);
+		SetStatusText("Nessun download in corso");
 
 	Layout();
 	Fit();

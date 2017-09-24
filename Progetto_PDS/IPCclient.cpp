@@ -20,13 +20,8 @@ bool MyClient::Connect(const wxString& sHost, const wxString& sService, const wx
 	// suppress the log messages from MakeConnection()
 	wxLogNull nolog;
 
-	m_connection = (MyConnectionClient *)MakeConnection(sHost, sService, sTopic);
+	m_connection = (wxConnection *)MakeConnection(sHost, sService, sTopic);
 	return m_connection != NULL;
-}
-
-wxConnectionBase *MyClient::OnMakeConnection()
-{
-	return new MyConnectionClient;
 }
 
 void MyClient::Disconnect()
@@ -42,24 +37,3 @@ MyClient::~MyClient()
 {
 	Disconnect();
 }
-
-// ----------------------------------------------------------------------------
-// MyConnection
-// ----------------------------------------------------------------------------
-
-
-//bool MyConnectionClient::OnDisconnect()
-//{
-//	return true;
-//}
-//
-//bool MyConnectionClient::DoExecute(const void *data, size_t size, wxIPCFormat format)
-//{
-//	bool retval = wxConnection::DoExecute(data, size, format);
-//	return retval;
-//}
-//
-//bool MyConnectionClient::DoPoke(const wxString& item, const void *data, size_t size, wxIPCFormat format)
-//{
-//	return wxConnection::DoPoke(item, data, size, format);
-//}
