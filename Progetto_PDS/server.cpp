@@ -1,7 +1,6 @@
 //COMMENTATO TUTTO
 
 #include "server.h"
-#define TIME_OUT 
 
 using boost::asio::ip::tcp;
 
@@ -47,6 +46,13 @@ Riceve come parametri:
 void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service,boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
 	, utente& utenteProprietario, std::string generalPath, Settings* settings);
 
+/********************************************************************************
+getNumberDownload torna il numero di download in caso di conflitto di nome
+Riceve come parametri:
+-path: path assoluto della posizione del file/directory
+-fileName: nome del file/directory
+**********************************************************************************/
+int getNumberDownload(std::string& path, std::string& fileName);
 
 void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, Settings* settings) {
 	//Inizializzo il socket
@@ -171,11 +177,12 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			//Controllo se il file già esiste e nel caso lo notifico all'utente
 			if (boost::filesystem::is_regular_file(savePath)) {
 				//In questo caso accetto la connessione
-				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-				if (dial->ShowModal() == wxID_YES) {
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Accettarlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
+				/*if (dial->ShowModal() == wxID_YES) {
+					//COSI SOVRASCRIVE
+					//wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
-					settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -233,6 +240,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 			std::string savePathName = settings->getSavePath();
 			std::string dir_name;
+			bool same_directory = false;
 			//Finchè la query ricevuta è diversa da -END che indica la fine di invio di una cartella
 			while (query != "-END") {
 				//Ho due opzioni, ricevo la query +DR che mi notifica il bisogno di creare un nuovo direttorio
@@ -258,6 +266,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					fileName = buf;
 					
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
+					
 					if (firstDirectory == true) {
 						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxHELP);
@@ -286,9 +295,16 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 						if (boost::filesystem::is_directory(savePathName + "\\" + fileName)) {
 							
 							//Richiedere se salvare o meno
-							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-							if (dial->ShowModal() == wxID_YES) {
+							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Accettarla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
+							/*if (dial->ShowModal() == wxID_YES) {
+							//COSI SOVRASCRIVE
 								settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+							}*/
+							if (dial->ShowModal() == wxID_YES) {
+							//COSI SALVA CON UN NUOVO NOME
+								settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+								savePathName = savePathName + "\\" + "(" + std::to_string(getNumberDownload(savePathName, fileName)) + ")";
+								same_directory = true;
 							}
 							else {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
@@ -307,7 +323,12 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 						firstDirectory = false;
 
 						name_dir = fileName;
-						path_dir = savePathName + "\\" + fileName;
+						if (same_directory==true) {
+							path_dir = savePathName + fileName;
+						}
+						else {
+							path_dir = savePathName + "\\" + fileName;
+						}
 					}
 
 					//Se arriviamo qui, vuol dire che tutto si è svolto in modo positivo, e posso accettare la directory
@@ -315,7 +336,13 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					response = "+OK";
 					write_some(s, response);
 					//Creo la directory.
-					boost::filesystem::create_directory(savePathName + "\\" + fileName);
+					if (same_directory==true) {
+						boost::filesystem::create_directory(savePathName + fileName);
+					}
+					else {
+						boost::filesystem::create_directory(savePathName + "\\" + fileName);
+					}
+					
 				}
 
 				//In questo caso vuol dire che sto ricevondo un file da salvare all'interno di un direttorio creato precedentemente.
@@ -328,7 +355,13 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					buf[length] = '\0';
 					fileName = buf;
 
-					fileName = savePathName + "\\" + fileName;
+					if (same_directory == true) {
+						fileName = savePathName + fileName;
+					}
+					else {
+						fileName = savePathName + "\\" + fileName;
+					}
+					
 				//	recive_file(io_service, s, fileName);
 					recive_file(io_service, s, fileName);
 
@@ -448,4 +481,48 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 		boost::filesystem::remove(fileName);
 		return throw std::invalid_argument(e.what());
 	}
+}
+
+//Torna il numero di download
+int getNumberDownload(std::string& path, std::string& fileName) {
+	int counter = 0;
+	bool find = false;
+	if (boost::filesystem::is_directory(path + "\\" + fileName)) {
+		while (true) {
+			find = false;
+			counter++;
+			for (boost::filesystem::directory_iterator it(path); it != boost::filesystem::directory_iterator(); ++it) {
+				boost::filesystem::path filePath(boost::filesystem::absolute(*it));
+				if (boost::filesystem::is_directory(*it)) {
+					std::string pathToCheck(path + "\\(" + std::to_string(counter) + ")" + fileName);
+					if (filePath.string() == pathToCheck) {
+						find = true;
+					}
+				}
+			}
+			if (find == false) {
+				break;
+			}
+		}
+
+	}
+	else {
+		while (true) {
+			find = false;
+			counter++;
+			for (boost::filesystem::directory_iterator it(path); it != boost::filesystem::directory_iterator(); ++it) {
+				boost::filesystem::path filePath(boost::filesystem::absolute(*it));
+				if (boost::filesystem::is_regular_file(*it)) {
+					if (filePath.string() == path + "\\(" + std::to_string(counter) + ")" + fileName) {
+						find = true;
+					}
+				}
+			}
+			if (find == false) {
+				break;
+			}
+			
+		}
+	}
+	return counter;
 }
