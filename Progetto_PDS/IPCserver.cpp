@@ -65,3 +65,8 @@ MyConnectionServer::OnPoke(const wxString& topic,
 	m_frame->SendFile(item.ToStdString());
 	return wxConnection::OnPoke(topic, item, data, size, format);
 }
+
+bool MyConnectionServer::OnDisconnect()
+{
+	return true;
+}

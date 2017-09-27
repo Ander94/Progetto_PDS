@@ -479,19 +479,16 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 	m_settings->getIoService().stop();
 	m_settings->reciveTCPfileThread.join();
 	m_settings->setExitRecive(true);
-	//m_settings->closeSocketRecive();
 	m_settings->reciveUdpMessageThread.join();
-//	m_settings->reciveAliveThread.join();
 	m_settings->setExitSend(true);
 	m_settings->sendUdpMessageThread.join();
-	//m_settings->sendAliveThread.join();
 	m_timer->Stop();
-	Destroy();
 	for (boost::filesystem::recursive_directory_iterator it(m_settings->getGeneralPath() + "local_image"); it != boost::filesystem::recursive_directory_iterator(); ++it) {
 		if (boost::filesystem::is_regular_file(*it)) {
 			boost::filesystem::remove(*it);
 		}
 	}
+	Destroy();
 }
 
 void MainFrame::OnTimer(wxTimerEvent& event)
@@ -560,8 +557,6 @@ void MainFrame::OnImage(wxCommandEvent& event)
 		sendImage(m_settings->getImagePath(), it.getIpAddr());
 	}
 	//***************************//
-	//wxPNGHandler *handler = new wxPNGHandler();
-	//wxImage::AddHandler(handler);
 	wxImage *img = new wxImage();
 	img->LoadFile(m_settings->getImagePath(), wxBITMAP_TYPE_ANY, -1);
 	m_userImage->SetBitmap(wxBitmap(img->Scale(SIZE, SIZE, wxIMAGE_QUALITY_HIGH)));
@@ -781,7 +776,6 @@ wxMenu *TaskBarIcon::CreatePopupMenu()
 	m_settings->getStato() ? stato = "Vai online" : stato = "Vai offline";
 	menu->Append(PU_STATO, stato);
 	menu->AppendSeparator();
-	menu->Append(PU_DOWNLOAD, wxT("Download in corso"));
 	menu->AppendSeparator();
 	menu->Append(PU_EXIT, wxT("Esci"));
 
