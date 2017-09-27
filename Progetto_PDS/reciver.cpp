@@ -113,7 +113,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
 
-	//std::lock_guard<std::mutex> lg(iscrizione); //Acquisisco il mutex
 	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 	//Evita di registrare se stessi.
     //getOwnIP torna l'ip del nostro PC

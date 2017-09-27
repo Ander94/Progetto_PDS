@@ -1,6 +1,7 @@
 //COMMENTATO TUTTO
 
 #include "server.h"
+#include <regex>
 
 using boost::asio::ip::tcp;
 
@@ -46,7 +47,7 @@ Riceve come parametri:
 void HandleAccept(const boost::system::error_code& error, boost::asio::io_service& io_service,boost::shared_ptr< boost::asio::ip::tcp::socket > socket, boost::asio::ip::tcp::acceptor& acceptor
 	, utente& utenteProprietario, std::string generalPath, Settings* settings);
 
-
+int getNumberDownload(std::string& path, std::string& fileName);
 void StartAccept(boost::asio::io_service& io_service, boost::asio::ip::tcp::acceptor& acceptor, utente& utenteProprietario, std::string generalPath, Settings* settings) {
 	//Inizializzo il socket
 	boost::shared_ptr< tcp::socket > socket(new tcp::socket(acceptor.get_io_service()));
@@ -172,14 +173,24 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			//Controllo se il file già esiste e nel caso lo notifico all'utente
 			if (boost::filesystem::is_regular_file(savePath)) {
 				//In questo caso accetto la connessione
-				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-				if (dial->ShowModal() == wxID_YES) {
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Accettarlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
+				/*if (dial->ShowModal() == wxID_YES) {
+					//COSI SOVRASCRIVE
 					//wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
 					//wxMutexGuiLeave();
 					//recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
+				}*/
+				if (dial->ShowModal() == wxID_YES) {
+					//COSI SALVA CON UN NOME DIVERSO
+					//wxMutexGuiEnter();
+					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
+					//wxMutexGuiLeave();
+					//recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
+					recive_file(io_service, s, settings->getSavePath() + "\\" + "(" + std::to_string(getNumberDownload(settings->getSavePath(), fileName)) + ")" +  fileName);
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -457,4 +468,20 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 		boost::filesystem::remove(fileName);
 		return throw std::invalid_argument(e.what());
 	}
+}
+
+int getNumberDownload(std::string& path, std::string& fileName) {
+	int counter = 0;
+
+	std::regex match("{([0-9]*)}*" + fileName);
+	for (boost::filesystem::directory_iterator it(path); it != boost::filesystem::directory_iterator(); ++it)
+	{
+		boost::filesystem::path filePath(boost::filesystem::absolute(*it));
+		if (boost::filesystem::is_regular_file(*it)) {
+			if (std::regex_match(filePath.string(), match)) {
+				counter++;
+			}
+		}
+	}
+	return counter;
 }

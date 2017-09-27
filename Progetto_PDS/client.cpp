@@ -438,7 +438,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			//invio il nome del file al server
 			write_some(s, sendPath);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
-			length = read_some(s, buf_recive, PROTOCOL_PACKET);
+			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
