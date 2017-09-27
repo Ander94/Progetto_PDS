@@ -11,10 +11,9 @@ using boost::asio::ip::tcp;
 //Mutex utile per iscrivere un utente alla volta.
 //Ciò è necessario per prevenire il caso in cui un utente che sta effettuando l'iscrizione si iscriva nuovamente,
 //figurando cosi più volte nella lista degli utenti connessi.
-std::mutex iscrizione;
+//std::mutex iscrizione;
 
-//Booleano utile a mostrare lo stato della propria connessione una volta sola.
-std::atomic<bool> first_time;
+
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
 Riceve come parametri:
@@ -24,7 +23,7 @@ Riceve come parametri:
  -utenteProprietario: contiene tutti gli utenti iscritti
 -generalPath: path da cui prelevare l'immagine del profilo.
 **********************************************************************************/
-void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath);
+void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time);
 
 void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
     
@@ -33,7 +32,8 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	std::string ipAddr, reciveMessage, username, s_state;
 	status state;
 	int n;
-    
+	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
+	std::atomic<bool> first_time;
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
 	boost::asio::io_service io_service;
 	udp::socket s(io_service);
@@ -92,15 +92,13 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 						state = status::STAT_OFFLINE;
 					}
 					//Iscrivo l'utente.
-					boost::thread(iscriviUtente, username, ipAddr, state, boost::ref(utenteProprietario), generalPath).detach();
+					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
 			catch (...) {
-				iscrizione.unlock();
 				if (s.is_open()) {
 					s.close();
 				}
-				io_service.stop();
 				exit_internal_loop = true;
 			}
 		}
@@ -110,12 +108,12 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	if (s.is_open()) {
 		s.close();
 	}
-	io_service.stop();
+	
 }
 
-void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath) {
+void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
 
-	std::lock_guard<std::mutex> lg(iscrizione); //Acquisisco il mutex
+	//std::lock_guard<std::mutex> lg(iscrizione); //Acquisisco il mutex
 	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 	//Evita di registrare se stessi.
     //getOwnIP torna l'ip del nostro PC
