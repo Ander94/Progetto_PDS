@@ -1,6 +1,7 @@
 //COMMENTATO TUTTO
 
 #include "server.h"
+#define TIME_OUT 
 
 using boost::asio::ip::tcp;
 
@@ -174,6 +175,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				if (dial->ShowModal() == wxID_YES) {
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
+					settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -186,9 +188,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				recive_file(io_service, s, savePath);
+				settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
-
-			settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
 		}
 
 

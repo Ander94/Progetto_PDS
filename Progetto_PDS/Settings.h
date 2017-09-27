@@ -243,7 +243,7 @@ public:
 	}
 	void showBal(std::string title, std::string message) {
 		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
-		m_taskBarIcon->ShowBalloon(title, message, 15000, wxICON_INFORMATION);
+		m_taskBarIcon->ShowBalloon(title, message, 5000, wxICON_INFORMATION);
 	}
 
 	//Costruisce un nuovo utente proprietario con nome utente "nomeUtente" e indirizzio ip "ip"

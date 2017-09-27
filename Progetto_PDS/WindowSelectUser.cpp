@@ -20,7 +20,8 @@ EVT_TIMER(TIMER_ID, WindowSelectUser::OnTimer)
 wxEND_EVENT_TABLE()
 
 WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
-	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN | wxSTAY_ON_TOP)
+	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, 
+		wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
 	this->SetBackgroundColour(wxColour(240, 242, 245));
 	this->SetFont(this->GetFont().Bold().Scale(0.9f));
@@ -192,7 +193,6 @@ void WindowSelectUser::UpdateUI() {
 		SetStatusText("In attesa di altri utenti...");
 	else
 		SetStatusText("Seleziona uno o più utenti");
-	this->Show();
 }
 
 void WindowSelectUser::insertUtenteLista(utente user) {
@@ -206,29 +206,29 @@ void WindowSelectUser::deleteUtenteLista(utente user) {
 		m_ok->Disable();
 }
 
-void WindowSelectUser::addUtente(utente user) {
-	UserSizer *u = new UserSizer(this, m_settings, user);
-	m_ListaUtenti.push_back(u);
-	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
-	
-	Update();
-}
-
-void WindowSelectUser::removeUtente(utente user) {
-	int i = 0;
-	std::string ip = user.getIpAddr();
-
-	for (auto it=m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++ ) {
-		if ((*it)->getIpAddr() == ip) {
-			this->m_ListaUtenti.erase(it);
-			m_sizerUsers->Remove(i);
-			break;
-		}
-		i++;
-	}
-	
-	Update();
-}
+//void WindowSelectUser::addUtente(utente user) {
+//	UserSizer *u = new UserSizer(this, m_settings, user);
+//	m_ListaUtenti.push_back(u);
+//	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
+//	
+//	Update();
+//}
+//
+//void WindowSelectUser::removeUtente(utente user) {
+//	int i = 0;
+//	std::string ip = user.getIpAddr();
+//
+//	for (auto it=m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++ ) {
+//		if ((*it)->getIpAddr() == ip) {
+//			this->m_ListaUtenti.erase(it);
+//			m_sizerUsers->Remove(i);
+//			break;
+//		}
+//		i++;
+//	}
+//	
+//	Update();
+//}
 
 std::vector<utente> WindowSelectUser::getListaInvio()
 {

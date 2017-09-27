@@ -32,10 +32,10 @@ public:
 
 	//ogni volta che scatta il timer, controllo lo stato degli utenti online
 	void UpdateUI();	
-	//aggiunge un nuovo utente alla finestra
-	void addUtente(utente user);
-	//rimuove un utente dalla finsetra
-	void removeUtente(utente user);
+	////aggiunge un nuovo utente alla finestra
+	//void addUtente(utente user);
+	////rimuove un utente dalla finsetra
+	//void removeUtente(utente user);
 	
 	//da usare con il metodo WindowSelectUser::OnOk per passare la lista di utenti selezionati per l'invio
 	std::vector<utente> getListaInvio();	
