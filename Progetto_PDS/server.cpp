@@ -187,6 +187,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				recive_file(io_service, s, savePath);
 			}
+
+			settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
 		}
 
 
@@ -228,6 +230,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				return;
 			}
 
+			std::string savePathName = settings->getSavePath();
+			std::string dir_name;
 			//Finchè la query ricevuta è diversa da -END che indica la fine di invio di una cartella
 			while (query != "-END") {
 				//Ho due opzioni, ricevo la query +DR che mi notifica il bisogno di creare un nuovo direttorio
@@ -254,14 +258,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					
 					//Se è la prima volta che ricevo una query di tipo +DR, vedo se l'utente ha settato l'opzione per la quale bisogna richiedere l'accettazione
 					if (firstDirectory == true) {
-						path_dir = settings->getSavePath() + "\\" + fileName;
-						name_dir = fileName;
-						//wxMutexGuiEnter();
-						//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-						//wxMutexGuiLeave();
 						if (settings->getAutoSaved() == save_request::SAVE_REQUEST_YES) {
-							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
-							if (dial->ShowModal() == wxID_NO) {
+							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Accettare la directory " + fileName + " da " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxHELP);
+							dial->SetHelpLabel(wxID_SAVEAS);
+							int ret_val = dial->ShowModal();
+							if (ret_val == wxID_NO) {
 								//Se l'utente non accetta la directory, diamo risposta negativa.
 								response = "-ERR";
 								write_some(s, response);
@@ -270,10 +271,18 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 								}
 								return;
 							}
+							//Cambio il savePath se l'utente desidera scegliere un altro path di salvataggio per il file che si sta ricevendo
+							else if (ret_val == wxID_HELP) {
+								wxDirDialog selectDirDialog(NULL, "Salva " + fileName + " come", "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+								if (selectDirDialog.ShowModal() == wxID_CANCEL)
+									return;     // the user changed idea...
+								savePathName = selectDirDialog.GetPath().ToStdString();
+							}
+
 						}
 
 						//Controlliamo se la directory esiste già
-						if (boost::filesystem::is_directory(settings->getSavePath() + "\\" + fileName)) {
+						if (boost::filesystem::is_directory(savePathName + "\\" + fileName)) {
 							
 							//Richiedere se salvare o meno
 							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Sovrascriverla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
@@ -295,17 +304,17 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 							settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 						}
 						firstDirectory = false;
+
+						name_dir = fileName;
+						path_dir = savePathName + "\\" + fileName;
 					}
 
 					//Se arriviamo qui, vuol dire che tutto si è svolto in modo positivo, e posso accettare la directory
-					std::string pathName(settings->getSavePath() + "\\" + fileName);
 					//Rispondo con +OK
 					response = "+OK";
 					write_some(s, response);
 					//Creo la directory.
-					boost::filesystem::create_directory(pathName);
-
-
+					boost::filesystem::create_directory(savePathName + "\\" + fileName);
 				}
 
 				//In questo caso vuol dire che sto ricevondo un file da salvare all'interno di un direttorio creato precedentemente.
@@ -318,7 +327,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					buf[length] = '\0';
 					fileName = buf;
 
-					fileName = settings->getSavePath() + "\\" + fileName;
+					fileName = savePathName + "\\" + fileName;
 				//	recive_file(io_service, s, fileName);
 					recive_file(io_service, s, fileName);
 
@@ -334,6 +343,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				buf[length] = '\0';
 				query = buf;
 			}
+
+			settings->showBal("Ricezione Directory", name_dir + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
 		}
 	}
 	catch (std::exception& e) {
@@ -354,23 +365,12 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			wxMessageBox(error, wxT("Errore"), wxOK | wxICON_ERROR);
 		}
 
-		/*if (fp != nullptr) {
-			wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
-			event.SetPayload(fp);
-			wxQueueEvent(wp, event.Clone());
-		}*/
 		return;
 	}
 	
 	if (s.is_open()) {
 		s.close();
 	}
-
-	/*if (fp != nullptr) {
-		wxThreadEvent event(wxEVT_THREAD, SERVER_EVENT);
-		event.SetPayload(fp);
-		wxQueueEvent(wp, event.Clone());
-	}*/
 }
 
 void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
