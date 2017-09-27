@@ -42,7 +42,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		//parte della cartella
 		wxStaticBoxSizer* vDirSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hDirSizer = new wxFlexGridSizer(4);
-		m_percDir = new wxStaticText(this, wxID_ANY, "0   ", wxDefaultPosition, wxDefaultSize);
+		m_percDir = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_nameDir = new wxStaticText
 		(
 			this,
@@ -109,7 +109,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(
 				new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),

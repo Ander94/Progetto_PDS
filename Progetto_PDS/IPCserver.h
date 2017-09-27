@@ -14,6 +14,7 @@ public:
 
 	virtual bool OnExecute(const wxString& topic, const void *data, size_t size, wxIPCFormat format) wxOVERRIDE;
 	virtual bool OnPoke(const wxString& topic, const wxString& item, const void *data, size_t size, wxIPCFormat format) wxOVERRIDE;
+	virtual bool OnDisconnect() wxOVERRIDE;
 };
 
 class MyServer : public wxServer

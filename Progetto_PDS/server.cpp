@@ -109,9 +109,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 	std::string ipAddrRemote, query, response, fileName;  //Ip di chi invia il file, query richesta, risposta inviata al client, e nome del file
 	bool is_dir = false, is_file = false;
 	std::string name_dir(""), path_dir("");
-	//FileInDownload* fp; //fileindownload pointer
-	//WindowDownload* wp = dynamic_cast<WindowDownload*>(settings->getWindowDownload()); //windowdownload pointer
-
+	
 	try {
 		ipAddrRemote = s.remote_endpoint().address().to_string();
 		//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
@@ -174,11 +172,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione
 				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Sovrascriverlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION);
 				if (dial->ShowModal() == wxID_YES) {
-					//wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-					//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-					//wxMutexGuiLeave();
-					//recive_file(io_service, s, settings->getSavePath() + "\\" + fileName, fp);		//TODO controllare se è giusto
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
 				}
 				else {
@@ -190,11 +184,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			}
 			else {
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
-				//wxMutexGuiEnter();
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-				//fp = wp->newDownload(utenteProprietario.getUsernameFromIp(ipAddrRemote), fileName);
-				//wxMutexGuiLeave();
-				//recive_file(io_service, s, savePath, fp);
 				recive_file(io_service, s, savePath);
 			}
 		}
