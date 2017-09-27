@@ -53,7 +53,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 			wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE
 		);
 		//m_nameDir->SetMaxSize(wxSize(400, 50));
-		m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
+		m_timeDir = new wxStaticText(this, wxID_ANY, "calcolo in corso    ", wxDefaultPosition, wxDefaultSize);
 		m_progDir = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		m_percDir->SetFont((m_percDir->GetFont()));
 		hDirSizer->Add(
@@ -76,7 +76,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
 		m_nameFile = new wxStaticText(this, wxID_ANY, "File: ", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso    ", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		vFileSizer->Add(m_nameFile, 1, wxALIGN_LEFT);
 		vFileSizer->Add(m_progFile, 1, wxALIGN_LEFT);
@@ -109,7 +109,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 		wxStaticBoxSizer* vFileSizer = new wxStaticBoxSizer(wxVERTICAL, this);
 		wxFlexGridSizer* hFileSizer = new wxFlexGridSizer(4);
 		m_percFile = new wxStaticText(this, wxID_ANY, "    0", wxDefaultPosition, wxDefaultSize);
-		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso  ", wxDefaultPosition, wxDefaultSize);
+		m_timeFile = new wxStaticText(this, wxID_ANY, "calcolo in corso    ", wxDefaultPosition, wxDefaultSize);
 		m_progFile = new wxGauge(this, wxID_ANY, 100, wxDefaultPosition, wxSize(400, 8), wxGA_HORIZONTAL | wxGA_SMOOTH);
 		hFileSizer->Add(
 				new wxStaticText(this, wxID_ANY, "Tempo rimanente: ", wxDefaultPosition, wxDefaultSize),
@@ -149,6 +149,7 @@ void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
 
 //setta il tempo mancante alla fine del trasferimento
 void UserProgressBar::SetTimeFile(long sec) {
+	std::string s_hour;
 	std::string s_min;
 	std::string s_sec;
 
@@ -157,24 +158,29 @@ void UserProgressBar::SetTimeFile(long sec) {
 	min = min % 60;
 	sec = sec % 60;
 
-	if (sec <= 9)
-		s_sec = "0" +std::to_string(sec);
-	else
-		s_sec = std::to_string(sec);
+	//if (sec <= 9)
+	//	s_sec = "0" +std::to_string(sec);
+	//else
+	//	s_sec = std::to_string(sec);
 
-	if (min <= 9)
-		s_min = "0" + std::to_string(min);
-	else
-		s_min = std::to_string(min);
+	//if (min <= 9)
+	//	s_min = "0" + std::to_string(min);
+	//else
+	//	s_min = std::to_string(min);
 
-	std::string s_hour;
+	s_hour = std::to_string(hour);
+	s_min = std::to_string(min);
+	s_sec = std::to_string(sec);
+
 	std::string time("");
-	if (hour>0) {
-		s_hour = std::to_string(hour);
-		time = s_hour + "h " + s_min + ":" + s_sec;
+	if (hour > 0) {
+		time = s_hour + "h " + s_min + "min " + s_sec + "sec";
+	}
+	else if (min > 0) {
+		time = s_min + "min " + s_sec + "sec";
 	}
 	else {
-		time = s_min + ":" + s_sec;
+		time = s_sec + "sec";
 	}
 
 	if (m_timeFile->GetLabelText() != time)
@@ -231,23 +237,30 @@ void UserProgressBar::IncFile(long long dim) {
 		std::string s_min;
 		std::string s_sec;
 		std::string s_hour;
-		if (sec <= 9)
-			s_sec = "0" + std::to_string(sec);
-		else
-			s_sec = std::to_string(sec);
+		
+		//if (sec <= 9)
+		//	s_sec = "0" + std::to_string(sec);
+		//else
+		//	s_sec = std::to_string(sec);
 
-		if (min <= 9)
-			s_min = "0" + std::to_string(min);
-		else
-			s_min = std::to_string(min);
+		//if (min <= 9)
+		//	s_min = "0" + std::to_string(min);
+		//else
+		//	s_min = std::to_string(min);
 		
 		s_hour = std::to_string(hour);
+		s_min = std::to_string(min);
+		s_sec = std::to_string(sec);
+
 		std::string time("");
-		if (hour>0) {
-			time = s_hour + "h " + s_min + ":" + s_sec;
+		if (hour > 0) {
+			time = s_hour + "h " + s_min + "min " + s_sec + "sec";
 		} 
+		else if (min > 0) {
+			time = s_min + "min " + s_sec + "sec";
+		}
 		else {
-			time = s_min + ":" + s_sec;
+			time = s_sec + "sec";
 		}
 		
 		if (m_timeDir->GetLabelText() != time)

@@ -1,6 +1,7 @@
 //COMMENTATO TUTTO
 
 #include "server.h"
+#include <regex>
 
 using boost::asio::ip::tcp;
 
@@ -177,12 +178,18 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			//Controllo se il file già esiste e nel caso lo notifico all'utente
 			if (boost::filesystem::is_regular_file(savePath)) {
 				//In questo caso accetto la connessione
-				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Accettarlo?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
-				/*if (dial->ShowModal() == wxID_YES) {
+				wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Il file " + fileName + " già esiste. Accettarlo?"), wxT("INFO"), wxYES_NO | wxHELP | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
+				dial->SetYesNoLabels(_("&Sovrascrivi"), _("&No"));
+				dial->SetHelpLabel(_("&Mantieni entrambi"));
+				int ret_val = dial->ShowModal();
+				if (ret_val == wxID_YES) {
 					//COSI SOVRASCRIVE
-					//wxMutexGuiEnter();
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
+				} else if (ret_val == wxID_HELP) {
+					//COSI SALVA CON UN NOME DIVERSO
+					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
+					recive_file(io_service, s, settings->getSavePath() + "\\" + "(" + std::to_string(getNumberDownload(settings->getSavePath(), fileName)) + ")" +  fileName);
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -195,8 +202,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				recive_file(io_service, s, savePath);
-				settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
+
+			settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
 		}
 
 
@@ -295,12 +303,14 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 						if (boost::filesystem::is_directory(savePathName + "\\" + fileName)) {
 							
 							//Richiedere se salvare o meno
-							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Accettarla?"), wxT("INFO"), wxYES_NO | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
-							/*if (dial->ShowModal() == wxID_YES) {
+							wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("La directory " + fileName + " già esiste. Accettarla?"), wxT("INFO"), wxYES_NO | wxHELP | wxICON_QUESTION | wxSTAY_ON_TOP | wxCENTRE);
+							dial->SetYesNoLabels(_("&Sovrascrivi"), _("&No"));
+							dial->SetHelpLabel(_("&Mantieni entrambi"));
+							int ret_val = dial->ShowModal();
+							if (ret_val == wxID_YES) {
 							//COSI SOVRASCRIVE
 								settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
-							}*/
-							if (dial->ShowModal() == wxID_YES) {
+							} else if (ret_val == wxID_HELP) {
 							//COSI SALVA CON UN NUOVO NOME
 								settings->showBal("Ricezione Directory", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 								savePathName = savePathName + "\\" + "(" + std::to_string(getNumberDownload(savePathName, fileName)) + ")";
