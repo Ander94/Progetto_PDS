@@ -8,6 +8,8 @@
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
+std::mutex iscrizione;
+
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
 Riceve come parametri:
@@ -21,7 +23,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status, utente
 
 void checkTime(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app);   //Tale funzione elimina gli utenti che non sono più attivi sulla LAN dopo un tempo definito in protoType.h
 
-void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
+void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app, Settings* settings) {
     
 	char buf[PROTOCOL_PACKET], buf_username[PROTOCOL_PACKET], buf_state[PROTOCOL_PACKET]; //Buffer utili a gestire i pacchetti proveniento dalla rete
 	size_t length, found;
@@ -30,9 +32,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	int n;
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
-	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-	boost::asio::io_service io_service;
-	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
     
@@ -45,18 +44,18 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	while (!exit_app.load()) {
 		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
-		s.open(boost::asio::ip::udp::v4());  //Apro il socket
-		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-		s.set_option(boost::asio::socket_base::broadcast(true));  //Inizializzo l'opzione che mi consente l'invio in LAN
+		settings->getSocket().open(boost::asio::ip::udp::v4());  //Apro il socket
+		settings->getSocket().set_option(boost::asio::ip::udp::socket::reuse_address(true));
+		settings->getSocket().set_option(boost::asio::socket_base::broadcast(true));  //Inizializzo l'opzione che mi consente l'invio in LAN
 		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
-		s.bind(local_endpoint);
+		settings->getSocket().bind(local_endpoint);
 		bool exit_internal_loop = false;
 		first_time.store(true);
         
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
-				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+				length = settings->getSocket().receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
 				buf[length] = '\0';
@@ -88,27 +87,27 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 						state = status::STAT_OFFLINE;
 					}
 					//Iscrivo l'utente.
-				//	boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
-					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
+					boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
+				//	iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
 			catch (...) {
-				if (s.is_open()) {
-					s.close();
-				}
+				settings->closeSocket();
 				exit_internal_loop = true;
 			}
 		}
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
-	if (s.is_open()) {
-		s.close();
+	settings->closeSocket();
+	while (iscrizione.try_lock()) {
+		iscrizione.unlock();
+		return;
 	}
-	
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
+	std::lock_guard<std::mutex> lg_iscrizione(iscrizione);
 	try {
 		int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 		//Evita di registrare se stessi.

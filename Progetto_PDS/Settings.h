@@ -62,6 +62,7 @@ private:
 	std::recursive_mutex rm_scorciatoia;//14
 	std::recursive_mutex rm_taskBarIcon;//14
 	std::recursive_mutex rm_windowDownload;//15
+	std::mutex m_socket;//15
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
@@ -79,17 +80,32 @@ private:
 	scorciatoia m_scorciatoia;
 	std::atomic<bool> exit_send_udp, exit_recive_udp;  //Atomic che indica se i threads di invio/ricezione di pacchetti udp possono essere disattivati
 	boost::asio::io_service io_service_tcp;   //io_service che mette in run/stop la procedura di accettazione dei file.
+	boost::asio::io_service io_service_udp;
+	boost::asio::ip::udp::socket socket_udp;
+	
 
 public:
 	//Tengo traccia di tutti i thread lanciati ed utilizzati dall'applicazione
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	
-	Settings() {
+	Settings() : socket_udp(io_service_udp) {
 	}
 
 	~Settings() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);	//TODO secondo me si può rimuovere
 		delete(m_utenteProprietario);
+	}
+
+	boost::asio::ip::udp::socket& getSocket() {
+		std::lock_guard<std::mutex> lg_socket(m_socket);
+		return socket_udp;
+	}
+
+	void closeSocket() {
+		std::lock_guard<std::mutex> lg_socket(m_socket);
+		if (socket_udp.is_open()) {
+			socket_udp.close();
+		}
 	}
 
 	//Setta la variabile booleana exit_send_udp con valore "value"
@@ -496,7 +512,7 @@ public:
 		s.open(boost::asio::ip::udp::v4());
 		s.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 		s.set_option(boost::asio::socket_base::broadcast(true));
-		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP);
+		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP_OWNIP);
 		s.bind(local_endpoint);
 
 		char buf[1024];
@@ -524,7 +540,7 @@ public:
 		socket.open(boost::asio::ip::udp::v4());
 		socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 		socket.set_option(boost::asio::socket_base::broadcast(true));
-		sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), PORT_UDP);
+		sender_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), PORT_UDP_OWNIP);
 		//Invio in rete una stringa del tipo +GETADDRunique_str, che mi aiuterà ad identificare il mio IP
 		socket.send_to(boost::asio::buffer("+GETADDR" + unique_str), sender_endpoint);
 		socket.close();
