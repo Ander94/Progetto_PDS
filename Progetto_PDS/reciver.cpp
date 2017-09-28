@@ -3,7 +3,6 @@
 #pragma once
 #include "reciver.h"
 #include "Settings.h"
-#include "timeout.h"
 #include <mutex>
 #include <atomic>
 using boost::asio::ip::udp;
@@ -47,7 +46,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	while (!exit_app.load()) {
 		//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
 		boost::asio::io_service io_service;
-		io_service.run();
 		udp::socket s(io_service);
 		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
@@ -62,7 +60,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
-				length = recive_from(s, buf, PROTOCOL_PACKET, reciver_endpoint);
+				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
 				buf[length] = '\0';
@@ -97,14 +95,13 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
-			catch (...){
+			catch (...) {
 				exit_internal_loop = true;
 			}
 		}
 		if (s.is_open()) {
 			s.close();
 		}
-		io_service.stop();
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
@@ -116,9 +113,9 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 
 	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 	//Evita di registrare se stessi.
-    //getOwnIP torna l'ip del nostro PC
-    std::string myIp(Settings::getOwnIP());
 	if (true) {
+		//getOwnIP torna l'ip del nostro PC
+		std::string myIp(Settings::getOwnIP());
 		if (myIp ==ipAddr || myIp == "127.0.0.1") {
 			if (myIp == "127.0.0.1") {
 				if (first_time.load()) {

@@ -116,7 +116,7 @@ bool MainApp::OnInit()
 			}
 		}
 	}
-	catch (const std::exception& e)
+	catch (...)
 	{
 		wxLogError(wxT("Errore nell'avvio dell'applicazione.\nSi prega di riavviare."));  //TODO c'è qualcosa che lancia eccezioni?
 	}
