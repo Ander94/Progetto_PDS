@@ -43,16 +43,12 @@ class utente
 	std::recursive_mutex m_currentTime; //(4)
 	std::recursive_mutex m_utentiConnessi; //(5)
 	std::recursive_mutex m_usernamePc; //(6)
-//	std::recursive_mutex m_immaginiRegistrate; //(7)
 	
 public:
 	utente(); //Costruttore 
 	utente(std::string username, std::string ipAddr);  //Costruttore 
 	utente(std::string username, std::string ipAddr, status state); //Costruttore
 	~utente();   //Distruttore
-	/*bool utente::immagineRicevuta(std::string ipAddr);  //Torna un booleano che indica se l'immagine dell'utente con indirizzo ipAddr è stat ricevuta.
-	void utente::registraImmagine(std::string ipAddr);  //Registra che l'immagine dell'utente con ip "ipAddr" è stata ricevuta correttamente.
-	void utente::rimuoviImmagine(std::string ipAddr);    //Rimuove l'indirizzo ip dal vettore che registra le immagini ricevute.*/
 	std::string& utente::getUsername(); //Torna l'username dell'utente
 	std::string& utente::getUsernamePc(); //Torna l'username del proprio pc
 	void utente::setIpAddr(std::string ipAddr); //Setta l'indirizzo ip dell'utente.

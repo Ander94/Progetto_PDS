@@ -102,11 +102,10 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
 	try {
-		int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 		//Evita di registrare se stessi.
 		//getIpAddr torna l'ip del nostro PC
+		utenteProprietario.setIpAddr(Settings::getOwnIP());
 		std::string myIp = utenteProprietario.getIpAddr();
-
 		if (true) {
 			if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
 				if (ipAddr == "127.0.0.1") {
@@ -149,7 +148,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		sendImage(filePath, ipAddr);
 		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
 	}
-	catch (std::exception& e) {
+	catch (...) {
 		return;
 	}
 }

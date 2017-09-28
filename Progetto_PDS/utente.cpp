@@ -42,31 +42,6 @@ utente::~utente()
 
 }
 
-/*bool utente::immagineRicevuta(std::string ipAddr) {
-	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
-	//Utilizzo un ciclo per scandire il vettore immaginiRegistrate, e ritorno un booleano che mi indica la presenza di quell'indirizzo IP
-	for (unsigned int i = 0; i < this->immaginiRegistrate.size(); i++) {
-		if (ipAddr == immaginiRegistrate[i])
-			return true;
-	}
-	return false;
-}
-void utente::registraImmagine(std::string ipAddr) {
-	//Inserisco un nuovo IP in immaginiRegistrate
-	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
-	this->immaginiRegistrate.push_back(ipAddr);
-}
-
-void utente::rimuoviImmagine(std::string ipAddr) {
-	std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
-	//Elimino dal vettore l'elemento contenete la stringa specificata in ipAddr
-	for (unsigned int i = 0; i < immaginiRegistrate.size(); i++) {
-		if (ipAddr == immaginiRegistrate[i])
-			this->immaginiRegistrate.erase(immaginiRegistrate.begin()+i);
-	}
-}*/
-
-
 std::string& utente::getUsername()
 {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
@@ -218,7 +193,6 @@ utente::utente(const utente& source) {
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_currentTime(m_currentTime);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
-	//std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
 	this->ipAddr = source.ipAddr;
 	this->state = source.state;
 	this->currentTime = source.currentTime;
@@ -226,9 +200,6 @@ utente::utente(const utente& source) {
 	for (auto it : source.utentiConnessi) {
 		this->getUtentiConnessi().push_back(it);
 	}
-	/*for (auto it : source.immaginiRegistrate) {
-		this->immaginiRegistrate.push_back(it);
-	}*/
 }
 
 //Operatore di assegnazione
@@ -238,7 +209,6 @@ utente &utente::operator =(const utente & source) {
 	std::lock_guard<std::recursive_mutex> lk_state(m_state);
 	std::lock_guard<std::recursive_mutex> lk_currentTime(m_currentTime);
 	std::lock_guard<std::recursive_mutex> lk_utentiConnessi(m_utentiConnessi);
-	//std::lock_guard<std::recursive_mutex> lk_(m_immaginiRegistrate);
 	if (this != &source) {
 		this->ipAddr = source.ipAddr;
 		this->state = source.state;
@@ -247,9 +217,6 @@ utente &utente::operator =(const utente & source) {
 		for (auto it : source.utentiConnessi) {
 			this->getUtentiConnessi().push_back(it);
 		}
-		/*for (auto it : source.immaginiRegistrate) {
-			this->immaginiRegistrate.push_back(it);
-		}*/
 	}
 	return *this;
 }
