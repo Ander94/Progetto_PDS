@@ -221,7 +221,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				response = "+OK";
 				write_some(s, response);
 				//Notifico che l'immagine è stat ricevuta e posso registrare correttamente l'utente.
-				utenteProprietario.registraImmagine(ipAddrRemote);
+//				utenteProprietario.registraImmagine(ipAddrRemote);
 			}
 			catch (std::exception&) {
 				if (s.is_open()) {

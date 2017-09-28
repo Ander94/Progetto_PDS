@@ -145,27 +145,11 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 				wxMessageBox("Immagne del profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
 			}
 		}
-
 		//Invio la mia immagine del profilo all'utente che sto registrando.
 		sendImage(filePath, ipAddr);
-
-		//Controllo che sia stata ricevuta correttamente l'immagine del profilo.
-		//Se è avvenuto qualche errore in ricezione.
-		//Cerco di ricevere l'immagine del profilo per un secondo. Se qualcosa è andato storto(ad esempio l'immagine non è stata ricevuta),
-		//non aggiungo l'utente.
-		//L'utente verrà aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
-		while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
-			Sleep(200);
-			if (counter > 5) {
-				break;
-			}
-		}
-		//Aggiungo il nuovo utente e il suo stato.
-		if (counter <= 5) {
-			utenteProprietario.addUtente(username, ipAddr, state, currentTime);
-		}
+		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
 	}
-	catch (...) {
+	catch (std::exception& e) {
 		return;
 	}
 }
@@ -175,24 +159,28 @@ void checkTime(utente& utenteProprietario, std::string generalPath, std::atomic<
 	//Funzione che scorre tutto il vettore utentiConnessi e ricerca gli utenti inattivi per un tempo DELETE_USER
 	boost::posix_time::ptime currentTime;
 	while (!exit_app.load()) {
-		unsigned int i;
-		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
-			currentTime = boost::posix_time::second_clock::local_time();
-			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
-				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
-				utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
-				if (boost::filesystem::is_regular_file(generalPath + "local_image\\" + ipAddr + ".png")) {
-					try {
-						boost::filesystem::remove(generalPath + "local_image\\" + ipAddr + ".png");
-					}
-					catch (...) {
+		try {
+			unsigned int i;
+			for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
+				currentTime = boost::posix_time::second_clock::local_time();
+				if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
+					std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
+					utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
+					if (boost::filesystem::is_regular_file(generalPath + "local_image\\" + ipAddr + ".png")) {
+						try {
+							boost::filesystem::remove(generalPath + "local_image\\" + ipAddr + ".png");
+						}
+						catch (...) {
+
+						}
 
 					}
-					
 				}
-				utenteProprietario.rimuoviImmagine(ipAddr);
 			}
+			Sleep(CHECK_TIME);
 		}
-		Sleep(CHECK_TIME);
+		catch (...) {
+			continue;
+		}
 	}
 }

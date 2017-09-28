@@ -3,7 +3,7 @@
 #define PORT_UDP_OWNIP 1501 //Porta su cui si gestiscono i pacchetti UDP
 #define PORT_TCP 1400 //Porta su cui si gestisce la connessione TCP
 #define BUFLEN 50000   //Grandezza del buffer che viene inviato in rete (file)
-#define TIME_SEND_MESSAGE_UDP 300 //ms   //Un pacchetto UDP viene inviato in rete ogno TIME_SEND_MESSAGE_UDP ms
+#define TIME_SEND_MESSAGE_UDP 500 //ms   //Un pacchetto UDP viene inviato in rete ogno TIME_SEND_MESSAGE_UDP ms
 #define CHECK_TIME 1000 //ms    //Controllo dello stato dell'utente
 #define DELETE_USER 3 //s       //Cancello un utente dalla lista degli utenti connessi dopo DELETE_USER secondi, ciò vuol dire che l'utente è rimasto inattivo.
 #define UPDATE_WINDOW 1000 //ms   //Aggiornamento della finestra
