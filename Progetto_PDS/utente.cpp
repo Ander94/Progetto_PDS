@@ -146,7 +146,8 @@ std::string utente::getUsernameFromIp(std::string ipAddr) {
 			return it.getUsername();
 		}
 	}
-	return NULL;
+	throw std::invalid_argument("Errore: Nome non riconosciuto.");
+	return "Errore: Nome non riconosciuto.";
 }
 
 
