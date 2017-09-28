@@ -13,6 +13,7 @@
 #include <boost/filesystem.hpp>
 
 #include <wx/log.h>
+#include <wx/notifmsg.h>
 
 #include "TaskBarIcon.h"
 #include "MainApp.h"
@@ -61,12 +62,11 @@ private:
 	std::recursive_mutex rm_io_service_tcp;//13
 	std::recursive_mutex rm_scorciatoia;//14
 	std::recursive_mutex rm_taskBarIcon;//14
-	std::recursive_mutex rm_windowDownload;//15
 	std::mutex m_socket;//15
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
-	wxFrame* m_windowDownload;	//TODO da rimuovere
+	wxNotificationMessage* m_notification;
 	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
@@ -94,6 +94,7 @@ public:
 	~Settings() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);	//TODO secondo me si può rimuovere
 		delete(m_utenteProprietario);
+		wxDELETE(m_notification);
 	}
 
 	boost::asio::ip::udp::socket& getSocket() {
@@ -256,10 +257,15 @@ public:
 	void setTaskBarIcon(wxTaskBarIcon* taskBarIcon) {
 		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
 		m_taskBarIcon = taskBarIcon;
+		m_notification = new wxNotificationMessage();
+		m_notification->UseTaskBarIcon(taskBarIcon);
 	}
 	void showBal(std::string title, std::string message) {
 		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
-		m_taskBarIcon->ShowBalloon(title, message, 5000, wxICON_INFORMATION);
+		//m_taskBarIcon->ShowBalloon(title, message, 5000, wxICON_INFORMATION);
+		m_notification->SetTitle(title);
+		m_notification->SetMessage(message);
+		m_notification->Show();
 	}
 
 	//Costruisce un nuovo utente proprietario con nome utente "nomeUtente" e indirizzio ip "ip"
@@ -273,20 +279,6 @@ public:
 	utente& getUtenteProprietario() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		return *m_utenteProprietario;
-	}
-
-	void setWindowDownload(wxFrame* windowDownload) {
-		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
-		m_windowDownload = windowDownload;
-	}
-	void showDownload() {
-		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
-		m_windowDownload->Iconize(false);
-		m_windowDownload->Show(true);
-	}
-	wxFrame* getWindowDownload() {
-		std::lock_guard<std::recursive_mutex> lk_windowDownloads(rm_windowDownload);
-		return m_windowDownload;
 	}
 
 	//Setta il path della propria immagine di profilo. Il path viene indicato in "imagePath"

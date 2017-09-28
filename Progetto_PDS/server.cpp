@@ -185,6 +185,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					//COSI SOVRASCRIVE
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					recive_file(io_service, s, settings->getSavePath() + "\\" + fileName);
+					settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				} else if (ret_val == wxID_HELP) {
 					//COSI SALVA CON UN NOME DIVERSO
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
@@ -216,8 +217,6 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
-				//fp = nullptr;
-				//recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png", nullptr);
 				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
 				write_some(s, response);
@@ -371,7 +370,6 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 						fileName = savePathName + "\\" + fileName;
 					}
 					
-				//	recive_file(io_service, s, fileName);
 					recive_file(io_service, s, fileName);
 
 					//Vedo la dim del file che ho ricevuto, e aggiorno la quantità di byte ricevuta fin ora.
@@ -440,7 +438,6 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			response = "+OK";
 			write_some(s, response);
 			
-			wxThreadEvent event2(wxEVT_THREAD, SetMaxDim_EVENT);
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
 			while (dim_recived<size && !abort)
 			{

@@ -10,7 +10,6 @@
 #include <boost/algorithm/string/classification.hpp> 
 #include <boost/algorithm/string/split.hpp> 
 #include "TaskBarIcon.h"
-#include "WindowDownload.h"
 #include "IPCserver.h"
 #include "Settings.h"
 #include "MainApp.h"
@@ -431,8 +430,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 	m_taskBarIcon = new TaskBarIcon(m_settings);
 	m_settings->setTaskBarIcon(m_taskBarIcon);
 	UpdateIcon();
-	WindowDownload* wp = new WindowDownload(this, m_settings);
-	m_settings->setWindowDownload(wp);
 
 	gs_dialog = this;
 
@@ -728,7 +725,7 @@ EVT_MENU(PU_RESTORE, TaskBarIcon::OnMenuRestore)
 EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
 EVT_MENU(PU_STATO, TaskBarIcon::OnMenuStato)
-EVT_MENU(PU_DOWNLOAD, TaskBarIcon::OnMenuDownload)
+//EVT_MENU(PU_DOWNLOAD, TaskBarIcon::OnMenuDownload)
 EVT_UPDATE_UI(PU_STATO, TaskBarIcon::OnMenuUIStato)
 wxEND_EVENT_TABLE()
 
@@ -763,9 +760,9 @@ void TaskBarIcon::OnMenuUIStato(wxUpdateUIEvent &event)
 	event.SetText(stato);
 }
 
-void TaskBarIcon::OnMenuDownload(wxCommandEvent&) {
-	m_settings->showDownload();
-}
+//void TaskBarIcon::OnMenuDownload(wxCommandEvent&) {
+//	m_settings->showDownload();
+//}
 
 wxMenu *TaskBarIcon::CreatePopupMenu()
 {
