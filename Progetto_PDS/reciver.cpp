@@ -7,6 +7,7 @@
 #include <atomic>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
+#define MAX_LEN_PACKET 64
 
 //Mutex utile per iscrivere un utente alla volta.
 //Ciò è necessario per prevenire il caso in cui un utente che sta effettuando l'iscrizione si iscriva nuovamente,
@@ -31,7 +32,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	size_t length, found;
 	std::string ipAddr, reciveMessage, username, s_state;
 	status state;
-	int n;
+	int n, count_error;
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
@@ -39,17 +40,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano pi˘ pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
-    
-	//Permette la chiusura del socket in caso di blocco del programma
-	std::thread checkClose([&]() {
-		while (!exit_app.load()) {
-			Sleep(500);
-		}
-		if (s.is_open()) {
-			s.close();
-		}
-	});
-    
+
     //Per quale motivo ho due cicli?
     //-Il ciclo itnterno serve per ricevere la stringa proveniente dalla LAN
     //-In caso di eccezione, per cui recive_from dovesse fallire, catch chiuderà il socket, che però verrà re-inizializzato grazie all'uso
@@ -69,6 +60,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
+				
 				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
@@ -81,17 +73,27 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 					//In particolare leggo la stringa nel formato username\r\nstato\r\n
 					//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
 					n = 0;
+					count_error = 0;
 					do {
 						buf_username[n] = buf[n];
 						n++;
-					} while (buf[n] != '\r' && buf[n + 1] != '\n');
+						count_error ++ ;
+					} while (buf[n] != '\r' && buf[n + 1] != '\n' && count_error < MAX_LEN_PACKET);
+					if (count_error >= MAX_LEN_PACKET) {
+						continue;
+					}
 					buf_username[n] = '\0';
 					username = buf_username;
 					n += 2;
+					count_error = 0;
 					do {
 						buf_state[n - username.length() - 2] = buf[n];
 						n++;
-					} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
+						count_error++;
+					} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n' && count_error < MAX_LEN_PACKET);
+					if (count_error >= MAX_LEN_PACKET) {
+						continue;
+					}
 					buf_state[n - username.length() - 2] = '\0';
 					s_state = buf_state;
 					if (s_state == "ONLINE") {
@@ -114,7 +116,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
-	checkClose.join();
 	if (s.is_open()) {
 		s.close();
 	}
