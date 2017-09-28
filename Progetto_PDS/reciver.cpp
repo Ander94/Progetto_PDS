@@ -3,6 +3,7 @@
 #pragma once
 #include "reciver.h"
 #include "Settings.h"
+#include "timeout.h"
 #include <mutex>
 #include <atomic>
 using boost::asio::ip::udp;
@@ -34,9 +35,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	int n;
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
-	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-	boost::asio::io_service io_service;
-	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
     
@@ -47,6 +45,10 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
     //del ciclo esterno.
     //=>Ci˜ comporta che l'applicazione riceva sempre pacchetti, anche in caso di eccezioni.
 	while (!exit_app.load()) {
+		//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
+		boost::asio::io_service io_service;
+		io_service.run();
+		udp::socket s(io_service);
 		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
 		s.open(boost::asio::ip::udp::v4());  //Apro il socket
@@ -60,7 +62,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
-				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+				length = recive_from(s, buf, PROTOCOL_PACKET, reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
 				buf[length] = '\0';
@@ -95,19 +97,18 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
-			catch (...) {
-				if (s.is_open()) {
-					s.close();
-				}
+			catch (...){
 				exit_internal_loop = true;
 			}
 		}
+		if (s.is_open()) {
+			s.close();
+		}
+		io_service.stop();
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
-	if (s.is_open()) {
-		s.close();
-	}
+	
 	
 }
 
