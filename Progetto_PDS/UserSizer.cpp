@@ -57,6 +57,9 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 void UserSizer::OnUserClick(wxCommandEvent& event) {
 	if (m_button->GetValue())
 		m_parentWindow->insertUtenteLista(m_utente);
-	else
+	else {
 		m_parentWindow->deleteUtenteLista(m_utente);
+		m_parentWindow->SetFocus();
+	}
+		
 }
