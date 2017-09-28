@@ -40,6 +40,15 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
     
+	//Permette la chiusura del socket in caso di blocco del programma
+	std::thread checkClose([&]() {
+		while (!exit_app.load()) {
+			Sleep(500);
+		}
+		if (s.is_open()) {
+			s.close();
+		}
+	});
     
     //Per quale motivo ho due cicli?
     //-Il ciclo itnterno serve per ricevere la stringa proveniente dalla LAN
@@ -105,6 +114,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
+	checkClose.join();
 	if (s.is_open()) {
 		s.close();
 	}
