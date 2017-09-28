@@ -8,8 +8,6 @@
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
 
-std::mutex iscrizione;
-
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
 Riceve come parametri:
@@ -87,8 +85,8 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 						state = status::STAT_OFFLINE;
 					}
 					//Iscrivo l'utente.
-					boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
-				//	iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
+					//boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
+					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
 			catch (...) {
@@ -100,14 +98,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
 	settings->closeSocket();
-	while (iscrizione.try_lock()) {
-		iscrizione.unlock();
-		return;
-	}
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
-	std::lock_guard<std::mutex> lg_iscrizione(iscrizione);
 	try {
 		int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 		//Evita di registrare se stessi.
@@ -188,7 +181,15 @@ void checkTime(utente& utenteProprietario, std::string generalPath, std::atomic<
 			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
 				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
 				utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
-				boost::filesystem::remove(generalPath + "local_image\\" + ipAddr + ".png");
+				if (boost::filesystem::is_regular_file(generalPath + "local_image\\" + ipAddr + ".png")) {
+					try {
+						boost::filesystem::remove(generalPath + "local_image\\" + ipAddr + ".png");
+					}
+					catch (...) {
+
+					}
+					
+				}
 				utenteProprietario.rimuoviImmagine(ipAddr);
 			}
 		}
