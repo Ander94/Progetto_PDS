@@ -21,7 +21,6 @@ Riceve come parametri:
 -s: socket su cui vieme scambiato il file
 -fileName: nome del file da salvare
 **********************************************************************************/
-//LEO: void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName, FileInDownload* fp);
 void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
 /********************************************************************************
@@ -190,6 +189,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					//COSI SALVA CON UN NOME DIVERSO
 					settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 					recive_file(io_service, s, settings->getSavePath() + "\\" + "(" + std::to_string(getNumberDownload(settings->getSavePath(), fileName)) + ")" +  fileName);
+					settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				}
 				else {
 					//Se si rifiuta la ricezione, invio -ERR al client
@@ -202,9 +202,8 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				//In questo caso accetto la connessione senza alcun opzione scelta dall'utente
 				settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 				recive_file(io_service, s, savePath);
+				settings->showBal("File ricevuto", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 			}
-
-			settings->showBal("Ricezione file", fileName + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
 		}
 
 
@@ -388,7 +387,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				query = buf;
 			}
 
-			settings->showBal("Ricezione Directory", name_dir + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote) + "\navvenuta con successo.");
+			settings->showBal("Directory ricevuta", name_dir + "\nDa " + utenteProprietario.getUsernameFromIp(ipAddrRemote));
 		}
 	}
 	catch (std::exception& e) {
@@ -436,11 +435,6 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			length = read_some(s, buf, PROTOCOL_PACKET);
 			buf[length] = '\0';
 			size = std::atoll(buf);
-			/*if (fp != nullptr) {
-				wxThreadEvent event1(wxEVT_THREAD, SetMaxDim_EVENT);
-				event1.SetPayload(size);
-				wxQueueEvent(fp, event1.Clone());
-			}*/
 
 			//Comunico al server che può inviare il file
 			response = "+OK";
@@ -448,32 +442,13 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			
 			wxThreadEvent event2(wxEVT_THREAD, SetMaxDim_EVENT);
 			//ricevo pacchetti finchè non ho ricevuto tutto il file
-			/*if (fp != nullptr) {
-				wxMutexGuiEnter();
-				abort = fp->testAbort();
-				wxMutexGuiLeave();
-			}*/
 			while (dim_recived<size && !abort)
 			{
 				dim_read = read_some(s, buf_recive, BUFLEN);
 				file_out.write(buf_recive, dim_read);
 				dim_recived += dim_read;
-				/*if (fp != nullptr && count++ == FILTER_EVENT) {
-					count = 0;
-					event2.SetPayload(dim_recived);
-					wxQueueEvent(fp, event2.Clone());
-				}
-				if (fp != nullptr) {
-					wxMutexGuiEnter();
-					abort = fp->testAbort();
-					wxMutexGuiLeave();
-				}*/
 			}
 			//ultimo evento per settare avanzamento a 100%
-			/*if (fp != nullptr) {
-				event2.SetPayload(dim_recived);
-				wxQueueEvent(fp, event2.Clone());
-			}*/
 			file_out.close();
 		}
 		else
