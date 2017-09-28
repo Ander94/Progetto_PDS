@@ -146,7 +146,7 @@ std::string utente::getUsernameFromIp(std::string ipAddr) {
 			return it.getUsername();
 		}
 	}
-	return " UNKNOWN NAME ";
+	return "Errore: Nome non riconosciuto.";
 }
 
 
@@ -199,26 +199,6 @@ boost::posix_time::ptime utente::getTime() {
 std::string utente::getIpAddr() {
 	std::lock_guard<std::recursive_mutex> lk_ipAddr(m_ipAddr);
 	return this->ipAddr;
-}
-
-
-
-void utente::checkTime(utente& utenteProprietario, std::string generalPath,std::atomic<bool>& exit_app) {
-	//Funzione che scorre tutto il vettore utentiConnessi e ricerca gli utenti inattivi per un tempo DELETE_USER
-	boost::posix_time::ptime currentTime;
-	while (!exit_app.load()) {
-		unsigned int i;
-		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
-			currentTime = boost::posix_time::second_clock::local_time();
-			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
-				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
-				utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
-				boost::filesystem::remove(generalPath + "local_image\\"  + ipAddr + ".png");
-				utenteProprietario.rimuoviImmagine(ipAddr);
-			}
-		}
-		Sleep(CHECK_TIME);
-	}
 }
 
 void utente::setState(status state) {

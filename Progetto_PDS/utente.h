@@ -69,7 +69,6 @@ public:
 	boost::posix_time::ptime utente::getTime(); // Torna il tempo dell'ultima ricezione di un pacchetto IP da parte di un utente
 	int utente::removeUtente(std::string ipAddr);   //Rimuove un utenta dal vettore degli utenti connessi 
 	std::string getUsernameFromIp(std::string ipAddr);   //Torna l'username di un utente a partire da un IP
-	static void checkTime(utente& utenteProprietario, std::string generalPath ,std::atomic<bool>& exit_app);   //Tale funzione elimina gli utenti che non sono più attivi sulla LAN dopo un tempo definito in protoType.g
 	void utente::setState(status state);   //Aggiorna lo stato di un utente
 	status utente::getState();   //Ritorna lo stato di un utente
 	utente::utente(const utente& source);  //Costruttore di copia

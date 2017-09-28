@@ -7,13 +7,6 @@
 #include <atomic>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
-#define MAX_LEN_PACKET 64
-
-//Mutex utile per iscrivere un utente alla volta.
-//Ciò è necessario per prevenire il caso in cui un utente che sta effettuando l'iscrizione si iscriva nuovamente,
-//figurando cosi più volte nella lista degli utenti connessi.
-//std::mutex iscrizione;
-
 
 /********************************************************************************
 Iscrive o aggiorna i parametri riguardanti l'utente con username "username", indirizzio ip "ipAddr" e stato status
@@ -26,21 +19,24 @@ Riceve come parametri:
 **********************************************************************************/
 void iscriviUtente(std::string username, std::string ipAddr, enum status, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time);
 
+void checkTime(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app);   //Tale funzione elimina gli utenti che non sono pi˘ attivi sulla LAN dopo un tempo definito in protoType.h
+
 void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
     
 	char buf[PROTOCOL_PACKET], buf_username[PROTOCOL_PACKET], buf_state[PROTOCOL_PACKET]; //Buffer utili a gestire i pacchetti proveniento dalla rete
 	size_t length, found;
 	std::string ipAddr, reciveMessage, username, s_state;
 	status state;
-	int n, count_error;
+	int n;
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
 	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
 	boost::asio::io_service io_service;
 	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano pi˘ pacchetti UDP
-	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
-
+	boost::thread check(checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
+    
+    
     //Per quale motivo ho due cicli?
     //-Il ciclo itnterno serve per ricevere la stringa proveniente dalla LAN
     //-In caso di eccezione, per cui recive_from dovesse fallire, catch chiuderà il socket, che però verrà re-inizializzato grazie all'uso
@@ -60,7 +56,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 		while (!exit_app.load() && exit_internal_loop == false) {
 			//Ricevo un messaggio
 			try {
-				
 				length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
@@ -73,27 +68,17 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 					//In particolare leggo la stringa nel formato username\r\nstato\r\n
 					//Qui sotto si implementa una read until "\r\n" che legge prima l'username e poi lo stato.
 					n = 0;
-					count_error = 0;
 					do {
 						buf_username[n] = buf[n];
 						n++;
-						count_error ++ ;
-					} while (buf[n] != '\r' && buf[n + 1] != '\n' && count_error < MAX_LEN_PACKET);
-					if (count_error >= MAX_LEN_PACKET) {
-						continue;
-					}
+					} while (buf[n] != '\r' && buf[n + 1] != '\n');
 					buf_username[n] = '\0';
 					username = buf_username;
 					n += 2;
-					count_error = 0;
 					do {
 						buf_state[n - username.length() - 2] = buf[n];
 						n++;
-						count_error++;
-					} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n' && count_error < MAX_LEN_PACKET);
-					if (count_error >= MAX_LEN_PACKET) {
-						continue;
-					}
+					} while (reciveMessage[n] != '\r' && reciveMessage[n + 1] != '\n');
 					buf_state[n - username.length() - 2] = '\0';
 					s_state = buf_state;
 					if (s_state == "ONLINE") {
@@ -103,6 +88,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 						state = status::STAT_OFFLINE;
 					}
 					//Iscrivo l'utente.
+				//	boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
 					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
@@ -123,67 +109,90 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
-	
-	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
-	//Evita di registrare se stessi.
-    //getOwnIP torna l'ip del nostro PC
-	if (true) {
-		std::string myIp(Settings::getOwnIP());
-		if (myIp ==ipAddr || myIp == "127.0.0.1") {
-			if (myIp == "127.0.0.1") {
-				if (first_time.load()) {
-					std::thread([]() {
-						Sleep(5000);
-						if ( Settings::getOwnIP() == "127.0.0.1")
+	try {
+		int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
+		//Evita di registrare se stessi.
+		//getIpAddr torna l'ip del nostro PC
+		std::string myIp = utenteProprietario.getIpAddr();
+
+		if (true) {
+			if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
+				if (ipAddr == "127.0.0.1") {
+					if (first_time.load()) {
+						std::thread([]() {
+							Sleep(3000);
 							wxMessageBox("Attenzione: la connessione internet èË assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.", wxT("INFO"), wxOK | wxICON_INFORMATION);
-					}).detach();
-					first_time.store(false);
+						}).detach();
+						first_time.store(false);
+					}
 				}
+				else {
+					first_time.store(true);
+				}
+				return;
 			}
-			else {
-				first_time.store(true);
-			}
+		}
+		boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
+		//Controllo se l'utente Ë gi‡ iscritto
+		if (utenteProprietario.contieneUtente(ipAddr) == true) {
+			//Se l'utente Ë gi‡ iscritto, setto un nuovo tempo (cioË vuol dire che l'utente Ë ancora online)
+			utenteProprietario.getUtente(ipAddr).setCurrentTime(currentTime);
+			//il nuovo stato
+			utenteProprietario.getUtente(ipAddr).setState(state);
+			//e l'username
+			utenteProprietario.getUtente(ipAddr).setUsername(username);
 			return;
 		}
+
+		//Se l'utente non Ë ancora iscritto, invio la mia immagine di profilo al nuovo utente iscritto
+		//Se l'utente ha settato gi‡ un immagine, essa viene presa da profilo.png, altrimenti su usa un immagine di default.
+		std::string filePath(generalPath + "profilo.png");
+		if (boost::filesystem::is_regular_file(filePath) != true) {
+			filePath = generalPath + "user_default.png";
+			if (boost::filesystem::is_regular_file(filePath) != true) {
+				wxMessageBox("Immagne del profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
+			}
+		}
+
+		//Invio la mia immagine del profilo all'utente che sto registrando.
+		sendImage(filePath, ipAddr);
+
+		//Controllo che sia stata ricevuta correttamente l'immagine del profilo.
+		//Se Ë avvenuto qualche errore in ricezione.
+		//Cerco di ricevere l'immagine del profilo per un secondo. Se qualcosa Ë andato storto(ad esempio l'immagine non Ë stata ricevuta),
+		//non aggiungo l'utente.
+		//L'utente verr‡ aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
+		while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
+			Sleep(200);
+			if (counter > 5) {
+				break;
+			}
+		}
+		//Aggiungo il nuovo utente e il suo stato.
+		if (counter <= 5) {
+			utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+		}
 	}
-	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
-	//Controllo se l'utente Ë gi‡ iscritto
-	if (utenteProprietario.contieneUtente(ipAddr) == true) {
-		//Se l'utente Ë gi‡ iscritto, setto un nuovo tempo (cioË vuol dire che l'utente Ë ancora online)
-		utenteProprietario.getUtente(ipAddr).setCurrentTime(currentTime);
-		//il nuovo stato
-		utenteProprietario.getUtente(ipAddr).setState(state);
-		//e l'username
-		utenteProprietario.getUtente(ipAddr).setUsername(username);
+	catch (...) {
 		return;
 	}
+}
 
-	//Se l'utente non Ë ancora iscritto, invio la mia immagine di profilo al nuovo utente iscritto
-	//Se l'utente ha settato gi‡ un immagine, essa viene presa da profilo.png, altrimenti su usa un immagine di default.
-	std::string filePath(generalPath + "profilo.png");
-	if (boost::filesystem::is_regular_file(filePath) != true) {
-		filePath = generalPath + "user_default.png";
-		if (boost::filesystem::is_regular_file(filePath) != true) {
-			wxMessageBox("Immagne del profilo non trovata", wxT("Errore"), wxOK | wxICON_ERROR);
-		}
-	}
 
-	//Invio la mia immagine del profilo all'utente che sto registrando.
-	sendImage(filePath, ipAddr);
-	
-	//Controllo che sia stata ricevuta correttamente l'immagine del profilo.
-	//Se Ë avvenuto qualche errore in ricezione.
-	//Cerco di ricevere l'immagine del profilo per un secondo. Se qualcosa Ë andato storto(ad esempio l'immagine non Ë stata ricevuta),
-	//non aggiungo l'utente.
-	//L'utente verr‡ aggiungo successivamente con l'arrivo di un nuovo pacchetto UDP
-	while (utenteProprietario.immagineRicevuta(ipAddr) == false) {
-		Sleep(200);
-		if (counter>5) {
-			break;
+void checkTime(utente& utenteProprietario, std::string generalPath, std::atomic<bool>& exit_app) {
+	//Funzione che scorre tutto il vettore utentiConnessi e ricerca gli utenti inattivi per un tempo DELETE_USER
+	boost::posix_time::ptime currentTime;
+	while (!exit_app.load()) {
+		unsigned int i;
+		for (i = 0; i < utenteProprietario.getUtentiConnessi().size(); i++) {
+			currentTime = boost::posix_time::second_clock::local_time();
+			if ((currentTime - utenteProprietario.getUtentiConnessi()[i].getTime()).total_seconds() > DELETE_USER) {
+				std::string ipAddr(utenteProprietario.getUtentiConnessi()[i].getIpAddr());
+				utenteProprietario.getUtentiConnessi().erase(utenteProprietario.getUtentiConnessi().begin() + i);
+				boost::filesystem::remove(generalPath + "local_image\\" + ipAddr + ".png");
+				utenteProprietario.rimuoviImmagine(ipAddr);
+			}
 		}
-	}
-	//Aggiungo il nuovo utente e il suo stato.
-	if (counter <= 5) {
-		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+		Sleep(CHECK_TIME);
 	}
 }
