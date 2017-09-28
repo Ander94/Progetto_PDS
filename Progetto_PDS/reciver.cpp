@@ -34,6 +34,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	int n;
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
+	//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
+	boost::asio::io_service io_service;
+	udp::socket s(io_service);
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
 	boost::thread check(utente::checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
     
@@ -44,9 +47,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
     //del ciclo esterno.
     //=>Ci˜ comporta che l'applicazione riceva sempre pacchetti, anche in caso di eccezioni.
 	while (!exit_app.load()) {
-		//Inizializzo il socket ad accettare pacchetti su IPv4 in boradcast.
-		boost::asio::io_service io_service;
-		udp::socket s(io_service);
 		boost::asio::ip::udp::endpoint local_endpoint;  //endpoint locale
 		boost::asio::ip::udp::endpoint reciver_endpoint; //endpoint di chi invia il pacchetto udp
 		s.open(boost::asio::ip::udp::v4());  //Apro il socket
@@ -96,25 +96,27 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 				}
 			}
 			catch (...) {
+				if (s.is_open()) {
+					s.close();
+				}
 				exit_internal_loop = true;
 			}
-		}
-		if (s.is_open()) {
-			s.close();
 		}
 	}
 	//Chiudo il controllo sugli utenti connessi
 	check.join();
-	
+	if (s.is_open()) {
+		s.close();
+	}
 	
 }
 
 void iscriviUtente(std::string username, std::string ipAddr, enum status state, utente& utenteProprietario, std::string generalPath, std::atomic<bool>& first_time) {
-
+	
 	int counter = 0;  //Conta il numero di tentativi utili per l'acquisizione dell'immagine.
 	//Evita di registrare se stessi.
+    //getOwnIP torna l'ip del nostro PC
 	if (true) {
-		//getOwnIP torna l'ip del nostro PC
 		std::string myIp(Settings::getOwnIP());
 		if (myIp ==ipAddr || myIp == "127.0.0.1") {
 			if (myIp == "127.0.0.1") {
