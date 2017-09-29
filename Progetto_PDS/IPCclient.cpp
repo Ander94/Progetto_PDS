@@ -1,5 +1,3 @@
-//NON COMMENTATO
-
 #include <wx/wx.h>
 #include <wx/datetime.h>
 
@@ -17,7 +15,8 @@ MyClient::MyClient() : wxClient()
 
 bool MyClient::Connect(const wxString& sHost, const wxString& sService, const wxString& sTopic)
 {
-	// suppress the log messages from MakeConnection()
+
+	//Sopprime i messaggi di log da MakeConnection()
 	wxLogNull nolog;
 
 	m_connection = (wxConnection *)MakeConnection(sHost, sService, sTopic);

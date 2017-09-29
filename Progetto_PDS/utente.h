@@ -35,8 +35,6 @@ class utente
 	status state;   //Stato dell'utente
 	std::vector<utente> utentiConnessi;  //Vettore che contiene tutti gli utenti connessi
 	boost::posix_time::ptime currentTime;  //Tempo di ultima ricezione di un pacchetto UDP
-	//std::vector<std::string> immaginiRegistrate;  //Vettore che contiene tutti gi IP degli utenti che hanno inviato un immagine.
-												  //Utile per sapere se un immagine è stata ricevuta correttamente.
 
 	//Mutex per gestire l'accesso concorrente tra i diversi thread che utilizzano utenteProprietario
 	std::recursive_mutex m_username; //(1)

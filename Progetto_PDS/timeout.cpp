@@ -7,11 +7,6 @@
 #include <numeric>
 #include <future>
 
-
-
-std::future<int> read_future_udp;
-std::future<int> write_future_udp;
-
 int read_some(tcp::socket &s, char* buf, size_t dim_buf) {
 	std::future<int> read_future_tcp;
 	//Lancio il thread in modo asincrono, cosi da non bloccarmi sulla lettura.

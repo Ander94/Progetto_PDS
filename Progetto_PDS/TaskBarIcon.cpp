@@ -726,7 +726,6 @@ EVT_MENU(PU_RESTORE, TaskBarIcon::OnMenuRestore)
 EVT_TASKBAR_LEFT_DCLICK(TaskBarIcon::OnLeftButtonDClick)
 EVT_MENU(PU_EXIT, TaskBarIcon::OnMenuExit)
 EVT_MENU(PU_STATO, TaskBarIcon::OnMenuStato)
-//EVT_MENU(PU_DOWNLOAD, TaskBarIcon::OnMenuDownload)
 EVT_UPDATE_UI(PU_STATO, TaskBarIcon::OnMenuUIStato)
 wxEND_EVENT_TABLE()
 

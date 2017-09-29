@@ -1,14 +1,12 @@
-//COMMENTATO TUTTO
-
 #include "sender.h"
 
 void sendUDPMessage(std::string& username, status& current_status, std::atomic<bool>& exit_app) {
 
     //Per quale motivo ho due cicli?
     //-Il ciclo itnterno serve per inviare la stringa con username/stato nella LAN
-    //-In caso di eccezione, per cui send_to dovesse fallire, catch chiuderˆ il socket, che per˜ verrˆ re-inizializzato grazie all'uso
+    //-In caso di eccezione, per cui send_to dovesse fallire, catch chiuderà il socket, che però verrà re-inizializzato grazie all'uso
     //del ciclo esterno.
-    //=>Ci˜ comporta che l'applicazione riceva sempre pacchetti, anche in caso di eccezioni.
+    //=>Ciò comporta che l'applicazione riceva sempre pacchetti, anche in caso di eccezioni.
 	while (!exit_app.load()) {
 		std::string stato; //Stato dell'user sotto forma di stringa
 		boost::asio::io_service io_service;   //Procedura di servizio boost

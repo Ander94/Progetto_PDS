@@ -84,7 +84,6 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 						state = status::STAT_OFFLINE;
 					}
 					//Iscrivo l'utente.
-					//boost::thread(iscriviUtente,username, ipAddr, state, boost::ref(utenteProprietario), generalPath,boost::ref(first_time)).detach();
 					iscriviUtente(username, ipAddr, state, utenteProprietario, generalPath, first_time);
 				}
 			}
@@ -105,23 +104,23 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		//getIpAddr torna l'ip del nostro PC
 		utenteProprietario.setIpAddr(Settings::getOwnIP());
 		std::string myIp = utenteProprietario.getIpAddr();
-		if (true) {
-			if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
-				if (ipAddr == "127.0.0.1") {
-					if (first_time.load()) {
-						std::thread([]() {
-							Sleep(3000);
-							wxMessageBox("Attenzione: la connessione internet èË assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.", wxT("INFO"), wxOK | wxICON_INFORMATION);
-						}).detach();
-						first_time.store(false);
-					}
+		
+		if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
+			if (ipAddr == "127.0.0.1") {
+				if (first_time.load()) {
+					std::thread([]() {
+						Sleep(3000);
+						wxMessageBox("Attenzione: la connessione internet èË assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.", wxT("INFO"), wxOK | wxICON_INFORMATION);
+					}).detach();
+					first_time.store(false);
 				}
-				else {
-					first_time.store(true);
-				}
-				return;
 			}
+			else {
+				first_time.store(true);
+			}
+			return;
 		}
+		
 		boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
 		//Controllo se l'utente Ë gi‡ iscritto
 		if (utenteProprietario.contieneUtente(ipAddr) == true) {

@@ -44,9 +44,6 @@ public:
 	//Aggiorna la grafica
 	void OnMenuUIStato(wxUpdateUIEvent&);
 
-	//Mostra la finestra dei download in corso
-	void OnMenuDownload(wxCommandEvent&);
-
 	//Crea menu popup
 	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
@@ -77,6 +74,7 @@ private:
 	wxStaticText* m_textSavePath;
 	wxTextCtrl* m_nome;
 	TaskBarIcon *m_taskBarIcon;
+
 	//Metodi collegati ai vari eventi possibili
 	void OnInviaFile(wxCommandEvent&);
 	void OnInviaDir(wxCommandEvent&);

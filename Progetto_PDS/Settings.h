@@ -67,7 +67,7 @@ private:
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
 	wxNotificationMessage* m_notification;
-	std::string m_GeneralPath; //AGGIUNTA DA SERGIO PER RENDERE GENERALE IL PATH
+	std::string m_GeneralPath; 
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
 	std::string m_SavePath;
@@ -77,31 +77,36 @@ private:
 	status m_stato; //on-line(0) o off-line(1)
 	modalità m_mod; //se si hanno i privilegi amministratore o no
 	save_request m_save_request;  //Richiesta quando si riceve un file
-	scorciatoia m_scorciatoia;
+	scorciatoia m_scorciatoia;  
 	std::atomic<bool> exit_send_udp, exit_recive_udp;  //Atomic che indica se i threads di invio/ricezione di pacchetti udp possono essere disattivati
 	boost::asio::io_service io_service_tcp;   //io_service che mette in run/stop la procedura di accettazione dei file.
-	boost::asio::io_service io_service_udp;
-	boost::asio::ip::udp::socket socket_udp;
+	boost::asio::io_service io_service_udp;   //io_service utile per inizializzare il socket di ricezione pacchetti udp
+	boost::asio::ip::udp::socket socket_udp;  //Socket per la ricezione di pacchetti udp
 	
 
 public:
 	//Tengo traccia di tutti i thread lanciati ed utilizzati dall'applicazione
 	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	
+	//Costruttore
 	Settings() : socket_udp(io_service_udp) {
 	}
 
+	//Distruttore
 	~Settings() {
-		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);	//TODO secondo me si può rimuovere
+		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		delete(m_utenteProprietario);
 		wxDELETE(m_notification);
 	}
 
+	//Torna il riferimento al socket
 	boost::asio::ip::udp::socket& getSocket() {
 		std::lock_guard<std::mutex> lg_socket(m_socket);
 		return socket_udp;
 	}
 
+
+	//Se aperto, chiude il socket.
 	void closeSocket() {
 		std::lock_guard<std::mutex> lg_socket(m_socket);
 		if (socket_udp.is_open()) {
@@ -293,20 +298,25 @@ public:
 		return m_ImagePath;
 	}
 
+	//Ritaglia l'immagine per renderla quadrata, così da poterla inserire come immagine di profilo
 	void resizeImage(std::string path) {
 		wxImage *img = new wxImage();
 
+		//Controlla che l'immagine esiste
 		if (!boost::filesystem::is_regular_file(path)) {
 			boost::filesystem::copy_file(getGeneralPath() + "user_default.png", path, boost::filesystem::copy_option::overwrite_if_exists);
 			return;
 		}
 		
 
+		//Controlla che l'immagine sia stata caricata correttamente.
 		if (!img->LoadFile(path, wxBITMAP_TYPE_ANY, -1)) {
 			wxMessageBox("Errore caricamento immagine di " + m_utenteProprietario->getUsernameFromIp(boost::filesystem::basename(path) + boost::filesystem::extension(path)), wxT("ERRORE"), wxOK | wxICON_ERROR);
 			boost::filesystem::copy_file(getGeneralPath() + "user_default.png", path, boost::filesystem::copy_option::overwrite_if_exists);
 			return;
 		}
+
+		//Ritaglia l'immagine
 		int h = img->GetHeight();
 		int w = img->GetWidth();
 		int s, ph, pw;
@@ -450,15 +460,17 @@ public:
 		this->updateState();
 	}
 
-	//
 	save_request & getAutoSaved() {
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		return m_save_request;
 	}
 
+	//Setta la modalità di utilizzo dell'applicazione a livello amministratore.
 	void setAdmin() {
 		m_mod = MOD_ADMIN;
 	}
+
+	//Torna la modalità utilizzata
 	modalità& getMod() {
 		return m_mod;
 	}
@@ -539,6 +551,7 @@ public:
 		return;
 	}
 
+	//Inizializza il client ICP
 	bool StartClient()
 	{
 		m_client = new MyClient();
@@ -548,15 +561,18 @@ public:
 		}
 		return true;
 	}
+	//Ritorna il client
 	MyClient *GetClient() {
-		std::lock_guard<std::recursive_mutex> lk_client(rm_client); //TODO si può togliere
+		std::lock_guard<std::recursive_mutex> lk_client(rm_client); 
 		return m_client;
 	}
+	//Rimuove il client
 	void DeleteClient() {
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
 		wxDELETE(m_client);
 	}
 
+	//Aggiunge la scorciatoia nel context-menu, così che il programma possa essere avviato da tasto destro.
 	int AddRegKey() {
 		std::string str = m_GeneralPath + "icon1.ico";
 		std::wstring stemp = std::wstring(str.begin(), str.end());
@@ -613,6 +629,7 @@ public:
 		return 0;
 	}
 
+	//Rimuove la scoricatoia da tasto destro
 	int RemRegKey() {
 
 		if (SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("*\\shell\\Share")) != ERROR_SUCCESS)

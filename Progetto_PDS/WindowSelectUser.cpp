@@ -1,4 +1,3 @@
-//NON COMMENTATO
 #include <wx/wx.h>
 #include <list>
 
@@ -205,30 +204,6 @@ void WindowSelectUser::deleteUtenteLista(utente user) {
 	if (m_MappaInvio.size() == 0)
 		m_ok->Disable();
 }
-
-//void WindowSelectUser::addUtente(utente user) {
-//	UserSizer *u = new UserSizer(this, m_settings, user);
-//	m_ListaUtenti.push_back(u);
-//	m_sizerUsers->Add(u, 1, wxALIGN_CENTER);
-//	
-//	Update();
-//}
-//
-//void WindowSelectUser::removeUtente(utente user) {
-//	int i = 0;
-//	std::string ip = user.getIpAddr();
-//
-//	for (auto it=m_ListaUtenti.begin(); it != m_ListaUtenti.end(); it++ ) {
-//		if ((*it)->getIpAddr() == ip) {
-//			this->m_ListaUtenti.erase(it);
-//			m_sizerUsers->Remove(i);
-//			break;
-//		}
-//		i++;
-//	}
-//	
-//	Update();
-//}
 
 std::vector<utente> WindowSelectUser::getListaInvio()
 {

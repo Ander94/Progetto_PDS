@@ -289,7 +289,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 							else if (ret_val == wxID_HELP) {
 								wxDirDialog selectDirDialog(NULL, "Salva " + fileName + " come", "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 								if (selectDirDialog.ShowModal() == wxID_CANCEL)
-									return;     // the user changed idea...
+									return;     // L'utente ha cambiato idea
 								savePathName = selectDirDialog.GetPath().ToStdString();
 							}
 
@@ -467,7 +467,12 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 int getNumberDownload(std::string& path, std::string& fileName) {
 	int counter = 0;
 	bool find = false;
+	
+	//Conta quanti file vi sono con il medesimo nome.
+	//Torna il primo numero di download disponibile, iterando su tutta la directory
+
 	if (boost::filesystem::is_directory(path + "\\" + fileName)) {
+		//In questo caso gestiamo le directory
 		while (true) {
 			find = false;
 			counter++;
@@ -487,6 +492,7 @@ int getNumberDownload(std::string& path, std::string& fileName) {
 
 	}
 	else {
+		//In questo caso gestiamo le cartelle.
 		while (true) {
 			find = false;
 			counter++;

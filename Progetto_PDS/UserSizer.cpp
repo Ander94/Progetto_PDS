@@ -1,5 +1,3 @@
-//COMMENTATO
-
 #include <wx/statbmp.h>
 
 #include "UserSizer.h"

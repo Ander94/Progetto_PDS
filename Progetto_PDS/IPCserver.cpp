@@ -1,5 +1,3 @@
-//NON COMMENTATO
-
 #include <wx/wx.h>
 #include <wx/datetime.h>
 
@@ -44,8 +42,8 @@ void MyServer::Disconnect()
 // MyConnection
 // ----------------------------------------------------------------------------
 
-bool
-MyConnectionServer::OnExecute(const wxString& topic,
+//Apre la finsetra principale
+bool MyConnectionServer::OnExecute(const wxString& topic,
 	const void *data,
 	size_t size,
 	wxIPCFormat format)
@@ -55,8 +53,8 @@ MyConnectionServer::OnExecute(const wxString& topic,
 	return true;
 }
 
-bool
-MyConnectionServer::OnPoke(const wxString& topic,
+//Inizia un nuovo trasferimento
+bool MyConnectionServer::OnPoke(const wxString& topic,
 	const wxString& item,
 	const void *data,
 	size_t size,

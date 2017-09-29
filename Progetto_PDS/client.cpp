@@ -1,5 +1,3 @@
-//COMMENTATO TUTTO
-
 #include "client.h"
 
 namespace bf = boost::filesystem;
@@ -464,9 +462,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 
 			//Carico il buffer buf_to_send di dimensione BUFLEN, che verrà caricato ogni volta con una parte diversa del file
 			//e poi inviato al server
-			//wxMutexGuiEnter();
 			bool abort = progBar->testAbort();
-			//wxMutexGuiLeave();	
 			while (dim_send < size && !abort) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN; //Valuto la quantità di dati da caricare nel buffer, basandomi sulla quantità di file rimanente.
 				dim_send += dim_write;   //Incremento la dimensione già inviata di dim_write
@@ -492,11 +488,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				event2.SetPayload(sec);
 				wxQueueEvent(progBar, event2.Clone());
 				
-
-				//wxMutexGuiEnter();
                 //Se  stato premuto "Cancel" setto il flag che mi annullerˆ il trasferimento
 				abort = progBar->testAbort();
-				//wxMutexGuiLeave();
 			}
 			//invio un ultimo evento per essere sicuro di settare la barra al 100% e il tempo a 0
 			event1.SetPayload(dim_send);

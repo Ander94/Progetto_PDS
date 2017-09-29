@@ -1,4 +1,3 @@
-//COMMENTATO
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__

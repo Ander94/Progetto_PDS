@@ -1,5 +1,3 @@
-//NON COMMENTATO
-
 #include <wx/statbmp.h>
 
 #include "UserProgressBar.h"
