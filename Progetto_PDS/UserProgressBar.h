@@ -49,7 +49,10 @@ private:
 	void OnAbortClick(wxCommandEvent& event);
 
 	//il thread segnala l'inizio effettivo del trasferimento
-	void OnStartEvent(wxThreadEvent& event) { m_startTime = boost::posix_time::second_clock::local_time(); }
+	void OnStartEvent(wxThreadEvent& event) { 
+		m_startTime = boost::posix_time::second_clock::local_time();
+		m_abort->Enable();
+	}
 
 	//il thread ha segnalato la fine del trasferimento
 	void OnEndEvent(wxThreadEvent& event);	

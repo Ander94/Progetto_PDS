@@ -35,6 +35,7 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	m_abort->SetWindowStyle(wxNO_BORDER);
 	m_abort->SetBackgroundColour(this->GetBackgroundColour());
 	m_abort->SetBitmapHover(*cancel_hover);
+	m_abort->Disable();
 
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	topSizer->Add(username, 0, wxALIGN_LEFT | wxALL, 3);
@@ -147,10 +148,8 @@ void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
 void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	m_abort->Disable();
 	m_timeFile->SetLabelText("trasferimento terminato");
-	m_percFile->SetLabelText("");
 	if (m_isDir) {
 		m_timeDir->SetLabelText("trasferimento terminato");
-		m_percDir->SetLabelText("");
 	}
 	this->m_parentWindow->decreseCountUtenti();
 }
