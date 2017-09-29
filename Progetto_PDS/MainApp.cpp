@@ -1,4 +1,4 @@
-//SERGIO: COMMENTATO
+//COMMENTATO
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
@@ -26,11 +26,6 @@ IMPLEMENT_APP(MainApp)
 
 bool MainApp::OnInit() 
 {
-	//wxMessageBox(argv[0], wxT("INFO"), wxOK | wxICON_INFORMATION);
-	//wxLogMessage(argv[0]);
-	//wxLogError(argv[0]);
-
-
 	//-------------------------------------------------------------------------------------------------
 	//           MAIN
 	//-------------------------------------------------------------------------------------------------
@@ -58,9 +53,10 @@ bool MainApp::OnInit()
 
 		if (m_settings->StartClient()) {
 			//Se entro qua, significa che c'è già un processo aperto. 
-			//Se ho ricevuto un path, lo invio al processo in esecuzione e termino senza fare altro.
+			//Se ho ricevuto un path, lo invio al processo in esecuzione, altrimenti segnalo di aprire la finestra principale.
+			//Poi termino questo processo.
 
-			//creo una finestra principale vuota, così può essere distrutta per terminare l'applicazione correttamente
+			//Creo una finestra principale vuota, così può essere distrutta per terminare l'applicazione correttamente
 			MainFrame* frame = new MainFrame();	
 			SetTopWindow(frame);
 			
@@ -78,7 +74,8 @@ bool MainApp::OnInit()
 			//se entro qua, significa che non ci sono altri processi aperti
 			m_settings->Init(path, wxGetUserName().ToStdString());
 
-			//i privilegi di amministratore servono per modificare le chiavi di registro
+			//se l'argomento è admin_privileges, significa che un processo ha ricevuto la richiesta
+			//di modificare le chiavi di registro e questo processo possiede già i diritti per farlo
 			if (argument == "_ADMIN_PRIVILEGES") {
 				m_settings->setAdmin();
 				if (m_settings->getScorciatoia() == scorciatoia::SCORCIATOIA_ASSENTE) {
@@ -111,6 +108,7 @@ bool MainApp::OnInit()
 			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, boost::ref(m_settings->getUserName()), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
 			frame->StartServer();
 			
+			//il processo è stato avviato con degli argomenti, quindi procedo immediatamente all'invio del file/cartella
 			if (argc > 1 && argument != "_NO_ARGUMENT") {
 				frame->SendFile(argument);
 			}
@@ -118,7 +116,7 @@ bool MainApp::OnInit()
 	}
 	catch (...)
 	{
-		wxLogError(wxT("Errore nell'avvio dell'applicazione.\nSi prega di riavviare."));  //TODO c'è qualcosa che lancia eccezioni?
+		wxLogError(wxT("Errore nell'avvio dell'applicazione.\nSi prega di riavviare."));
 	}
 	
 	return true;

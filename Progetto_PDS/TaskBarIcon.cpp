@@ -69,7 +69,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window")
 };
 
 MainFrame::MainFrame(const wxString& title, class Settings* settings) : 
-	wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
+	wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
 	this->SetBackgroundColour(wxColour(240,242,245));
 	this->SetFont(this->GetFont().Bold().Scale(0.9f));

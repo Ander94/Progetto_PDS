@@ -1,4 +1,4 @@
-//NON COMMENTATO
+//COMMENTATO
 
 #include <wx/statbmp.h>
 
@@ -53,7 +53,6 @@ UserSizer::UserSizer(wxWindow* parent, Settings* settings, utente& user) : wxWin
 	m_button->Bind(wxEVT_TOGGLEBUTTON, &UserSizer::OnUserClick, this);
 }
 
-//esegue il click dell'utente
 void UserSizer::OnUserClick(wxCommandEvent& event) {
 	if (m_button->GetValue())
 		m_parentWindow->insertUtenteLista(m_utente);
