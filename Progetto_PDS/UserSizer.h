@@ -7,6 +7,12 @@
 
 #include "WindowSelectUser.h"
 
+/***********************************
+La classe UserSizer rappresenta il pulsante per selezionare
+l'utente a cui inviare i file o cartelle
+*********************************/
+
+
 class UserSizer : public wxWindow
 {
 private:

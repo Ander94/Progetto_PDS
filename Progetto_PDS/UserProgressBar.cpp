@@ -6,7 +6,8 @@
 #include "utente.h"
 
 wxBEGIN_EVENT_TABLE(UserProgressBar, wxWindow)
-EVT_THREAD(CLIENT_EVENT, UserProgressBar::OnClientEvent)
+EVT_THREAD(End_EVENT, UserProgressBar::OnEndEvent)
+EVT_THREAD(Start_EVENT, UserProgressBar::OnStartEvent)
 EVT_THREAD(SetTimeFile_EVENT, UserProgressBar::OnSetTimeFile)
 EVT_THREAD(SetNewDir_EVENT, UserProgressBar::OnSetNewDir)
 EVT_THREAD(SetMaxDir_EVENT, UserProgressBar::OnSetMaxDir)
@@ -23,7 +24,6 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	m_utente = user;
 	m_ipAddr = ipAddr;
 	m_isDir = isDir;
-	m_startTime = boost::posix_time::second_clock::local_time();
 	
 	wxStaticText *username = new wxStaticText(this, wxID_ANY, m_utente, wxDefaultPosition, wxDefaultSize);
 	username->SetFont((username->GetFont()).Bold().Larger());
@@ -142,17 +142,15 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	this->SetSizerAndFit(topSizer);
 }
 
-//interrompe trasferimento
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
 	flagAbort.store(true);
 }
 
-void UserProgressBar::OnClientEvent(wxThreadEvent & event) {
+void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	m_abort->Disable();
 	this->m_parentWindow->decreseCountUtenti();
 }
 
-//setta il tempo mancante alla fine del trasferimento
 void UserProgressBar::SetTimeFile(long sec) {
 	std::string s_hour;
 	std::string s_min;

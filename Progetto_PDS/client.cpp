@@ -117,18 +117,18 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		{
 			//Invio +IM per dire che è un file immagine
 			send = "+IM";
-			write_some(s, send);
+			write_some_image(s, send);
 			//Vedo se il server ha risposto con successo, e nel caso sollevo un eccezione
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			response = buf_response;
 			if (response != "+OK") {
 				return;
 			}
 			//Invio qui la dimensione del file
-			write_some(s, fileSize);
+			write_some_image(s, fileSize);
 			//Ed attendo la risposta
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -136,16 +136,15 @@ void sendImage(std::string filePath, std::string ipAddr) {
 			//Invio i diversi pacchetti che contengono l'immagine, i pacchetti verranno poi ricomposti lato server.
 			dim_to_send = size;
 			while (dim_to_send > 0) {
-                //Viene letto il conteuto del file e inviato sul socket s.
+				//Viene letto il conteuto del file e inviato sul socket s.
                 //Con un ciclo carico ogni volta il buffer buf_to_send di dimensione dim_write
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				write_some(s, buf_to_send, dim_write);
+				write_some_image(s, buf_to_send, dim_write);
 			}
-
 			//Controllo il successo della ricezione dell'immagine.
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -177,7 +176,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 
 
 	std::string basename;     //Nome del file/cartella da inviare.
-	wxThreadEvent event(wxEVT_THREAD, CLIENT_EVENT);
+	wxThreadEvent event(wxEVT_THREAD, End_EVENT);
 
 	//Se la directory/file specificata/o non è valida/o, ritorno al main
 	if (!boost::filesystem::is_directory(initialAbsolutePath) && !boost::filesystem::is_regular_file(initialAbsolutePath)) {
@@ -454,8 +453,11 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 
+			wxThreadEvent eventStart(wxEVT_THREAD, Start_EVENT);
 			wxThreadEvent event1(wxEVT_THREAD, IncFile_EVENT);
 			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);
+
+			wxQueueEvent(progBar, eventStart.Clone());
 
 			dim_to_send = size;
 			start = boost::posix_time::second_clock::local_time();

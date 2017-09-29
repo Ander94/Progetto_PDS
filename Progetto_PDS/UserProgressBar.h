@@ -10,7 +10,8 @@
 
 
 enum {
-	CLIENT_EVENT = 5000,
+	Start_EVENT = 5000,
+	End_EVENT,
 	SetTimeFile_EVENT,
 	SetNewDir_EVENT,
 	SetMaxDir_EVENT,
@@ -24,15 +25,15 @@ class UserProgressBar : public wxWindow
 private:
 	class WindowProgressBar *m_parentWindow;
 	wxBitmapButton *m_abort;
-	wxStaticText* m_nameFile;
-	wxStaticText* m_nameDir;
-	wxStaticText *m_timeDir;
-	wxStaticText *m_percDir;
-	wxStaticText *m_timeFile;
-	wxStaticText *m_percFile;
+	wxStaticText* m_nameFile;	//nome file
+	wxStaticText* m_nameDir;	//nome cartella
+	wxStaticText *m_timeDir;	//tempo mancante per trasferimento cartella
+	wxStaticText *m_percDir;	//percentuale progresso invio cartella
+	wxStaticText *m_timeFile;	//tempo mancante per trasferimento file
+	wxStaticText *m_percFile;	//percentuale progresso invio cartella
 	wxGauge *m_progDir;
 	wxGauge *m_progFile;
-	boost::posix_time::ptime m_startTime;
+	boost::posix_time::ptime m_startTime;	//tempo inizio invio
 
 	std::string m_utente;
 	std::string m_ipAddr;
@@ -44,10 +45,16 @@ private:
 	std::atomic<bool> flagAbort;
 	long calcola_tempo;
 
-	void OnAbortClick(wxCommandEvent& event);	//l'utente ha interrotto il trasferimento
+	//l'utente ha interrotto il trasferimento
+	void OnAbortClick(wxCommandEvent& event);
 
-	void OnClientEvent(wxThreadEvent& event);	//il thread ha segnalato la fine del trasferimento
+	//il thread segnala l'inizio effettivo del trasferimento
+	void OnStartEvent(wxThreadEvent& event) { m_startTime = boost::posix_time::second_clock::local_time(); }
 
+	//il thread ha segnalato la fine del trasferimento
+	void OnEndEvent(wxThreadEvent& event);	
+
+	//setta il tempo mancante alla fine del trasferimento
 	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
 	
 	void OnSetNewDir(wxThreadEvent& event) { SetNewDir(event.GetString().ToStdString()); };
