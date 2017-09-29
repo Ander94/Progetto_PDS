@@ -148,6 +148,12 @@ void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
 
 void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	m_abort->Disable();
+	m_timeFile->SetLabelText("trasferimento terminato");
+	m_percFile->SetLabelText("");
+	if (m_isDir) {
+		m_timeDir->SetLabelText("trasferimento terminato");
+		m_percDir->SetLabelText("");
+	}
 	this->m_parentWindow->decreseCountUtenti();
 }
 
