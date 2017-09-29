@@ -227,13 +227,3 @@ utente &utente::operator =(const utente & source) {
 	return *this;
 }
 
-
-bool utente::waitImage() {
-	boost::unique_future<bool> response = recived.get_future();
-	bool result =  response.get();
-	recived = boost::promise<bool>();
-	return result;
-};
-void utente::signalImage(bool result) {
-	recived.set_value(result);
-};

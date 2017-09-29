@@ -70,6 +70,4 @@ public:
 	status utente::getState();   //Ritorna lo stato di un utente
 	utente::utente(const utente& source);  //Costruttore di copia
 	utente &utente::operator =(const utente & source);   //Operatore di assegnazione
-	static bool waitImage();
-	static void signalImage(bool result);
 };

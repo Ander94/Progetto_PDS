@@ -10,7 +10,6 @@
 #define PROTOCOL_PACKET 4096   //Grandezza del buffer che viene inviato in rete (Pacchetti utilizzati per protocollo)
 #define EVALUATE_TIME 80       //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
 #define TIMEOUT 10 //s      //Tempo per cui una connessione può rimanere inattiva
-#define TIMEOUT_IMAGE 1 //s      //Tempo per cui una connessione può rimanere inattiva
 #define PORT_ALIVE 1300     //???NECESSARIO??
 #define FILTER_EVENT 200 //invia meno update alla grafica ??NECESSARIO??
 #define EVALUATE_TIME_DIR 10  //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti

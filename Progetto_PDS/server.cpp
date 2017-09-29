@@ -24,14 +24,6 @@ Riceve come parametri:
 void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
 
 /********************************************************************************
-Funzione che salva un file scambiato sul socket s.
-Riceve come parametri:
--s: socket su cui vieme scambiato il file
--fileName: nome del file da salvare
-**********************************************************************************/
-void recive_file_image(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName);
-
-/********************************************************************************
 StartAccept inizializza il socket e lancia l'accettazione asincrona di richieste da parte del client.
 Riceve come parametri:
 -a: acceptor utile per gestire l'accettazione di nuove richieste
@@ -225,15 +217,11 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 
 			//Ricevo il file immagine, che salverò con il nome dell'ip dell'utente cosi da essere univoco
 			try {
-				recive_file_image(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
+				recive_file(io_service, s, generalPath + "local_image\\" + ipAddrRemote + ".png");
 				response = "+OK";
 				write_some(s, response);
-				//Qui l'immagine è stata ricevuta
-				utente::signalImage(true);
 			}
 			catch (std::exception&) {
-				//Qui l'immagine non è stata ricevuta correttamente.
-				utente::signalImage(false);
 				if (s.is_open()) {
 					s.close();
 				}
@@ -463,57 +451,6 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			//Se ho avuto qualche errore nell'apertura del file, invio -ERR
 			response = "-ERR";
 			write_some(s, response);
-			return throw std::invalid_argument("Errore nell'apertura del file.");
-		}
-	}
-	catch (std::exception& e)
-	{
-		//In tal caso vuol dire che ho riscontrato qualche problema 
-		file_out.close();
-		boost::filesystem::remove(fileName);
-		return throw std::invalid_argument(e.what());
-	}
-}
-
-void recive_file_image(boost::asio::io_service& io_service, boost::asio::basic_stream_socket<boost::asio::ip::tcp>& s, std::string fileName) {
-
-	std::ofstream file_out(fileName, std::ios::out | std::ios::binary);  //File da salvare
-	std::string response; //Risposta da invare al client
-	char buf[PROTOCOL_PACKET];  //Buffer che contiene i pacchetti utili alla sincronizzazione con il client.
-	char buf_recive[BUFLEN];  //Buffer che conterrà i pacchetti contenenti il file
-	long long dim_recived = 0, dim_read, size, count = 0;
-	int length;
-	bool abort = false;
-	try
-	{
-		if (file_out.is_open()) {
-			//Se tutto va bene, dico che posso ricevere il file con +OK
-			response = "+OK";
-			write_some_image(s, response);
-			//Leggo la dimensione del file che ricevero, e la salvo su size
-			length = read_some_image(s, buf, PROTOCOL_PACKET);
-			buf[length] = '\0';
-			size = std::atoll(buf);
-
-			//Comunico al server che può inviare il file
-			response = "+OK";
-			write_some_image(s, response);
-
-			//ricevo pacchetti finchè non ho ricevuto tutto il file
-			while (dim_recived<size && !abort)
-			{
-				dim_read = read_some_image(s, buf_recive, BUFLEN);
-				file_out.write(buf_recive, dim_read);
-				dim_recived += dim_read;
-			}
-			//ultimo evento per settare avanzamento a 100%
-			file_out.close();
-		}
-		else
-		{
-			//Se ho avuto qualche errore nell'apertura del file, invio -ERR
-			response = "-ERR";
-			write_some_image(s, response);
 			return throw std::invalid_argument("Errore nell'apertura del file.");
 		}
 	}

@@ -145,9 +145,7 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		}
 		//Invio la mia immagine del profilo all'utente che sto registrando.
 		sendImage(filePath, ipAddr);
-		if (utente::waitImage()) {
-			utenteProprietario.addUtente(username, ipAddr, state, currentTime);
-		}
+		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
 	}
 	catch (...) {
 		return;
