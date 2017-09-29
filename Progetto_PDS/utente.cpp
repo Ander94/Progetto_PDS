@@ -8,11 +8,8 @@
 #include <future>
 #include <memory>
 #include <algorithm>
-#include <boost\thread\future.hpp>
 #include "Settings.h"
 
-
-boost::promise<bool> recived;
 //Sono presenti diversi tipi di costruttori.(versioni overload)
 //Costruttre 
 utente::utente()
