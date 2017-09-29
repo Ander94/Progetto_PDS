@@ -3,7 +3,6 @@
 #pragma once
 #include "reciver.h"
 #include "Settings.h"
-#include <mutex>
 #include <atomic>
 using boost::asio::ip::udp;
 using boost::asio::ip::tcp;
@@ -146,7 +145,9 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		}
 		//Invio la mia immagine del profilo all'utente che sto registrando.
 		sendImage(filePath, ipAddr);
-		utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+		if (utente::waitImage()) {
+			utenteProprietario.addUtente(username, ipAddr, state, currentTime);
+		}
 	}
 	catch (...) {
 		return;

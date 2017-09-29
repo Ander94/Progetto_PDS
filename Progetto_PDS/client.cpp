@@ -117,18 +117,18 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		{
 			//Invio +IM per dire che è un file immagine
 			send = "+IM";
-			write_some(s, send);
+			write_some_image(s, send);
 			//Vedo se il server ha risposto con successo, e nel caso sollevo un eccezione
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			response = buf_response;
 			if (response != "+OK") {
 				return;
 			}
 			//Invio qui la dimensione del file
-			write_some(s, fileSize);
+			write_some_image(s, fileSize);
 			//Ed attendo la risposta
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -141,11 +141,11 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				write_some(s, buf_to_send, dim_write);
+				write_some_image(s, buf_to_send, dim_write);
 			}
 
 			//Controllo il successo della ricezione dell'immagine.
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some_image(s, buf_response, PROTOCOL_PACKET);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;

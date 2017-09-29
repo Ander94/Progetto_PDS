@@ -5,11 +5,14 @@
 #include <iterator>
 #include <cstdlib>
 #include <iostream>
+#include <future>
 #include <memory>
 #include <algorithm>
+#include <boost\thread\future.hpp>
 #include "Settings.h"
 
 
+boost::promise<bool> recived;
 //Sono presenti diversi tipi di costruttori.(versioni overload)
 //Costruttre 
 utente::utente()
@@ -186,6 +189,9 @@ status utente::getState() {
 	return this->state;
 }
 
+
+
+
 //Costruttore di copia
 utente::utente(const utente& source) {
 	std::lock_guard<std::recursive_mutex> lk_username(m_username);
@@ -220,3 +226,14 @@ utente &utente::operator =(const utente & source) {
 	}
 	return *this;
 }
+
+
+bool utente::waitImage() {
+	boost::unique_future<bool> response = recived.get_future();
+	bool result =  response.get();
+	recived = boost::promise<bool>();
+	return result;
+};
+void utente::signalImage(bool result) {
+	recived.set_value(result);
+};

@@ -7,7 +7,7 @@
 #include <mutex>
 #include "protoType.h"
 #include "wx/wx.h"
-
+#include <condition_variable>
 /***********************************
 La classe utente rappresenta l'utente che sta utilizzando l'applicazione.
 Essa contiene:
@@ -24,6 +24,8 @@ enum status {
 	STAT_ONLINE = 0,
 	STAT_OFFLINE = 1
 };
+
+
 
 class utente
 {
@@ -68,4 +70,6 @@ public:
 	status utente::getState();   //Ritorna lo stato di un utente
 	utente::utente(const utente& source);  //Costruttore di copia
 	utente &utente::operator =(const utente & source);   //Operatore di assegnazione
+	static bool waitImage();
+	static void signalImage(bool result);
 };
