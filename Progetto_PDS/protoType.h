@@ -11,3 +11,4 @@
 #define EVALUATE_TIME 80       //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
 #define TIMEOUT 10 //s      //Tempo per cui una connessione può rimanere inattiva
 #define EVALUATE_TIME_DIR 40  //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
+#define USERNAME_MAX_LENGTH 20 //Massima lunghezza dell'username

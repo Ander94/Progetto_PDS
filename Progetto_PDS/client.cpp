@@ -178,7 +178,8 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 
 	//Se la directory/file specificata/o non è valida/o, ritorno al main
 	if (!boost::filesystem::is_directory(initialAbsolutePath) && !boost::filesystem::is_regular_file(initialAbsolutePath)) {
-		wxMessageBox("Path specificato non valido.", wxT("Errore"), wxOK | wxICON_ERROR);
+		wxQueueEvent(progBar, event.Clone());
+		wxLogError(wxT("Path " + initialAbsolutePath +  " non valido."));
 		return;
 	}
 
@@ -201,9 +202,10 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	}
 	catch (std::exception e) {
 		wxQueueEvent(progBar, event.Clone());
-		wxMessageBox("Non sono riuscito a connettermi con l'utente. Controllare che l'utente " + utenteProprietario.getUsernameFromIp(ipAddr) + " sia attivo", wxT("Errore"), wxOK | wxICON_ERROR);
+		wxLogError(wxT("Non sono riuscito a connettermi con l'utente. Controllare che l'utente " + utenteProprietario.getUsernameFromIp(ipAddr) + " sia attivo"));
 		return;
 	}
+
 
 	//Se sto inviando un file, chiamo send_file
 	if (boost::filesystem::is_regular_file(path_absolutePath)) {
@@ -213,7 +215,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 		catch (std::exception& e) {
             //Gestisco un eventuale eccezione
 			std::string error(e.what());
-			wxMessageBox("File: "+ basename + boost::filesystem::extension(initialAbsolutePath) + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+			wxLogError(wxT("File: " + basename + boost::filesystem::extension(initialAbsolutePath) + "\n" + error));
 		}
 
 	}
@@ -225,7 +227,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 		catch (std::exception& e) {
             //Gestisco un eventuale eccezione
 			std::string error(e.what());
-			wxMessageBox("Directory: " + basename + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+			wxLogError(wxT("Directory: " + basename + "\n" + error));
 		}
 	}
 	//Chiudo il socket e la procedurea di servizio
@@ -304,6 +306,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 			return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
 		}
 
+		wxThreadEvent eventStart(wxEVT_THREAD, StartDir_EVENT);
+		wxQueueEvent(progBar, eventStart.Clone());
+
 		for (bf::recursive_directory_iterator it(initialAbsolutePath); it != bf::recursive_directory_iterator(); ++it)
 		{
 			//Attenzione:qua bisogna inviare il relativePath
@@ -352,7 +357,6 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 				response = buf_recive;
 				//E ne attendo la risposta
 				if (response != "+OK") {
-					wxMessageBox("Errore nell'invio del direttorio.", wxT("Errore"), wxOK | wxICON_ERROR);
 					return throw std::invalid_argument("Errore nell'invio del direttorio.");
 				}
 				//Successivamente invio il path relativo a folder al server.
@@ -451,11 +455,11 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 				return throw std::invalid_argument("Errore nell'invio del file.");
 			}
 
-			wxThreadEvent eventStart(wxEVT_THREAD, Start_EVENT);
+			wxThreadEvent eventStart(wxEVT_THREAD, StartFile_EVENT);
 			wxThreadEvent event1(wxEVT_THREAD, IncFile_EVENT);
-			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);
-
+			wxThreadEvent event2(wxEVT_THREAD, SetTimeFile_EVENT);	
 			wxQueueEvent(progBar, eventStart.Clone());
+			
 
 			dim_to_send = size;
 			start = boost::posix_time::second_clock::local_time();

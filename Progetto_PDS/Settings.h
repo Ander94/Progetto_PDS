@@ -6,6 +6,7 @@
 #include <memory>
 #include <ctime>
 #include <atomic>
+#include <thread>
 #include <Shlwapi.h>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -230,15 +231,31 @@ public:
 			std::getline(save_path_file, stato);
 			std::getline(save_path_file, save);
 			std::getline(save_path_file, scorc);
-			this->getUtenteProprietario().setUsername(username);
+			if (username == "" || username.length()>USERNAME_MAX_LENGTH) {
+				this->getUtenteProprietario().setUsername(nomeUtente);
+			}
+			else {
+				this->getUtenteProprietario().setUsername(username);
+			}
+			
+			if (!boost::filesystem::is_directory(m_SavePath)) {
+				m_SavePath = "C:\\Users\\" + nomeUtente + "\\Downloads\\";
+			}
+
 			if (stato == "online") {
 				m_stato = status::STAT_ONLINE;
 			}
-			else {
+			else if(stato == "offline"){
 				m_stato = status::STAT_OFFLINE;
+			}
+			else {
+				m_stato = status::STAT_ONLINE;
 			}
 			if (save == "autoSavedOn") {
 				m_save_request = save_request::SAVE_REQUEST_YES;
+			}
+			else if(save == "autoSavedOff") {
+				m_save_request = save_request::SAVE_REQUEST_NO;
 			}
 			else {
 				m_save_request = save_request::SAVE_REQUEST_NO;
@@ -246,10 +263,14 @@ public:
 			if (scorc == "scorciatoiaPresente") {
 				m_scorciatoia = scorciatoia::SCORCIATOIA_PRESENTE;
 			}
-			else {
+			else if(scorc == "scorciatoiaAssente") {
 				m_scorciatoia = scorciatoia::SCORCIATOIA_ASSENTE;
 			}
+			else {
+				m_scorciatoia = scorciatoia::SCORCIATOIA_PRESENTE;
+			}
 			save_path_file.close();
+			this->updateState();
 		}
 
 		//Setto il path dell'immagine di profilo e dell'immagine di default.
@@ -311,7 +332,7 @@ public:
 
 		//Controlla che l'immagine sia stata caricata correttamente.
 		if (!img->LoadFile(path, wxBITMAP_TYPE_ANY, -1)) {
-			wxMessageBox("Errore caricamento immagine di " + m_utenteProprietario->getUsernameFromIp(boost::filesystem::basename(path) + boost::filesystem::extension(path)), wxT("ERRORE"), wxOK | wxICON_ERROR);
+			wxLogError(wxT("Errore caricamento immagine di " + m_utenteProprietario->getUsernameFromIp(boost::filesystem::basename(path) + boost::filesystem::extension(path))));
 			boost::filesystem::copy_file(getGeneralPath() + "user_default.png", path, boost::filesystem::copy_option::overwrite_if_exists);
 			return;
 		}
@@ -641,5 +662,4 @@ public:
 		setScorciatoiaAssente();
 		return 0;
 	}
-
 };

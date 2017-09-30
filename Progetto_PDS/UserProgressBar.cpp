@@ -5,13 +5,15 @@
 
 wxBEGIN_EVENT_TABLE(UserProgressBar, wxWindow)
 EVT_THREAD(End_EVENT, UserProgressBar::OnEndEvent)
-EVT_THREAD(Start_EVENT, UserProgressBar::OnStartEvent)
+EVT_THREAD(StartDir_EVENT, UserProgressBar::OnStartDir)
+EVT_THREAD(StartFile_EVENT, UserProgressBar::OnStartFile)
 EVT_THREAD(SetTimeFile_EVENT, UserProgressBar::OnSetTimeFile)
 EVT_THREAD(SetNewDir_EVENT, UserProgressBar::OnSetNewDir)
 EVT_THREAD(SetMaxDir_EVENT, UserProgressBar::OnSetMaxDir)
 EVT_THREAD(SetNewFile_EVENT, UserProgressBar::OnSetNewFile)
 EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
 EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
+EVT_CLOSE(UserProgressBar::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
 UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath) : 
@@ -137,8 +139,13 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	}
 	
 	m_abort->Bind(wxEVT_BUTTON, &UserProgressBar::OnAbortClick, this);	
-
+	
 	this->SetSizerAndFit(topSizer);
+}
+
+void UserProgressBar::OnCloseWindow(wxCloseEvent& event)
+{
+	wxMessageBox("Evento close catturato");
 }
 
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
@@ -181,7 +188,7 @@ void UserProgressBar::SetTimeFile(long sec) {
 
 	std::string fill(25 - time.length(), ' ');
 	time = time + fill;
-	if (m_timeFile->GetLabelText() != time)
+	if (time.find(m_timeFile->GetLabelText()) == std::string::npos)
 		m_timeFile->SetLabelText(time);
 }
 
@@ -253,7 +260,7 @@ void UserProgressBar::IncFile(long long dim) {
 
 			std::string fill(25 - time.length(), ' ');
 			time = time + fill;
-			if (m_timeDir->GetLabelText() != time)
+			if (time.find(m_timeDir->GetLabelText()) == std::string::npos)
 				m_timeDir->SetLabelText(time);
 		}
 

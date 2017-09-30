@@ -10,7 +10,8 @@
 
 
 enum {
-	Start_EVENT = 5000,
+	StartDir_EVENT = 5000,
+	StartFile_EVENT,
 	End_EVENT,
 	SetTimeFile_EVENT,
 	SetNewDir_EVENT,
@@ -19,6 +20,8 @@ enum {
 	SetMaxFile_EVENT,
 	IncFile_EVENT
 };
+
+
 
 class UserProgressBar : public wxWindow
 {
@@ -49,8 +52,12 @@ private:
 	void OnAbortClick(wxCommandEvent& event);
 
 	//il thread segnala l'inizio effettivo del trasferimento
-	void OnStartEvent(wxThreadEvent& event) { 
+	void OnStartDir(wxThreadEvent& event) { 
 		m_startTime = boost::posix_time::second_clock::local_time();
+		m_abort->Enable();
+	}
+
+	void OnStartFile(wxThreadEvent& event){
 		m_abort->Enable();
 	}
 
@@ -69,6 +76,8 @@ private:
 	void OnSetMaxFile(wxThreadEvent& event) { SetMaxFile(event.GetPayload<long long>()); };
 	
 	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<long long>()); };
+
+	void OnCloseWindow(wxCloseEvent&);
 
 	wxDECLARE_EVENT_TABLE();
 public:

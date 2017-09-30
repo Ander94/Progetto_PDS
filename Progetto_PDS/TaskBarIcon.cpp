@@ -249,7 +249,7 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 		wxSize(170, 30),
 		wxNO_BORDER
 	);
-	m_nome->SetMaxLength(20);
+	m_nome->SetMaxLength(USERNAME_MAX_LENGTH);
 	m_nome->SetBackgroundColour(this->GetBackgroundColour());
 	m_nome->SetFont(m_nome->GetFont().Bold().Scaled(1.3f));
 	m_nome->SetToolTip("Clicca per modificare il nome utente");
@@ -473,6 +473,7 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
+
 	Destroy();
 	m_timer->Stop();
 	m_settings->getIoService().stop();
@@ -700,6 +701,7 @@ void MainFrame::SendFile(std::string path)
 		m_settings->setIsDir(false);
 	else {
 		wxMessageBox("Il path specificato è non valido", "Errore", wxOK | wxICON_ERROR);
+		wxLogError(wxT("Il path " + path + " non è valido."));
 		return;
 	}
 	m_selectUser = new WindowSelectUser(this, m_settings);

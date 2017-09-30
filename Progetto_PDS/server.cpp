@@ -68,7 +68,7 @@ void HandleAccept(const boost::system::error_code& error, boost::asio::io_servic
 	//Controllo di eventuali errori durante l'accettazione.
 	if (error)
 	{
-		wxMessageBox("Errore nell'accettazione della connessione: " + error.message(), wxT("Errore"), wxOK | wxICON_ERROR);
+		wxLogError(wxT("Errore nell'accettazione della connessione: " + error.message()));
 		return;
 	}
 
@@ -128,7 +128,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		if (query == "+FL") {
 			is_file = true;
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
-				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
+				wxLogError(wxT("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida." ));
 				response = "+ERR";
 				write_some(s, response);
 				if (s.is_open()) {
@@ -233,7 +233,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		if (query == "+DR") {
 			is_dir = true;
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
-				wxMessageBox("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida.", wxT("Errore"), wxOK | wxICON_ERROR);
+				wxLogError(wxT("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida."));
 				response = "+ERR";
 				write_some(s, response);
 				if (s.is_open()) {
@@ -392,16 +392,16 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		}
 		std::string error(e.what());
 		if (is_file == true) {
-			wxMessageBox("File: " + fileName + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+			wxLogError(wxT("File: " + fileName + "\n" + error));
 		}
 		else if (is_dir==true) {
-			wxMessageBox("Directory: " + name_dir + "\n" + error, wxT("Errore"), wxOK | wxICON_ERROR);
+			wxLogError(wxT("Directory: " + name_dir + "\n" + error));
 			if (boost::filesystem::is_directory(path_dir + "\\") == true) {
 				boost::filesystem::remove_all(path_dir + "\\");
 			}
 		}
 		else {
-			wxMessageBox(error, wxT("Errore"), wxOK | wxICON_ERROR);
+			wxLogError(wxT(" " + error));
 		}
 
 		return;
