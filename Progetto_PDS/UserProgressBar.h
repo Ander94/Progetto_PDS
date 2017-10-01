@@ -77,12 +77,10 @@ private:
 	
 	void OnIncFile(wxThreadEvent& event) { IncFile(event.GetPayload<long long>()); };
 
-	void OnCloseWindow(wxCloseEvent&);
-
 	wxDECLARE_EVENT_TABLE();
 public:
 	UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath);
-
+	
 	std::string GetUsername() { return m_utente; }
 	std::string GetIpAddr() { return m_ipAddr; }
 	WindowProgressBar* GetParent() { return m_parentWindow; }
@@ -107,4 +105,6 @@ public:
 
 	//per testare se bisogna interrompere l'invio
 	bool testAbort() { return flagAbort.load(); }
+
+	void Abort();
 };

@@ -13,7 +13,6 @@ EVT_THREAD(SetMaxDir_EVENT, UserProgressBar::OnSetMaxDir)
 EVT_THREAD(SetNewFile_EVENT, UserProgressBar::OnSetNewFile)
 EVT_THREAD(SetMaxFile_EVENT, UserProgressBar::OnSetMaxFile)
 EVT_THREAD(IncFile_EVENT, UserProgressBar::OnIncFile)
-EVT_CLOSE(UserProgressBar::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
 UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string user, std::string ipAddr, bool isDir, std::string generalPath) : 
@@ -143,9 +142,8 @@ UserProgressBar::UserProgressBar(wxWindow* parent, wxWindowID id, std::string us
 	this->SetSizerAndFit(topSizer);
 }
 
-void UserProgressBar::OnCloseWindow(wxCloseEvent& event)
-{
-	wxMessageBox("Evento close catturato");
+void UserProgressBar::Abort() {
+	flagAbort.store(true);
 }
 
 void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
@@ -158,7 +156,7 @@ void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	if (m_isDir) {
 		m_timeDir->SetLabelText("trasferimento terminato");
 	}
-	this->m_parentWindow->decreseCountUtenti();
+	m_parentWindow->decreseCountUtenti();
 }
 
 void UserProgressBar::SetTimeFile(long sec) {
@@ -195,7 +193,6 @@ void UserProgressBar::SetTimeFile(long sec) {
 void UserProgressBar::SetNewDir(std::string path) {
 	m_nameDir->SetLabelText("Cartella: " + path);
 	m_nameDir->SetToolTip(path);
-	Update();
 }
 
 void UserProgressBar::SetMaxDir(long long dim) {
@@ -208,14 +205,12 @@ void UserProgressBar::SetMaxDir(long long dim) {
 void UserProgressBar::SetNewFile(std::string path) {
 	m_nameFile->SetLabelText("File: " + path);
 	m_progFile->SetValue(0);
-	this->Update();
 }
 
 void UserProgressBar::SetMaxFile(long long dim) {
 	m_totFile = dim;
 	m_parzialeFile = 0;
 	m_percFile->SetLabelText("0");
-	this->Update();
 }
 
 void UserProgressBar::IncFile(long long dim) {
@@ -271,6 +266,4 @@ void UserProgressBar::IncFile(long long dim) {
 		if (m_percDir->GetLabelText() != std::to_string(intval))
 			m_percDir->SetLabelText(std::to_string(intval));
 	}
-
-	this->Update();
 }

@@ -302,9 +302,12 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 		length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
 		buf_recive[length] = '\0';
 		response = buf_recive;
+		if (progBar->testAbort())
+			return;
 		if (response != "+OK") {
 			return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
 		}
+
 
 		wxThreadEvent eventStart(wxEVT_THREAD, StartDir_EVENT);
 		wxQueueEvent(progBar, eventStart.Clone());
@@ -442,6 +445,8 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
 			buf_recive[length] = '\0';
 			response = buf_recive;
+			if (progBar->testAbort())
+				return;
 			if (response != "+OK") {
 				return throw std::invalid_argument("Attenzione: l'utente ha rifiutato il trasferimento.");
 			}

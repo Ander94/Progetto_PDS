@@ -62,8 +62,15 @@ void WindowProgressBar::decreseCountUtenti() {
 }
 
 void WindowProgressBar::OnCloseWindow(wxCloseEvent& event) {
-	//usare Destroy(), non Close(), sennò va in loop (close chiama questo evento)!
-	this->Destroy();
+	if (m_CountUtenti != 0) {
+		for (auto it : m_ListaUtenti) {
+			it->Abort();
+		}
+		event.Veto();
+		Show(false);
+		return;
+	}
+	Destroy();
 }
 
 
