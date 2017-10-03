@@ -3,6 +3,8 @@
 namespace bf = boost::filesystem;
 using boost::asio::ip::tcp;
 
+std::string takeFolder(std::string path);
+
 /********************************************************************************
 Invia il file specificato in filePath sul socket s.
 Riceve come parametri:
@@ -68,7 +70,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr,
 
 void sendTCPfile(utente& utenteProprietario, std::string ipAddr, std::string initialAbsolutePath, UserProgressBar* progBar) {
 	//Sgancia il thread che permette l'invio del file
-	boost::thread(sendThreadTCPfile, boost::ref(utenteProprietario), ipAddr, initialAbsolutePath, progBar).detach();
+	std::thread(sendThreadTCPfile, std::ref(utenteProprietario), ipAddr, initialAbsolutePath, progBar).detach();
 }
 
 
@@ -115,18 +117,18 @@ void sendImage(std::string filePath, std::string ipAddr) {
 		{
 			//Invio +IM per dire che è un file immagine
 			send = "+IM";
-			write_some(s, send);
+			write_some(s, send, TIMEOUT_IMAGE);
 			//Vedo se il server ha risposto con successo, e nel caso sollevo un eccezione
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some(s, buf_response, PROTOCOL_PACKET, TIMEOUT_IMAGE);
 			buf_response[length] = '\0';
 			response = buf_response;
 			if (response != "+OK") {
 				return;
 			}
 			//Invio qui la dimensione del file
-			write_some(s, fileSize);
+			write_some(s, fileSize, TIMEOUT_IMAGE);
 			//Ed attendo la risposta
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some(s, buf_response, PROTOCOL_PACKET, TIMEOUT_IMAGE);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -139,10 +141,10 @@ void sendImage(std::string filePath, std::string ipAddr) {
 				dim_write = dim_to_send < BUFLEN ? dim_to_send : BUFLEN;
 				dim_to_send -= dim_write;
 				file_in.read(buf_to_send, dim_write);
-				write_some(s, buf_to_send, dim_write);
+				write_some(s, buf_to_send, dim_write, TIMEOUT_IMAGE);
 			}
 			//Controllo il successo della ricezione dell'immagine.
-			length = read_some(s, buf_response, PROTOCOL_PACKET);
+			length = read_some(s, buf_response, PROTOCOL_PACKET, TIMEOUT_IMAGE);
 			buf_response[length] = '\0';
 			if (response != "+OK") {
 				return;
@@ -184,8 +186,10 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	}
 
 	//Ottengo il nome della cartella/file che devo inviare. Attenzione: se viene tornato il nome di un file bisognerà aggiungere l'estensione.
-	basename = boost::filesystem::basename(initialAbsolutePath);
-
+	
+	
+	//basename = boost::filesystem::basename(initialAbsolutePath);
+	basename = takeFolder(initialAbsolutePath);
 	//Ne ottengo il path assoluto
 	boost::filesystem::path path_absolutePath(initialAbsolutePath);
 
@@ -210,12 +214,15 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 	//Se sto inviando un file, chiamo send_file
 	if (boost::filesystem::is_regular_file(path_absolutePath)) {
 		try {
-			send_file(io_service, s, initialAbsolutePath, basename + boost::filesystem::extension(initialAbsolutePath), progBar);
+			wxThreadEvent event(wxEVT_THREAD, SetNewFile_EVENT);
+			event.SetString(basename);
+			wxQueueEvent(progBar, event.Clone());
+			send_file(io_service, s, initialAbsolutePath, basename , progBar);
 		}
 		catch (std::exception& e) {
             //Gestisco un eventuale eccezione
 			std::string error(e.what());
-			wxLogError(wxT("File: " + basename + boost::filesystem::extension(initialAbsolutePath) + "\n" + error));
+			wxLogError(wxT("File: " + basename));
 		}
 
 	}
@@ -548,4 +555,30 @@ long long folder_size(std::string absolutePath) {
 		}
 	}
 	return size;
+}
+
+
+std::string takeFolder(std::string path) {
+	int i, lengthPath, start;
+	char *buf = (char *)malloc((path.length() + 1) * sizeof(char));
+	std::string folderName;
+
+	lengthPath = path.length();
+	for (i = lengthPath - 2; i >= 0 && path[i] != '\\'; i--);
+	if (i == -1) {
+		folderName = path;
+		free(buf);
+		return folderName;
+	}
+	int end = 0;
+	if (path[lengthPath - 1] == '\\')
+		end = 1;
+	start = i + 1;
+	for (i = 0; i < lengthPath - start - end; i++)
+		buf[i] = path[i + start];
+	buf[i] = '\0';
+
+	folderName = buf;
+	free(buf);
+	return folderName;
 }

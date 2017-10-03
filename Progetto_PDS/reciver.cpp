@@ -30,7 +30,7 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 	//Booleano utile a mostrare lo stato della propria connessione una volta sola.
 	std::atomic<bool> first_time;
 	//Lancio il thread che controlla elimina gli utenti che non inviano più pacchetti UDP
-	boost::thread check(checkTime, boost::ref(utenteProprietario), generalPath, boost::ref(exit_app));
+	std::thread check(checkTime, std::ref(utenteProprietario), generalPath, std::ref(exit_app));
     
     
     //Per quale motivo ho due cicli?

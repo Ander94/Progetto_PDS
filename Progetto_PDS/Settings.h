@@ -87,7 +87,7 @@ private:
 
 public:
 	//Tengo traccia di tutti i thread lanciati ed utilizzati dall'applicazione
-	boost::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
+	std::thread sendUdpMessageThread, reciveUdpMessageThread, reciveTCPfileThread;
 	
 	//Costruttore
 	Settings() : socket_udp(io_service_udp) {
@@ -517,8 +517,8 @@ public:
 		string_rand(unique_str);
 		//Finche non acquisisco l'ip (serve ad essere sicuri che t2 non invi il messaggio prima che esso sia ricevuto da t1)
 		while (ipAddr == "NULL") {
-			boost::thread t1(reciveUDPMessageGETIP, boost::ref(ipAddr), unique_str);
-			boost::thread t2(sendUDPMessageGETIP, unique_str);
+			std::thread t1(reciveUDPMessageGETIP, std::ref(ipAddr), unique_str);
+			std::thread t2(sendUDPMessageGETIP, unique_str);
 			t1.join();
 			t2.join();
 		}

@@ -233,7 +233,7 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		if (query == "+DR") {
 			is_dir = true;
 			if (!boost::filesystem::is_directory(settings->getSavePath())) {
-				wxLogError(wxT("La directory " + settings->getSavePath() + " Non esiste.\nControllare le proprie impostazioni e scegliere una directory valida."));
+				wxLogError(wxT("La directory " + settings->getSavePath() + " non esiste.\nControllare le proprie impostazioni e scegliere una directory valida."));
 				response = "+ERR";
 				write_some(s, response);
 				if (s.is_open()) {

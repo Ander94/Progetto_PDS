@@ -100,11 +100,11 @@ bool MainApp::OnInit()
 			m_settings->setExitSend(false);
 			//Thread che mi consente di ricevere file.
 			//Esso si pone in attesa di una nuova richiesta.
-			m_settings->reciveTCPfileThread = boost::thread(reciveTCPfile, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_settings, boost::ref(m_settings->getIoService()));
+			m_settings->reciveTCPfileThread = std::thread(reciveTCPfile, std::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), m_settings, std::ref(m_settings->getIoService()));
 			//thread che riceve messaggi UDP da tutta la LAN, ed eventualmente registra un nuovo utente.
-			m_settings->reciveUdpMessageThread = boost::thread(reciveUDPMessage, boost::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), boost::ref(m_settings->getExitRecive()), m_settings);
+			m_settings->reciveUdpMessageThread = std::thread(reciveUDPMessage, std::ref(m_settings->getUtenteProprietario()), m_settings->getGeneralPath(), std::ref(m_settings->getExitRecive()), m_settings);
 			//thrad che invia messaggi UDP segnalando il proprio stato e la propria prensenza in tutta la rete LAN.
-			m_settings->sendUdpMessageThread = boost::thread(sendUDPMessage, boost::ref(m_settings->getUserName()), boost::ref(m_settings->getStato()), boost::ref(m_settings->getExitSend()));
+			m_settings->sendUdpMessageThread = std::thread(sendUDPMessage, std::ref(m_settings->getUserName()), std::ref(m_settings->getStato()), std::ref(m_settings->getExitSend()));
 			frame->StartServer();
 			
 			//il processo è stato avviato con degli argomenti, quindi procedo immediatamente all'invio del file/cartella
