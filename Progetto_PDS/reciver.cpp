@@ -102,7 +102,6 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 	try {
 		//Evita di registrare se stessi.
 		//getIpAddr torna l'ip del nostro PC
-		utenteProprietario.setIpAddr(Settings::getOwnIP());
 		std::string myIp = utenteProprietario.getIpAddr();
 		
 		if ( myIp == ipAddr || ipAddr == "127.0.0.1") {

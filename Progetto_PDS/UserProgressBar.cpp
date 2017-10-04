@@ -163,13 +163,14 @@ void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	m_parentWindow->decreseCountUtenti();
 }
 
-void UserProgressBar::SetTimeFile(long sec) {
+void UserProgressBar::SetTimeFile(long long sec) {
+	
 	std::string s_hour;
 	std::string s_min;
 	std::string s_sec;
 
-	long min = sec / 60;
-	long hour = min / 60;
+	long long min = sec / 60;
+	long long hour = min / 60;
 	min = min % 60;
 	sec = sec % 60;
 
@@ -190,8 +191,10 @@ void UserProgressBar::SetTimeFile(long sec) {
 
 	std::string fill(20 - time.length(), ' ');
 	time = time + fill;
+	m_update_time.lock();
 	if (time != m_timeFile->GetLabelText())
 		m_timeFile->SetLabelText(time);
+	m_update_time.unlock();
 }
 
 void UserProgressBar::SetNewDir(std::string path) {
@@ -218,6 +221,7 @@ void UserProgressBar::SetMaxFile(long long dim) {
 }
 
 void UserProgressBar::IncFile(long long dim) {
+	
 	this->calcola_tempo++;
 	long long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
@@ -232,9 +236,9 @@ void UserProgressBar::IncFile(long long dim) {
 		if (this->calcola_tempo%EVALUATE_TIME_DIR == 0) {
 			//tempo rimanente
 			boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
-			long dif = (curTime - m_startTime).total_seconds();
-			long sec = (long int)((((m_totDir - m_parzialeDir) / (long double)((m_parzialeDir)))*dif));
-			long min = sec / 60;
+			long long dif = (curTime - m_startTime).total_seconds();
+			long long sec = (long int)((((m_totDir - m_parzialeDir) / (long double)((m_parzialeDir)))*dif));
+			long long min = sec / 60;
 			long hour = min / 60;
 			min = min % 60;
 			sec = sec % 60;
@@ -259,9 +263,11 @@ void UserProgressBar::IncFile(long long dim) {
 
 			std::string fill(20 - time.length(), ' ');
 			time = time + fill;
+			m_update_time_dir.lock();
 			if (time != m_timeDir->GetLabelText()) {
 				m_timeDir->SetLabelText(time);
 			}
+			m_update_time_dir.unlock();
 				
 		}
 

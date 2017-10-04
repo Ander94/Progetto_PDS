@@ -1,7 +1,7 @@
 #pragma once
 
 #include <atomic>
-
+#include <mutex>
 #include "utente.h"
 
 #include <wx/wx.h>
@@ -37,10 +37,9 @@ private:
 	wxGauge *m_progDir;
 	wxGauge *m_progFile;
 	boost::posix_time::ptime m_startTime;	//tempo inizio invio
-
 	std::string m_utente;
 	std::string m_ipAddr;
-	std::mutex mut;
+	std::mutex m_update_time, m_update_time_dir;
 
 	bool m_isDir;
 	long long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;
@@ -65,7 +64,7 @@ private:
 	void OnEndEvent(wxThreadEvent& event);	
 
 	//setta il tempo mancante alla fine del trasferimento
-	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long>()); };
+	void OnSetTimeFile(wxThreadEvent& event) { SetTimeFile(event.GetPayload<long long>()); };
 	
 	void OnSetNewDir(wxThreadEvent& event) { SetNewDir(event.GetString().ToStdString()); };
 
@@ -86,7 +85,7 @@ public:
 	WindowProgressBar* GetParent() { return m_parentWindow; }
 
 	//setta il tempo rimasto del file
-	void SetTimeFile(long sec);
+	void SetTimeFile(long long sec);
 
 	//passare la dimensione del direttorio
 	void SetMaxDir(long long dim);

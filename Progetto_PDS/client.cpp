@@ -409,7 +409,7 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 	long long size, dim_write, dim_send = 0, dim_to_send;    //Dimensione del file sotto forma di double per effettuare la divisione
 	int length, count = 0;
 	boost::posix_time::ptime start, end; //Utile per valuare il tempo di invio di un pacchetto verso il server
-	long int dif = 0, sec = 0;  //Utile per valuare il tempo di invio di un pacchetto verso il server
+	long long dif = 0, sec = 0;  //Utile per valuare il tempo di invio di un pacchetto verso il server
 	long calcola_tempo = 1; //è utile per non valutare il tempo troppe volte, ma solo ogni 50 pacchetti inviati.
 	std::string response, send; //Risposta del server e Buffer utile all'invio di un pacchetto
 	char buf_to_send[BUFLEN];  //char utili per caricare il pacchetto di lunghezza BUFLEN da inviare al server.
@@ -494,15 +494,14 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 					dif = (end - start).total_seconds();
 					//Valuto quanti secondi sono stati necessari per inviare dim_send byte.
 					sec = (long int)((((size - dim_send) /(long double) ((dim_send)))*dif));
-
+					event2.SetPayload(sec);
+					wxQueueEvent(progBar, event2.Clone());
 				}
 				calcola_tempo++;
 
                 //Aggiorno la barra di progresso con un nuovo evento
 				event1.SetPayload(dim_send);
 				wxQueueEvent(progBar, event1.Clone());
-				event2.SetPayload(sec);
-				wxQueueEvent(progBar, event2.Clone());
 				
                 //Se  stato premuto "Cancel" setto il flag che mi annullerˆ il trasferimento
 				abort = progBar->testAbort();
