@@ -37,12 +37,12 @@ class utente
 	boost::posix_time::ptime currentTime;  //Tempo di ultima ricezione di un pacchetto UDP
 
 	//Mutex per gestire l'accesso concorrente tra i diversi thread che utilizzano utenteProprietario
-	std::recursive_mutex m_username; //(1)
-	std::recursive_mutex m_ipAddr; //(2)
-	std::recursive_mutex m_state; //(3)
-	std::recursive_mutex m_currentTime; //(4)
-	std::recursive_mutex m_utentiConnessi; //(5)
-	std::recursive_mutex m_usernamePc; //(6)
+	std::mutex m_username; //(1)
+	std::mutex m_ipAddr; //(2)
+	std::mutex m_state; //(3)
+	std::mutex m_currentTime; //(4)
+	std::mutex m_utentiConnessi; //(5)
+	std::mutex m_usernamePc; //(6)
 	
 public:
 	utente(); //Costruttore 

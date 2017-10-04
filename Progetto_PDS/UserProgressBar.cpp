@@ -225,6 +225,12 @@ void UserProgressBar::IncFile(long long dim) {
 	this->calcola_tempo++;
 	long long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
+	if (m_totFile==0 || m_totDir==0) {
+		return;
+	}
+	if (m_totFile == 0) {
+		return;
+	}
 	long long value = m_parzialeFile * 100 / m_totFile;
 	int intval = (int)floor(value + 0.5);
 	m_progFile->SetValue(intval);
@@ -237,6 +243,9 @@ void UserProgressBar::IncFile(long long dim) {
 			//tempo rimanente
 			boost::posix_time::ptime curTime = boost::posix_time::second_clock::local_time();
 			long long dif = (curTime - m_startTime).total_seconds();
+			if (m_parzialeDir == 0 || dif == 0) {
+				return;
+			}
 			long long sec = (long int)((((m_totDir - m_parzialeDir) / (long double)((m_parzialeDir)))*dif));
 			long long min = sec / 60;
 			long hour = min / 60;
@@ -272,6 +281,9 @@ void UserProgressBar::IncFile(long long dim) {
 		}
 
 		//percentuale avanzamento
+		if (m_totDir == 0) {
+			return;
+		}
 		value = m_parzialeDir * 100 / m_totDir;
 		intval = (int)floor(value + 0.5);
 		m_progDir->SetValue(intval);

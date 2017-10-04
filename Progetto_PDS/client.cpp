@@ -493,9 +493,12 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 					end = boost::posix_time::second_clock::local_time();
 					dif = (end - start).total_seconds();
 					//Valuto quanti secondi sono stati necessari per inviare dim_send byte.
-					sec = (long int)((((size - dim_send) /(long double) ((dim_send)))*dif));
-					event2.SetPayload(sec);
-					wxQueueEvent(progBar, event2.Clone());
+					if (dim_send !=0 && dif!=0) {
+						sec = (long int)((((size - dim_send) / (long double)((dim_send)))*dif));
+						event2.SetPayload(sec);
+						wxQueueEvent(progBar, event2.Clone());
+					}
+					
 				}
 				calcola_tempo++;
 
