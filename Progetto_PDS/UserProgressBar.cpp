@@ -226,9 +226,7 @@ void UserProgressBar::IncFile(long long dim) {
 	long long diff = dim - m_parzialeFile;
 	m_parzialeFile = dim;
 	if (m_totFile==0 || m_totDir==0) {
-		return;
-	}
-	if (m_totFile == 0) {
+		m_progFile->SetValue(100);
 		return;
 	}
 	long long value = m_parzialeFile * 100 / m_totFile;
@@ -281,9 +279,6 @@ void UserProgressBar::IncFile(long long dim) {
 		}
 
 		//percentuale avanzamento
-		if (m_totDir == 0) {
-			return;
-		}
 		value = m_parzialeDir * 100 / m_totDir;
 		intval = (int)floor(value + 0.5);
 		m_progDir->SetValue(intval);

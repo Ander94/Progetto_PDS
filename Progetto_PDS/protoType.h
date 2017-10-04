@@ -9,7 +9,7 @@
 #define UPDATE_WINDOW 1000 //ms   //Aggiornamento della finestra
 #define PROTOCOL_PACKET 4096   //Grandezza del buffer che viene inviato in rete (Pacchetti utilizzati per protocollo)
 #define EVALUATE_TIME 1000      //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
-#define TIMEOUT 10 //s      //Tempo per cui una connessione può rimanere inattiva
+#define TIMEOUT 20 //s      //Tempo per cui una connessione può rimanere inattiva
 #define TIMEOUT_IMAGE 3 //s      //Tempo per cui si cerca di inviare un immagine
 #define EVALUATE_TIME_DIR 800  //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
 #define USERNAME_MAX_LENGTH 20 //Massima lunghezza dell'username
