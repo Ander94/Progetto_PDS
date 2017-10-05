@@ -155,10 +155,11 @@ void UserProgressBar::OnAbortClick(wxCommandEvent& event) {
 
 void UserProgressBar::OnEndEvent(wxThreadEvent & event) {
 	m_abort->Disable();
-	std::string fill(14, ' ');
-	m_timeFile->SetLabelText("sharing concluso" + fill);
+	m_timeFile->SetLabelText("sharing concluso ");
+	m_percFile->SetLabelText("100");
 	if (m_isDir) {
-		m_timeDir->SetLabelText("sharing concluso" + fill);
+		m_timeDir->SetLabelText("sharing concluso ");
+		m_percDir->SetLabelText("100");
 	}
 	m_parentWindow->decreseCountUtenti();
 }
