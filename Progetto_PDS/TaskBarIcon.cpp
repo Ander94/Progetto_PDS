@@ -473,8 +473,6 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
-
-	Destroy();
 	m_timer->Stop();
 	m_settings->getIoService().stop();
 	m_settings->reciveTCPfileThread.join();
@@ -489,6 +487,7 @@ void MainFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 		}
 	}
 	
+	Destroy();
 }
 
 void MainFrame::OnTimer(wxTimerEvent& event)
@@ -604,6 +603,10 @@ void MainFrame::OnRadioBoxSalvataggio(wxCommandEvent& event)
 void MainFrame::OnContextMenu(wxCommandEvent& event)
 {
 	if (m_settings->getMod() == modalità::MOD_USER) {
+		int answer = wxMessageBox("Questa azione riavvierà il programma.\nOgni trasferimento in corso verrà interrotto.\nContinuare comuqnue?", "Attenzione", wxOK | wxCANCEL | wxICON_WARNING);
+		if (answer == wxCANCEL)
+			return;		//l'utente ha cambiato idea
+
 		std::string str = m_settings->getGeneralPath() + "Progetto_PDS.exe";
 		std::wstring stemp = std::wstring(str.begin(), str.end());
 		LPCTSTR path = stemp.c_str();
@@ -707,6 +710,7 @@ void MainFrame::SendFile(std::string path)
 	m_selectUser = new WindowSelectUser(this, m_settings);
 	this->Hide();
 	m_selectUser->Show();
+	m_selectUser->SetFocus();
 }
 
 
