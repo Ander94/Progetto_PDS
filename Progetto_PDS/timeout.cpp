@@ -115,7 +115,7 @@ int write_some(tcp::socket &s, char* buf, size_t dim_buf) {
 		}
 	});
 	int dim_write = -1;
-	std::string error("Attenzione: e' stato interrotto l'invio del file..");
+	std::string error("Attenzione: e' stato interrotto l'invio del file.");
 	//Attendo che std::async produca il risultato per un tempo TIMEOUT
 	std::future_status state = write_future_tcp.wait_for(std::chrono::seconds(TIMEOUT));
 	//Se il risultato non è stato prodotto, vuol dire che write è rimasta bloccata per troppo tempo
@@ -155,7 +155,7 @@ void write_some(tcp::socket &s, std::string& buf) {
 		}
 	});
 	int dim_write = -1;
-	std::string error("Attenzione: e' stato interrotto l'invio del file..");
+	std::string error("Attenzione: e' stato interrotto l'invio del file.");
 	//Attendo che std::async produca il risultato per un tempo TIMEOUT
 	std::future_status state = write_future_tcp.wait_for(std::chrono::seconds(TIMEOUT));
 	//Se il risultato non è stato prodotto, vuol dire che write è rimasta bloccata per troppo tempo
@@ -195,7 +195,7 @@ int write_some(tcp::socket &s, char* buf, size_t dim_buf, int timeout) {
 		}
 	});
 	int dim_write = -1;
-	std::string error("Attenzione: e' stato interrotto l'invio del file..");
+	std::string error("Attenzione: e' stato interrotto l'invio del file.");
 	//Attendo che std::async produca il risultato per un tempo TIMEOUT
 	std::future_status state = write_future_tcp.wait_for(std::chrono::seconds(timeout));
 	//Se il risultato non è stato prodotto, vuol dire che write è rimasta bloccata per troppo tempo
@@ -235,7 +235,7 @@ void write_some(tcp::socket &s, std::string& buf, int timeout) {
 		}
 	});
 	int dim_write = -1;
-	std::string error("Attenzione: e' stato interrotto l'invio del file..");
+	std::string error("Attenzione: e' stato interrotto l'invio del file.");
 	//Attendo che std::async produca il risultato per un tempo TIMEOUT
 	std::future_status state = write_future_tcp.wait_for(std::chrono::seconds(timeout));
 	//Se il risultato non è stato prodotto, vuol dire che write è rimasta bloccata per troppo tempo

@@ -39,7 +39,6 @@ private:
 	boost::posix_time::ptime m_startTime;	//tempo inizio invio
 	std::string m_utente;
 	std::string m_ipAddr;
-	std::mutex m_update_time, m_update_time_dir;
 
 	bool m_isDir;
 	long long m_totFile=0, m_parzialeFile=0, m_totDir = 0, m_parzialeDir = 0;

@@ -191,10 +191,8 @@ void UserProgressBar::SetTimeFile(long long sec) {
 
 	std::string fill(20 - time.length(), ' ');
 	time = time + fill;
-	m_update_time.lock();
 	if (time != m_timeFile->GetLabelText())
 		m_timeFile->SetLabelText(time);
-	m_update_time.unlock();
 }
 
 void UserProgressBar::SetNewDir(std::string path) {
@@ -270,12 +268,9 @@ void UserProgressBar::IncFile(long long dim) {
 
 			std::string fill(20 - time.length(), ' ');
 			time = time + fill;
-			m_update_time_dir.lock();
 			if (time != m_timeDir->GetLabelText()) {
 				m_timeDir->SetLabelText(time);
-			}
-			m_update_time_dir.unlock();
-				
+			}	
 		}
 
 		//percentuale avanzamento

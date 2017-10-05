@@ -222,7 +222,7 @@ void sendThreadTCPfile(utente& utenteProprietario, std::string ipAddr, std::stri
 		catch (std::exception& e) {
             //Gestisco un eventuale eccezione
 			std::string error(e.what());
-			wxLogError(wxT("File: " + basename));
+			wxLogError(wxT("File: " + basename + "\n" + error));
 		}
 
 	}

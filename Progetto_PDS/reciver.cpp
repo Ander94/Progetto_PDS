@@ -103,7 +103,14 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		//Evita di registrare se stessi.
 		//getIpAddr torna l'ip del nostro PC
 		std::string myIp = utenteProprietario.getIpAddr();
-		
+
+		std::string newIp = Settings::getOwnIP();
+		if (myIp != newIp) {
+			//Setta il nuovo ip nel passaggio online/offline.
+			utenteProprietario.setIpAddr(newIp);
+			return;
+		}
+
 		if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
 			if (ipAddr == "127.0.0.1") {
 				if (first_time.load()) {
