@@ -6,6 +6,7 @@
 #include <memory>
 #include <ctime>
 #include <atomic>
+#include <future>
 #include <thread>
 #include <Shlwapi.h>
 #include <boost/thread.hpp>
@@ -516,18 +517,22 @@ public:
 		//Genero una sringa univoca, al fine di essere sicuro che quello che sto ricevendo e' il mio ip
 		string_rand(unique_str);
 		//Finche non acquisisco l'ip (serve ad essere sicuri che t2 non invi il messaggio prima che esso sia ricevuto da t1)
-		while (ipAddr == "NULL") {
-			std::thread t1(reciveUDPMessageGETIP, std::ref(ipAddr), unique_str);
+		//std::thread t1(reciveUDPMessageGETIP, std::ref(ipAddr), unique_str);
+
+		std::future<std::string> result = std::async(std::launch::async, reciveUDPMessageGETIP, unique_str);
+
+		while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
 			std::thread t2(sendUDPMessageGETIP, unique_str);
-			t1.join();
 			t2.join();
 		}
+		ipAddr = result.get();
 		return ipAddr;
 	}
 
 	//Riceve un messaggio di tipo "+GETADDR_unique_str" al fine di capire il proprio ip
 	//Salva in ownIpAddr il proprio ip poichè è passato per riferimento
-	static void reciveUDPMessageGETIP(std::string& ownIpAddr, std::string& unique_str) {
+	static std::string reciveUDPMessageGETIP(std::string& unique_str) {
+		std::string ownIpAddr;
 		boost::asio::io_service io_service;
 		udp::socket s(io_service);
 
@@ -540,18 +545,21 @@ public:
 		local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::any(), PORT_UDP_OWNIP);
 		s.bind(local_endpoint);
 
-		char buf[1024];
-		size_t length = s.receive_from(boost::asio::buffer(buf, 1024), reciver_endpoint);
-		buf[length] = '\0';
-		std::string response(buf);
-		//Se il messaggio ricevuto contiene la propria stringa unicvoca, allora posso settare il mio indirizzo ip.
-		if (response == ("+GETADDR" + unique_str)) {
-			ownIpAddr = reciver_endpoint.address().to_string();
+		while (1) {
+			char buf[1024];
+			size_t length = s.receive_from(boost::asio::buffer(buf, 1024), reciver_endpoint);
+			buf[length] = '\0';
+			std::string response(buf);
+			//Se il messaggio ricevuto contiene la propria stringa unicvoca, allora posso settare il mio indirizzo ip.
+			if (response == ("+GETADDR" + unique_str)) {
+				ownIpAddr = reciver_endpoint.address().to_string();
+				break;
+			}
 		}
 		if (s.is_open()) {
 			s.close();
 		}
-		return;
+		return ownIpAddr;
 	}
 
 	//Invia in broadcast la stringa univoca +GETADDR_unique_str.

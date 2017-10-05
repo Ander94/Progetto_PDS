@@ -5,7 +5,7 @@
 #define BUFLEN 4096   //Grandezza del buffer che viene inviato in rete (file)
 #define TIME_SEND_MESSAGE_UDP 300 //ms   //Un pacchetto UDP viene inviato in rete ogno TIME_SEND_MESSAGE_UDP ms
 #define CHECK_TIME 1000 //ms    //Controllo dello stato dell'utente
-#define DELETE_USER 2 //s       //Cancello un utente dalla lista degli utenti connessi dopo DELETE_USER secondi, ciò vuol dire che l'utente è rimasto inattivo.
+#define DELETE_USER 3 //s       //Cancello un utente dalla lista degli utenti connessi dopo DELETE_USER secondi, ciò vuol dire che l'utente è rimasto inattivo.
 #define UPDATE_WINDOW 1000 //ms   //Aggiornamento della finestra
 #define PROTOCOL_PACKET 4096   //Grandezza del buffer che viene inviato in rete (Pacchetti utilizzati per protocollo)
 #define EVALUATE_TIME 1000      //Calcolo il tempo rimanente per l'invio di un file ogni EVALUATE_TIME pacchetti
