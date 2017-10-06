@@ -280,6 +280,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 		write_some(s, send);
 		//Attendo la risposta da parte del server
 		length = read_some(s, buf_recive, PROTOCOL_PACKET);
+		if (length >= PROTOCOL_PACKET) {
+			return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+		}
 		buf_recive[length] = '\0';
 		response = buf_recive;
 		if (response != "+OK") {
@@ -297,6 +300,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 		directorySize = std::to_string(directory_size_to_send);
 		write_some(s, directorySize);
 		length = read_some(s, buf_recive, PROTOCOL_PACKET);
+		if (length >= PROTOCOL_PACKET) {
+			return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+		}
 		buf_recive[length] = '\0';
 		response = buf_recive;
 		//E attendo la risposta da parte del server
@@ -353,6 +359,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 				directory_size_send += (size_t)bf::file_size(*it);
 				//Attendo la stringa +CN da parte del server che mi indica che posso continuare.
 				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				if (length >= PROTOCOL_PACKET) {
+					return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+				}
 				buf_recive[length] = '\0';
 				response = buf_recive;
 				if (response != "+CN") {
@@ -366,6 +375,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 				send = "+DR";
 				write_some(s, send);
 				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				if (length >= PROTOCOL_PACKET) {
+					return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+				}
 				buf_recive[length] = '\0';
 				response = buf_recive;
 				//E ne attendo la risposta
@@ -376,6 +388,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 				write_some(s, relative_path(bf::absolute(*it).string(), initialAbsolutePath, folder));
 				//E ne attendo la risposta.
 				length = read_some(s, buf_recive, PROTOCOL_PACKET);
+				if (length >= PROTOCOL_PACKET) {
+					return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+				}
 				buf_recive[length] = '\0';
 				response = buf_recive;
 				if (response != "+OK") {
@@ -438,6 +453,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			write_some(s, send);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
 			length = read_some(s, buf_recive, PROTOCOL_PACKET);
+			if (length >= PROTOCOL_PACKET) {
+				return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (response != "+OK") {
@@ -468,6 +486,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			write_some(s, fileSize);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
 			length = read_some(s, buf_recive, PROTOCOL_PACKET);
+			if (length >= PROTOCOL_PACKET) {
+				return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf_recive[length] = '\0';
 			if (response != "+OK") {
 				return throw std::invalid_argument("Errore nell'invio del file.");

@@ -121,6 +121,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 		ipAddrRemote = s.remote_endpoint().address().to_string();
 		//Questo primo pacchetto serve a vedere se sto ricevendo un file o una directory
 		length = read_some(s, buf, PROTOCOL_PACKET);
+		if (length >= PROTOCOL_PACKET) {
+			return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+		}
 		buf[length] = '\0';
 		query = buf;
 
@@ -142,6 +145,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 			write_some(s, response);
 			//La risposta conterrà il pathName
 			length = read_some(s, buf, PROTOCOL_PACKET);
+			if (length >= PROTOCOL_PACKET) {
+				return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf[length] = '\0';
 			fileName = buf;
 
@@ -269,6 +275,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					}
 					//Aspetto il nome del path
 					length = read_some(s, buf, PROTOCOL_PACKET);
+					if (length >= PROTOCOL_PACKET) {
+						return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+					}
 					buf[length] = '\0';
 					fileName = buf;
 					
@@ -361,6 +370,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					write_some(s, response);
 					//Leggo il nome del file
 					length = read_some(s, buf, PROTOCOL_PACKET);
+					if (length >= PROTOCOL_PACKET) {
+						return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+					}
 					buf[length] = '\0';
 					fileName = buf;
 
@@ -382,6 +394,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 				}
 				//Leggo la prossima Query, ovvero leggo se sarà un File o un altra Directory
 				length = read_some(s, buf, PROTOCOL_PACKET);
+				if (length >= PROTOCOL_PACKET) {
+					return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+				}
 				buf[length] = '\0';
 				query = buf;
 			}
@@ -432,6 +447,9 @@ void recive_file(boost::asio::io_service& io_service, boost::asio::basic_stream_
 			write_some(s, response);
 			//Leggo la dimensione del file che ricevero, e la salvo su size
 			length = read_some(s, buf, PROTOCOL_PACKET);
+			if (length >= PROTOCOL_PACKET) {
+				return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf[length] = '\0';
 			size = std::atoll(buf);
 

@@ -55,6 +55,9 @@ void reciveUDPMessage(utente& utenteProprietario, std::string generalPath, std::
 				length = settings->getSocket().receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
 				//Estraggo l'ip di chi mi ha inviato il mesasggio
 				ipAddr = reciver_endpoint.address().to_string();
+				if (length >= PROTOCOL_PACKET) {
+					return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+				}
 				buf[length] = '\0';
 				reciveMessage = buf;
 				//Mi accerto che la richesta che ho ricevuto non sia utile a determinare il proprio IP

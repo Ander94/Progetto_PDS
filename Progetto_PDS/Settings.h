@@ -518,8 +518,11 @@ public:
 		s.bind(local_endpoint);
 
 		while (1) {
-			char buf[1024];
-			size_t length = s.receive_from(boost::asio::buffer(buf, 1024), reciver_endpoint);
+			char buf[PROTOCOL_PACKET];
+			size_t length = s.receive_from(boost::asio::buffer(buf, PROTOCOL_PACKET), reciver_endpoint);
+			if (length >= PROTOCOL_PACKET) {
+				throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf[length] = '\0';
 			std::string response(buf);
 			//Se il messaggio ricevuto contiene la propria stringa unicvoca, allora posso settare il mio indirizzo ip.
