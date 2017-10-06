@@ -59,7 +59,6 @@ class MainFrame : public wxFrame
 {
 private:
 	Settings* m_settings;
-	class WindowSelectUser* m_selectUser;
 	MyClient* m_client;
 	class MyServer* m_server;
 	wxTimer* m_timer;
