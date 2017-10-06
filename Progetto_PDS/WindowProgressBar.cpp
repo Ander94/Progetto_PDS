@@ -16,7 +16,7 @@ wxBEGIN_EVENT_TABLE(WindowProgressBar, wxFrame)
 EVT_CLOSE(WindowProgressBar::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
-WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::vector<utente> listaUtenti, bool isSending)
+WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::vector<utente> listaUtenti, std::string sendPath, bool isDir)
 	: wxFrame(parent, wxID_ANY, wxT("Trasferimenti in corso"), wxDefaultPosition, wxDefaultSize, wxMINIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
 	this->SetIcon(wxIcon(share_icon));
@@ -25,8 +25,8 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_settings = settings;
 	m_CountUtenti = 0;
-	m_isSending = isSending;
-	
+	m_sendPath = sendPath;
+
 	wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 	
 	/*
@@ -36,7 +36,7 @@ WindowProgressBar::WindowProgressBar(wxWindow* parent, Settings* settings, std::
 		if (m_CountUtenti!=0)
 			topSizer->Add(new wxStaticLine(this));
 
-		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), it.getIpAddr(), m_settings->getIsDir(), m_settings->getGeneralPath());
+		UserProgressBar *u = new UserProgressBar(this, wxID_ANY, it.getUsername(), it.getIpAddr(), isDir, m_settings->getGeneralPath());
 		m_ListaUtenti.push_back(u);
 		topSizer->Add(u, 1, wxEXPAND);
 		this->m_CountUtenti++;
@@ -50,7 +50,7 @@ void WindowProgressBar::StartSending() {
 	Centre();
 	SetFocus();
 	for (auto it : m_ListaUtenti) {
-		sendTCPfile(m_settings->getUtenteProprietario(), it->GetIpAddr(), m_settings->getSendPath(), it);
+		sendTCPfile(m_settings->getUtenteProprietario(), it->GetIpAddr(), m_sendPath, it);
 	}
 }
 

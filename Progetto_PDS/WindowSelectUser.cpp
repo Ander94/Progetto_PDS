@@ -18,7 +18,7 @@ EVT_CLOSE(WindowSelectUser::OnCloseWindow)
 EVT_TIMER(TIMER_ID, WindowSelectUser::OnTimer)
 wxEND_EVENT_TABLE()
 
-WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings) 
+WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings, std::string sendPath, bool isDir)
 	: wxFrame(parent, wxID_ANY, wxT("Utenti disponibili"), wxDefaultPosition, wxDefaultSize, 
 		wxMINIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN)
 {
@@ -28,7 +28,9 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 	m_settings = settings;
 	m_frame = dynamic_cast<MainFrame*>(parent);
 	m_ListaUtenti = std::list<UserSizer *>();  
-	m_MappaInvio = std::map<std::string, utente>();  
+	m_MappaInvio = std::map<std::string, utente>(); 
+	m_sendPath = sendPath;
+	m_isDir = isDir;
 	//Button ok
 	wxBitmap* ok = new wxBitmap();
 	ok->LoadFile(m_settings->getGeneralPath() + "bottoni\\invia.png", wxBITMAP_TYPE_ANY);
@@ -111,7 +113,7 @@ WindowSelectUser::WindowSelectUser(wxWindow* parent, Settings* settings)
 
 void WindowSelectUser::OnOk(wxCommandEvent& event) {
 	m_timer->Stop();
-	WindowProgressBar *window = new WindowProgressBar(m_frame, m_settings, this->getListaInvio(), true);
+	WindowProgressBar *window = new WindowProgressBar(m_frame, m_settings, this->getListaInvio(), m_sendPath, m_isDir);
 	window->StartSending();
 	this->Close();
 }

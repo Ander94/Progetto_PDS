@@ -20,6 +20,8 @@ private:
 	wxBitmapButton* m_cancel;
 	wxGridSizer* m_sizerUsers;
 	wxTimer* m_timer;
+	std::string m_sendPath;
+	bool m_isDir;
 
 	void OnOk(wxCommandEvent& event);	//fa partire l'invio del file
 	void OnCancel(wxCommandEvent& event);
@@ -28,7 +30,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 
 public:
-	WindowSelectUser(wxWindow* parent, Settings* settings);
+	WindowSelectUser(wxWindow* parent, Settings* settings, std::string sendPath, bool isDir);
 
 	//ogni volta che scatta il timer, controllo lo stato degli utenti online
 	void UpdateUI();	

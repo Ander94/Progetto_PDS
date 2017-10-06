@@ -63,7 +63,6 @@ wxEND_EVENT_TABLE()
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "dumb window") 
 {
 	m_taskBarIcon = NULL;
-	m_selectUser = NULL;
 	m_client = NULL;
 	m_server = NULL;
 };
@@ -73,7 +72,6 @@ MainFrame::MainFrame(const wxString& title, class Settings* settings) :
 {
 	this->SetBackgroundColour(wxColour(240,242,245));
 	this->SetFont(this->GetFont().Bold().Scale(0.9f));
-	m_selectUser = NULL;
 	m_client = NULL;
 	m_server = NULL;
 	m_settings = settings;
@@ -697,20 +695,20 @@ bool MainFrame::StartServer()
 
 void MainFrame::SendFile(std::string path)
 {
-	m_settings->setSendPath(path);
+	bool isDir;
 	if (boost::filesystem::is_directory(path))
-		m_settings->setIsDir(true);
+		isDir = true;
 	else if (boost::filesystem::is_regular_file(path))
-		m_settings->setIsDir(false);
+		isDir = false;
 	else {
 		wxMessageBox("Il path specificato è non valido", "Errore", wxOK | wxICON_ERROR);
 		wxLogError(wxT("Il path " + path + " non è valido."));
 		return;
 	}
-	m_selectUser = new WindowSelectUser(this, m_settings);
+	WindowSelectUser* window = new WindowSelectUser(this, m_settings, path, isDir);
 	this->Hide();
-	m_selectUser->Show();
-	m_selectUser->SetFocus();
+	window->Show();
+	window->SetFocus();
 }
 
 

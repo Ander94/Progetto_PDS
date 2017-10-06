@@ -54,17 +54,15 @@ private:
 	std::recursive_mutex rm_ImagePath;//3
 	std::recursive_mutex rm_DefaultImagePath;//4
 	std::recursive_mutex rm_SavePath;//5
-	std::recursive_mutex rm_SendPath;//6
-	std::recursive_mutex rm_client;//7
-	std::recursive_mutex rm_isDir;//8
-	std::recursive_mutex rm_stato;//9
-	std::recursive_mutex rm_save_request;//10
-	std::recursive_mutex rm_exit_send_udp;//11
-	std::recursive_mutex rm_exit_recive_udp;//12
-	std::recursive_mutex rm_io_service_tcp;//13
-	std::recursive_mutex rm_scorciatoia;//14
-	std::recursive_mutex rm_taskBarIcon;//14
-	std::mutex m_socket;//15
+	std::recursive_mutex rm_client;//6
+	std::recursive_mutex rm_stato;//7
+	std::recursive_mutex rm_save_request;//8
+	std::recursive_mutex rm_exit_send_udp;//9
+	std::recursive_mutex rm_exit_recive_udp;//10
+	std::recursive_mutex rm_io_service_tcp;//11
+	std::recursive_mutex rm_scorciatoia;//12
+	std::recursive_mutex rm_taskBarIcon;//13
+	std::mutex m_socket;//14
 
 	utente* m_utenteProprietario;   //Riferimento ad utente proprietario.
 	wxTaskBarIcon* m_taskBarIcon;
@@ -73,9 +71,7 @@ private:
 	std::string m_ImagePath;
 	std::string m_DefaultImagePath;
 	std::string m_SavePath;
-	std::string m_SendPath;
 	MyClient* m_client;
-	bool m_isDir; //si sta inviando cartella o file
 	status m_stato; //on-line(0) o off-line(1)
 	modalità m_mod; //se si hanno i privilegi amministratore o no
 	save_request m_save_request;  //Richiesta quando si riceve un file
@@ -194,9 +190,7 @@ public:
 		std::lock_guard<std::recursive_mutex> lk_ImagePath(rm_ImagePath);
 		std::lock_guard<std::recursive_mutex> lk_DefaultImagePath(rm_DefaultImagePath);
 		std::lock_guard<std::recursive_mutex> lk_SavePath(rm_SavePath);
-		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
 		std::lock_guard<std::recursive_mutex> lk_client(rm_client);
-		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
 		std::lock_guard<std::recursive_mutex> lk_stato(rm_stato);
 		std::lock_guard<std::recursive_mutex> lk_save_request(rm_save_request);
 		std::lock_guard<std::recursive_mutex> lk_exit_send_udp(rm_exit_send_udp);
@@ -289,7 +283,6 @@ public:
 	}
 	void showBal(std::string title, std::string message) {
 		std::lock_guard<std::recursive_mutex> lk_taskBarIcon(rm_taskBarIcon);
-		//m_taskBarIcon->ShowBalloon(title, message, 5000, wxICON_INFORMATION);
 		m_notification->SetTitle(title);
 		m_notification->SetMessage(message);
 		m_notification->Show();
@@ -400,27 +393,6 @@ public:
 	std::vector<utente> getUtentiOnline() {
 		std::lock_guard<std::recursive_mutex> lk_utenteProprietario(rm_utenteProprietario);
 		return m_utenteProprietario->getUtentiOnline();
-	}
-
-	//Setta il path relativo al file da inviare, specificato su sendPath.
-	void setSendPath(std::string sendPath) {
-		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
-		m_SendPath = sendPath;
-	}
-
-	//Ritorna il path da inviare.
-	std::string getSendPath() {
-		std::lock_guard<std::recursive_mutex> lk_SendPath(rm_SendPath);
-		return m_SendPath;
-	}
-
-	void setIsDir(bool isDir) {
-		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
-		m_isDir = isDir;
-	}
-	bool getIsDir() {
-		std::lock_guard<std::recursive_mutex> lk_isDir(rm_isDir);
-		return m_isDir;
 	}
 
 	//Setta lo stato dell'utente proprietario online.
