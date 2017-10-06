@@ -103,19 +103,18 @@ void iscriviUtente(std::string username, std::string ipAddr, enum status state, 
 		//Evita di registrare se stessi.
 		//getIpAddr torna l'ip del nostro PC
 
-		std::string myIp = utenteProprietario.getIpAddr();
-		if (myIp == "127.0.0.1") {
-			std::string newIp = Settings::getOwnIP();
-			utenteProprietario.setIpAddr(Settings::getOwnIP());
-			myIp = newIp;
+		std::string myIp = Settings::getOwnIP();
+		if (myIp!=utenteProprietario.getIpAddr()) {
+			utenteProprietario.setIpAddr(myIp);
 		}
-		if ( myIp == ipAddr || ipAddr == "127.0.0.1") {
+		if ( myIp == ipAddr || ipAddr == "127.0.0.1" || myIp == "127.0.0.1") {
 			if (ipAddr == "127.0.0.1") {
 				if (first_time.load()) {
 					std::thread([]() {
 						Sleep(3000);
 						wxMessageBox("Attenzione: la connessione internet èË assente.\nControllare lo stato della propria connessione per \nutilizzare correttamente l'applicazione.", wxT("INFO"), wxOK | wxICON_INFORMATION);
 					}).detach();
+					utenteProprietario.setIpAddr(Settings::getOwnIP());
 					first_time.store(false);
 				}
 			}

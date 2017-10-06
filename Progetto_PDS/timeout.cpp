@@ -48,6 +48,10 @@ int read_some(tcp::socket &s, char* buf, size_t dim_buf) {
 	if (dim_read < 0) {
 		throw std::invalid_argument(error);
 	}
+
+	if (dim_read >= (int)dim_buf) {
+		throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+	}
 	return dim_read;
 }
 
@@ -94,6 +98,11 @@ int read_some(tcp::socket &s, char* buf, size_t dim_buf, int timeout) {
 	if (dim_read < 0) {
 		throw std::invalid_argument(error);
 	}
+
+	if (dim_read >=(int) dim_buf) {
+		throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+	}
+
 	return dim_read;
 }
 

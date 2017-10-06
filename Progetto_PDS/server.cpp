@@ -256,6 +256,9 @@ void reciveAfterAccept(boost::asio::io_service& io_service, tcp::socket s, utent
 					//Se è il "primo giro", vuol dire che ricevo le informazioni utili alla ricezione della directory
 					if (firstTime == true) {
 						length = s.read_some(boost::asio::buffer(buf, PROTOCOL_PACKET));
+						if (length >= PROTOCOL_PACKET) {
+							return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+						}
 						buf[length] = '\0';
 						directorySize = std::atoi(buf);
 						directory_size_to_send = directorySize;

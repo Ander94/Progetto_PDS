@@ -307,6 +307,9 @@ void send_directory(boost::asio::io_service& io_service, boost::asio::basic_stre
 		//Invio il nome della cartella
 		write_some(s, folder);
 		length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+		if (length >= PROTOCOL_PACKET) {
+			return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+		}
 		buf_recive[length] = '\0';
 		response = buf_recive;
 		if (progBar->testAbort())
@@ -450,6 +453,9 @@ void send_file(boost::asio::io_service& io_service, boost::asio::basic_stream_so
 			write_some(s, sendPath);
 			//Leggo la risposta da parte del server e se negativa, lancio un eccezione
 			length = s.read_some(boost::asio::buffer(buf_recive, PROTOCOL_PACKET));
+			if (length >= PROTOCOL_PACKET) {
+				return throw std::invalid_argument("Errore nello scambio dei pacchetti.");
+			}
 			buf_recive[length] = '\0';
 			response = buf_recive;
 			if (progBar->testAbort())
