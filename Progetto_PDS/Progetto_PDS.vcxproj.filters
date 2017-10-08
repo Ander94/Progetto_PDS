@@ -42,9 +42,6 @@
     <ClCompile Include="WindowProgressBar.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="WindowSaveFile.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="WindowSelectUser.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
@@ -90,9 +87,6 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="WindowProgressBar.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowSaveFile.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="IPCserver.h">
